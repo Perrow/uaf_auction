@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %} Auktion {% endblock %}
+{% block head %}
+    {{ super() }}
+<style>
+input[type=text] {
+    width: 25%;
+    padding: 12px 20px;
+    margin: 10px 30px 0px 10px;
+    box-sizing: border-box;
+}
+</style>
+
+{% endblock %}
+{% block body %}
+    <h1>Auktion</h1>
+    <p> Fyll i postens nummer, tryck TAB. </p>
+
+    <form  action="/auktion" method="POST">
+        {{ form.csrf_token }}
+
+        {{ form.post_id.label }}
+        {% for error in form.post_id.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.post_id() }}
+
+        {{ form.price.label }}
+        {% for error in form.price.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.price() }}
+
+        {{ form.sale_type.label }}
+        {% for error in form.sale_type.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.sale_type() }}
+
+        {{ form.submit() }}
+
+    </form>
+
+
+
+
+    <div class="warning" id="type"></div>
+
+    <div class="warning" id="sold"></div>
+
+    <div class="error" id="error"></div>
+
+    <p>Reservationspris</p>
+    <div class="warning" id="min_price"></div>
+
+    <p>Namn</p>
+    <div class="info" id="plain_name"></div>
+
+    <p>Vetenskapligt namn</p>
+    <div class="info" id="scientific_name"></div>
+
+    <p>Beskrivning</p>
+    <div class="info" id="description"></div>
+
+    <p>Säljare</p>
+    <div class="info" id="seller_name"></div>
+
+    <script src="{{ url_for('static', filename='js/auktion.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!doctype html>
+
+<html lang="sv">
+<head>
+    <meta charset="utf-8">
+    {%block head %}
+        <title>{% block title %}{% endblock %}</title>
+        <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
+    {% endblock %}
+    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+</head>
+
+<body>
+ <nav>
+  <a href=" {{ url_for('index') }} ">Start</a> |
+  <a href=" {{ url_for('new_seller') }} ">Registrera säljare</a> |
+  <a href=" {{ url_for('add_object') }} ">Registrera post</a> |
+  <a href=" {{ url_for('list_seller') }} ">Visa säljare</a> |
+  <a href=" {{ url_for('list') }} ">Visa poster</a> |
+  <a href=" {{ url_for('auktion') }} ">Auktion</a> |
+  <a href=" {{ url_for('flea_market') }} ">Loppis</a> |
+</nav>
+
+<div id="main">
+    {% block body%}
+    {% endblock %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+            {% for message in messages %}
+                <li>{{ message }} </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</div> <!--main-->
+
+</body>
+</html>

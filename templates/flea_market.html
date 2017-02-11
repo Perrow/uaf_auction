@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %} Loppis {% endblock %}
+{% block head %}
+    {{ super() }}
+<style>
+input[type=text] {
+    width: 25%;
+    padding: 12px 20px;
+    margin: 10px 30px 0px 10px;
+    box-sizing: border-box;
+}
+</style>
+{% endblock %}
+{% block body %}
+    <h1>Loppis</h1>
+    <p> Fyll i postens nummer, tryck TAB. </p>
+
+    <div id="sum">Att betala: </div>
+
+    <form  action="/loppis" method="POST">
+
+
+        <div id="form_elements">
+        <label for="post1">Post nr:</label>
+        <input class="loppis post_id" id="post1" name="post_id" type="text" value="">
+        <label for="price1">Pris:</label>
+        <input class="loppis price" id="price1" name="price" type="text" value=""> <br>
+
+
+        </div>
+        <button id="addbutton" type="button">Extra säljrad</button>
+        <button id="sumbutton" type="button">Beräkna summa</button>
+        <input id="submit" name="submit" type="submit" value="Skicka">
+    </form>
+
+
+    <div class="warning" id="type"></div>
+
+    <div class="warning" id="sold"></div>
+
+    <div class="error" id="error"></div>
+
+    <p>Namn</p>
+    <div class="info" id="plain_name"></div>
+
+    <p>Vetenskapligt namn</p>
+    <div class="info" id="scientific_name"></div>
+
+    <p>Beskrivning</p>
+    <div class="info" id="description"></div>
+
+    <p>Säljare</p>
+    <div class="info" id="seller_name"></div>
+
+    <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
+{% endblock %}

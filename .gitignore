@@ -1,0 +1,9 @@
+*.png
+.idea/
+*.ods
+*.txt
+2016/
+python/
+*pdf
+*pyc
+

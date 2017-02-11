@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %} Index {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <h1>Registrera post</h1>
+
+    <form  action="/new_post" method="POST">
+        {{ form.csrf_token }}
+
+        {{ form.seller_email.label }}
+        {% for error in form.seller_email.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.seller_email() }}
+
+        {{ form.type.label }}
+        {% for error in form.type.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.type() }}
+        <br>
+
+        {{ form.plain_name.label }}
+        {% for error in form.plain_name.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.plain_name() }}
+
+        <div id="scientific_name_div">
+        {{ form.scientific_name.label }}
+        {% for error in form.scientific_name.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.scientific_name() }}
+        </div>
+
+        {{ form.description.label }}
+        {% for error in form.description.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.description() }}
+
+        {{ form.quantity.label }}
+        {% for error in form.quantity.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.quantity() }}
+
+        <div id="min_price_div">
+        {{ form.min_price.label }}
+        {% for error in form.min_price.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.min_price() }}
+        </div>
+
+        <div id="fixed_price_div">
+        {{ form.fixed_price.label }}
+        {% for error in form.fixed_price.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.fixed_price() }}
+        </div>
+
+        {{ form.submit() }}
+
+    </form>
+
+    <script src="{{ url_for('static', filename='js/new_post.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %} Index {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <h1>Confirmation</h1>
+    <p> Email-adressen fanns redan i databasen. Uppgifterna lagrades inte.</p>
+    <h3>Ditt id är {{ cur_seller_id }} </h3>
+    <a href="{{ url_for('add_object') }}">Skriv in en post</a>
+{% endblock %}

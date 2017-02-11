@@ -1,0 +1,135 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #444;
+}
+
+html {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    marging-bottom: 10px;
+    background: white;
+}
+
+#main {
+    padding: 30px;
+    background: lightblue;
+    height: 100vh;
+}
+
+h1 {
+    color: blue;
+    text-align: center;
+}
+
+p {
+    font-family: verdana;
+    font-size: 20px;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+}
+
+.loppis {
+    width: 40%;
+    padding: 10px 20px 10px 20px;
+    margin: 0px 30px 10px 0px;
+    box-sizing: border-box;
+}
+
+input[type=email] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+}
+textarea {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    resize: none;
+}
+
+#submit, #addbutton, #sumbutton {
+background-color:#7892c2;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
+	border:1px solid #4e6096;
+	margin: 10px 30px 10px 10px;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:19px;
+	padding:10px 30px;
+	text-decoration:none;
+}
+#submit:hover, #addbutton:hover, #sumbutton:hover {
+	background-color:#476e9e;
+}
+#submit:active, #addbutton:active, #sumbutton:active {
+	position:relative;
+	top:1px;
+}
+
+
+.error {
+    color: red;
+    font-size: 2em;
+}
+
+.warning {
+    color: yellow;
+    font-size: 2em;
+}
+
+.info {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    background: white;
+}
+
+th, td {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+right-align {
+    align: right;
+}
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
+.visible {}
+    display: block;
+    visibility: visible;
+}
