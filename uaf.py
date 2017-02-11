@@ -280,8 +280,8 @@ def auktion():
             cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
             flash("Post {} registrerad som såld.".format(post_id))
 
-        form.post_id.data = ""
-        form.price.data = ""
+        form.post_id.raw_data = [""]
+        form.price.raw_data = [""]
         form.sale_type.data = ""
         return render_template('auktion.html', form=form)
 
