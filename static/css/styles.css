@@ -129,7 +129,52 @@ right-align {
     visibility: hidden;
 }
 
-.visible {}
+.visible {
     display: block;
     visibility: visible;
+}
+
+
+.left {
+    float: left;
+    margin-right: 2%;
+}
+
+
+.ten {
+    width: 10%;
+}
+.twenty {
+    width: 20%;
+}
+.forty {
+    width: 40%;
+}
+.fifty {
+    width: 50%;
+}
+.ninety {
+    width: 90%;
+}
+.ninetyfour {
+    width: 94%;
+}
+.hundred {
+    width: 100%;
+}
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.blackborder {
+    padding: 5px;
+    overflow: hidden;
+    border: 2px solid black;
+}
+
+.hidden {
+    display: none;
 }

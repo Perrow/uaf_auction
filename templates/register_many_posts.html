@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %} Loppis {% endblock %}
+{% block head %}
+    {{ super() }}
+<style>
+<!--input[type=text] {-->
+    <!--width: 25%;-->
+    <!--padding: 12px 20px;-->
+    <!--margin: 10px 30px 0px 10px;-->
+    <!--box-sizing: border-box;-->
+<!--}-->
+</style>
+{% endblock %}
+{% block body %}
+    <h1>Registrera många poster</h1>
+
+    <div> </div>
+
+    <form  action="/register_many" method="POST">
+        <label for="seller_email">Säljarens email:</label>
+        <input id="seller_email" name="seller_email" type="text" value="">
+
+        <label for="numberofposts">Antal poster att registrera:</label><br>
+        <input class="forty" id="numberofposts" name="numberofposts" type="text" value="">
+        <button id="addbutton" type="button">Skapa poster</button>
+
+
+        <div id="form_elements">
+        <!--<div class="blackborder">-->
+
+        <!--<label for="type0">Godstyp</label>-->
+        <!--<select id="type0" name="type">-->
+            <!--<option value="1">Fisk till auktionen</option>-->
+            <!--<option value="2">Fisk till fasta bordet</option>-->
+            <!--<option value="3">Övriga djur till fasta bordet</option>-->
+            <!--<option value="4">Övrigt levande till auktionen</option>-->
+            <!--<option value="5">Övrigt till fasta bordet</option>-->
+            <!--<option value="6">Räkor till auktionen</option>-->
+            <!--<option value="7">Tillbehör till auktionen</option>-->
+            <!--<option value="8">Tillbehör till fasta bordet</option>-->
+            <!--<option value="9">Växter</option>-->
+            <!--<option value="10">Växter till fasta bordet</option>-->
+        <!--</select>-->
+        <!--<br>-->
+
+        <!--<div class="left forty" >-->
+            <!--<label for="sciname0">Vetenskapligt namn:</label><br>-->
+            <!--<input class="ninety" id="sciname0" name="sciname" type="text" value=""> <br>-->
+        <!--</div>-->
+        <!--<div  class="left forty">-->
+            <!--<label for="popname0">Populärnamn:</label><br>-->
+            <!--<input class="ninety" id="popname0" name="popname" type="text" value=""> <br>-->
+        <!--</div>-->
+        <!--<div  id="min_price_div0" class="left ten">-->
+            <!--<label for="min_price0">Utropspris:</label><br>-->
+            <!--<input class="ninety" id="min_price0" name="price" type="text" value=""> <br>-->
+        <!--</div>-->
+        <!--<div  id="fixed_price_div0" class="left ten">-->
+            <!--<label for="fixed_price0">Fast pris:</label><br>-->
+            <!--<input class="ninety" id="fixed_price0" name="price" type="text" value=""> <br>-->
+        <!--</div>-->
+        <!--<div  class="left ninetyfour">-->
+            <!--<label for="description0">Beskrivning:</label><br>-->
+            <!--<input class="ninety" id="description0" name="description" type="text" value=""> <br>-->
+        <!--</div>-->
+
+        <!--</div> &lt;!&ndash;blackborder&ndash;&gt;-->
+
+        <!--<button id="copybutton" type="button">Kopiera post</button>-->
+
+        </div> <!--form_elements    -->
+        <div class="clearfix">
+            <br>
+            <input id="submit" name="submit" type="submit" value="Skicka">
+        </div>
+    </form>
+
+    <script src="{{ url_for('static', filename='js/register_many.js') }}"></script>
+{% endblock %}

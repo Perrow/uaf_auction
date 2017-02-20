@@ -23,7 +23,7 @@ import zlabels
 import compilation
 
 
-# For Linux to set default encoding on the server
+# set default encoding on the server to utf-8 pyhton 2.7
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -130,6 +130,52 @@ def new_seller():
         return render_template('new_seller.html', form=form)
 
 
+@app.route("/register_many", methods=['GET', 'POST'])
+def register_many():
+    """
+    Register many new post at the same time
+    :return:
+    """
+    if request.method == 'POST':
+        seller_email = request.form['seller_email']
+        types = request.form.getlist('type')
+        scinames = request.form.getlist('sciname')
+        popnames = request.form.getlist('popname')
+        min_prices = request.form.getlist('min_price')
+        fixed_prices = request.form.getlist('fixed_price')
+        descriptions = request.form.getlist('description')
+
+        print(seller_email)
+        print(types)
+        print(scinames)
+        print(popnames)
+        print(min_prices)
+        print(fixed_prices)
+        print(descriptions)
+        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
+        print(new_items)
+
+        session["seller_email"] = seller_email
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT seller_id FROM sellers WHERE email=?", [seller_email])
+            result = cur.fetchone()
+            if result:
+                seller_id = result[0]
+                session["seller_id"] = seller_id
+                for scientific_name, plain_name, description, type, minimum_price, fixed_price in new_items:
+                    cur.execute(
+                        "INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?)",
+                    (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price))
+
+                flash("Posterna registrerade.")
+            else:
+                flash(
+                    "Email-adressen finns inte i databasen, kontrollera att du skrivit rätt email eller registrera dig som säljare.")
+
+    return render_template('register_many_posts.html')
+
 @app.route("/new_post", methods=['GET', 'POST'])
 def add_object():
     """
@@ -195,6 +241,8 @@ def json_get_type(type_nr):
             return jsonify(result[0])
         else:
             return jsonify({"error": "id not found"})
+
+
 
 
 @app.route('/list')
