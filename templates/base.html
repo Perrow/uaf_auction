@@ -26,7 +26,11 @@
   <a href=" {{ url_for('auktion') }} ">Auktion</a> |
   <a href=" {{ url_for('flea_market') }} ">Loppis</a> |
 </nav>
-
+{% if current_user.is_authenticated %}
+  Inloggad som {{ current_user.name }}!
+{% else %}
+Inte inloggad
+{% endif %}
 <div id="main">
     {% block body%}
     {% endblock %}

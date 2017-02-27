@@ -20,7 +20,7 @@ from flask_login import LoginManager, login_required, UserMixin, login_user, log
 from flask import Flask, request, abort, redirect, Response, url_for, render_template, flash
 from functools import wraps
 ###
-import user
+import user_model
 import zlabels
 import compilation
 
@@ -135,7 +135,7 @@ def load_user(user_id):
             else:
                 is_admin = False
 
-            return user.User(name, user_id, email, is_admin)
+            return user_model.User(name, user_id, email, is_admin)
     return None
 
 
@@ -511,7 +511,7 @@ def comp(id=None):
 
         for seller_id in seller_ids:
             seller_id = seller_id[0]
-            cur.execute("SELECT firstname, lastname FROM sellers WHERE seller_id=?", [seller_id])
+            cur.execute("SELECT name FROM sellers WHERE seller_id=?", [seller_id])
             names = cur.fetchone()
             seller_name = " ".join(names)
             # Get sold total sum
@@ -589,7 +589,7 @@ def register():
             flash("Användare {} skapad.".format(username))
         authed_user = auth(username, password)
         if authed_user:
-            print("new user logged in {} {}".format(user, username))
+            # print("new user logged in {} {}".format(user_model, username))
             login_user(authed_user)
 
         return redirect(url_for('index'))
