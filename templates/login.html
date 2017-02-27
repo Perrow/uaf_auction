@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %} Login {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+<h1> Login </h1>
+<p>Logga in för att komma åt alla sidor.</p>
+<form action=""  method="POST" >
+    <label for="username">email</label>
+    <input type="text" name="username" id="username"> <br>
+    <label for="password">Lösenord</label>
+    <input type="password" name="password" id="password"> <br>
+    <input type="submit" value="Login">
+</form>
+{% endblock %}

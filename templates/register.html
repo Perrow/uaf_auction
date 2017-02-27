@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %} Login {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+<h1> Register </h1>
+<p>Skapa användre.</p>
+<form action=""  method="POST" >
+    <label for="name">Namn</label>
+    <input type="text" name="name" id="name"> <br>
+    <label for="username">email</label>
+    <input type="text" name="username" id="username"> <br>
+    <label for="password">Lösenord</label>
+    <input type="password" name="password" id="password"> <br>
+    <input type="submit" value="Login">
+</form>
+{% endblock %}

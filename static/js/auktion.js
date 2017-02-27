@@ -26,7 +26,7 @@ $(document).ready(function(){
           $('#min_price').html(data.minimum_price).fadeIn();
           $('#plain_name').html(data.plain_name).fadeIn();
           $('#description').html(data.description).fadeIn();
-          $('#seller_name').html(data.firstname + " " + data.lastname).fadeIn()
+          $('#seller_name').html(data.name).fadeIn()
 //          Warning for posts not registrated for auction
           if (data.type != "auction") {
               $('#type').html("Ej registrerad som auktionsgods").fadeIn();

@@ -2,22 +2,29 @@
 __author__ = 'kristian'
 
 import sqlite3
-# import sys
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
+import bcrypt
+
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 conn = sqlite3.connect("auktion.db3")
 conn.text_factory = str
+
+
+
+
+
 
 auction_info = (
     ("Uppsala storauktion", "2017", "2017-11-19", 0.15),
 )
 
 sellers = (
-    ("Kalle", "Persson", "Tallmon 1, 54878 Näppeby", "kalle.persson@mail.com", "051-25468", "UAF"),
-    ("Olle", "Karlsson", "Vägen 5, 84520 Frippo", "olle.karlsson@mail.com", "0730-421587", "Örebro"),
-    ("Lena", "Svensson", "Skogen 65, 51242 Skogsbyn", "Lena.svensson@mail.com", "0733-954321", "Haninge AF"),
-    ("Pia", "Larsson", "Fälgtvägen 54, 85241 Byn", "Pia.Larsson@mail.com", "0733-987632", "Malmö AF")
+    ("Kalle Persson", "Tallmon 1, 54878 Näppeby", "kalle.persson@mail.com", "051-25468", "UAF", "yes", "password"),
+    ("Olle Karlsson", "Vägen 5, 84520 Frippo", "olle.karlsson@mail.com", "0730-421587", "UAF", "yes", "123456"),
+    ("Lena Svensson", "Skogen 65, 51242 Skogsbyn", "Lena.svensson@mail.com", "0733-954321", "Haninge AF", "no", "lösenord"),
+    ("Pia Larsson", "Fälgtvägen 54, 85241 Byn", "Pia.Larsson@mail.com", "0733-987632", "Malmö AF", "no", "secret")
 )
 
 posts = (
@@ -47,19 +54,31 @@ types = (
 with conn:
     cur = conn.cursor()
 
-    # cur.execute("DROP TABLE IF EXISTS sellers")
+    cur.execute("DROP TABLE IF EXISTS sellers")
     cur.execute("DROP TABLE IF EXISTS posts")
-    # cur.execute("DROP TABLE IF EXISTS types")
-    # cur.execute("DROP TABLE IF EXISTS auction_info")
+    cur.execute("DROP TABLE IF EXISTS types")
+    cur.execute("DROP TABLE IF EXISTS auction_info")
 
 
-    # cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT)')
+    cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, quantity TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT)')
-    # cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
-    # cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
+    cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+    cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
 
+
+    for seller in sellers:
+        salt = bcrypt.gensalt()
+        password = bcrypt.hashpw(seller[6], salt)
+        print(seller[6], salt, password)
+        seller_data = seller[:-1] + (password,)
+        print(seller_data)
+        cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password) VALUES(?, ?, ?, ?, ?, ?, ?)", seller_data)
 
     # cur.executemany("INSERT INTO sellers (firstname, lastname, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?, ?)", sellers)
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type) VALUES(?, ?, ?, ?, ?, ?)", posts)
-    # cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
-    # cur.executemany("INSERT INTO auction_info (name, year, date, commission) VALUES(?, ?, ?, ?)", auction_info)
+    cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
+    cur.executemany("INSERT INTO auction_info (name, year, date, commission) VALUES(?, ?, ?, ?)", auction_info)
+
+
+
+

@@ -55,6 +55,7 @@ class ZLabels(object):
         :param data: the data to generate labels from
         :param border: Draw border around labels or not
         """
+
         import cStringIO
         output = cStringIO.StringIO()
         # pdf_name = "{}.pdf".format(self.pdf_name)
@@ -74,7 +75,7 @@ class ZLabels(object):
         for seller in data:
             count = 0
             saved = False
-
+            print(seller)
             seller_id = seller[0]
             seller_name = seller[1]
             seller_phone = seller[2]

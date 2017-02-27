@@ -15,10 +15,12 @@ from flask import flash
 from flask_wtf import Form
 from wtforms import StringField, SubmitField, SelectField, IntegerField, HiddenField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange
-# from flask_weasyprint import HTML, render_pdf
-# import json
-# import labels
-# from reportlab.graphics import shapes
+import bcrypt
+from flask_login import LoginManager, login_required, UserMixin, login_user, logout_user, current_user
+from flask import Flask, request, abort, redirect, Response, url_for, render_template, flash
+from functools import wraps
+###
+import user
 import zlabels
 import compilation
 
@@ -36,13 +38,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
 
+# For flask-login
+lm = LoginManager()
+lm.init_app(app)
+lm.login_view = "login"
+# lm.anonymous_user = anonymous_user.Anonymous
+
 
 class PersonForm(Form):
     """
     wtf form class for the input form
     """
-    first_name = StringField('Förnamn:', validators=[DataRequired()])
-    surname = StringField('Efternamn:', validators=[DataRequired()])
+    name = StringField('Namn:', validators=[DataRequired()])
     address = StringField('Adress:', validators=[DataRequired()])
     email = StringField('Email:', validators=[DataRequired(), Email()])
     phone = StringField('Telefonnummer:', validators=[DataRequired()])
@@ -87,12 +94,86 @@ class AuctionForm(Form):
     submit = SubmitField('Skicka')
 
 
+
+def admin_required(func):
+    """
+    A decorater that checks if a logged in user has admin privileges
+    :param func: page that need to be checked
+    :return: If user has admin privileges then the page is rendered otherwise index page is rendered
+    """
+    @wraps(func)
+    @login_required
+    def func_wrapper(*args, **kwargs):
+        if current_user.is_admin:
+            print(current_user.name, current_user.is_admin)
+            return func(*args, **kwargs)
+        else:
+            flash("This page need admin priviliges.")
+            return render_template('index.html')
+
+    return func_wrapper
+
+@lm.user_loader
+def load_user(user_id):
+    """
+    Loads a user from the database identified by id
+    :param user_id: user id must match the database
+    :return:
+    """
+    conn = sqlite3.connect(DATABASE)
+    print("Load_user id={}".format(user_id))
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT name, email, isAdmin  FROM sellers WHERE seller_id=?", (user_id,))
+        result = cur.fetchone()
+        if result:
+            name = result[0]
+            email = result[1]
+            is_admin = result[2]
+            if is_admin == "yes":
+                is_admin = True
+            else:
+                is_admin = False
+
+            return user.User(name, user_id, email, is_admin)
+    return None
+
+
+def auth(username, password):
+    """
+    Authenticates a user against the database
+    :param username:
+    :param password:
+    :return:
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        # cur.execute("SELECT id FROM users WHERE email=? and password=?", (username, password))
+        cur.execute("SELECT seller_id, password FROM sellers WHERE email=? ", (username, ))
+        result = cur.fetchone()
+        if result:  # email is in database, check that password is correct
+            if bcrypt.checkpw(password.encode('utf8'), result[1].encode('utf8')):
+                user_id = result[0]
+                return load_user(user_id)
+            else:
+                return None
+        else:
+            return None
+
+
+
 @app.route('/')
 def index():
     """
     Index page
     :return:
     """
+    if current_user.is_authenticated:
+        print("Current user: {}".format(current_user.name))
+        print("ÄR admin: {}".format(current_user.is_admin))
+    else:
+        print("No current user")
     return render_template('index.html')
 
 
@@ -104,8 +185,8 @@ def new_seller():
     """
     form = PersonForm()
     if form.validate_on_submit():
-        first_name = form.first_name.data
-        surname = form.surname.data
+        name = form.name.data
+        # surname = form.surname.data
         email = form.email.data
         address = form.address.data
         phone = form.phone.data
@@ -121,11 +202,11 @@ def new_seller():
                 session["seller_email"] = result[0]
                 return render_template('done_seller_exists.html', cur_seller_id=session.get("seller_email"))
             else:
-                cur.execute("INSERT INTO sellers (firstname, lastname, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?, ?)", (first_name, surname, address, email, phone, aquarium_club))
+                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?)", (name, address, email, phone, aquarium_club))
                 cur_seller_id = cur.lastrowid
                 session["seller_id"] = cur_seller_id
                 session["seller_email"] = email
-                return render_template('done.html', first_name=first_name, surname=surname, address=address, email=email, phone=phone, aquarium_club=aquarium_club, cur_seller_id=cur_seller_id)
+                return render_template('done.html', name=name, address=address, email=email, phone=phone, aquarium_club=aquarium_club, cur_seller_id=cur_seller_id)
     else:
         return render_template('new_seller.html', form=form)
 
@@ -273,7 +354,7 @@ def list_seller():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT firstname, lastname, address, email, phone, aquarium_club, seller_id FROM sellers")
+        cur.execute("SELECT name, address, email, phone, aquarium_club, seller_id FROM sellers")
         result = cur.fetchall()
         return render_template('list_seller.html', data=result)
 
@@ -290,7 +371,7 @@ def get_json(post_id):
     with conn:
         cur = conn.cursor()
 
-        cur.execute(""" SELECT posts.obj_id, sellers.firstname, sellers.lastname, posts.description, posts.scientific_name, posts.plain_name, posts.quantity, posts.sold_on, posts.fixed_price, posts.sold_price, types.sale_type as type, posts.minimum_price
+        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.quantity, posts.sold_on, posts.fixed_price, posts.sold_price, types.sale_type as type, posts.minimum_price
         FROM sellers
         INNER JOIN posts
         ON sellers.seller_id=posts.seller_id
@@ -310,6 +391,7 @@ def get_json(post_id):
 
 
 @app.route("/auktion", methods=['GET', 'POST'])
+@admin_required
 def auktion():
     """
     Shows the auction form and updates the database with the price it sold for and the sale type
@@ -378,9 +460,9 @@ def make_labels(id=None):
         MK = zlabels.ZLabels("mypdf", auction_name, auction_date)
 
         if id:
-            cur.execute("SELECT seller_id, firstname, lastname, phone, aquarium_club FROM sellers WHERE seller_id=?", id)
+            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", id)
         else:
-            cur.execute("SELECT seller_id, firstname, lastname, phone, aquarium_club FROM sellers")
+            cur.execute("SELECT seller_id, tname, phone, aquarium_club FROM sellers")
         sellers = cur.fetchall()
         data = []
         for seller in sellers:
@@ -388,7 +470,7 @@ def make_labels(id=None):
             print(seller_id)
             cur.execute("SELECT obj_id, plain_name, scientific_name, quantity, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
             posts = cur.fetchall()
-            seller_data = [seller[0], " ".join([seller[1], seller[2]]), seller[3], seller[4]]
+            seller_data = [seller[0], seller[1], seller[2], seller[3]]
             post_data = []
             for post in posts:
                 post_data.append([post[0], " ".join([post[1], post[2]]), post[3], post[4]])
@@ -399,7 +481,7 @@ def make_labels(id=None):
     pdf = MK.make_pdf(data)
 
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename='labels.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
     response.mimetype = 'application/pdf'
     return response
 
@@ -448,9 +530,82 @@ def comp(id=None):
     pdf = comp_pdf.make_pdf(data)
 
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename='labels.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
     response.mimetype = 'application/pdf'
     return response
+
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Login of user
+    :return:
+    """
+    if request.method == 'POST':
+        logout_user()
+        username = request.form['username']
+        password = request.form['password']
+
+        authed_user = auth(username, password)
+        if authed_user:
+            login_user(authed_user)
+            flash('Logged in successfully.')
+            next_page = request.args.get('next')
+
+            # is_safe_url should check if the url is safe for redirects.
+            # See http://flask.pocoo.org/snippets/62/ for an example.
+            # if not is_safe_url(next):
+            #     return abort(400)
+
+            return redirect(next_page or url_for('index'))
+
+        else:
+            return abort(401)
+    else:
+        return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """
+    Register of user
+    :return:
+    """
+    if request.method == 'POST':
+        logout_user()
+        name = request.form['name']
+        username = request.form['username']
+        password = request.form['password']
+        # encrypt password
+        salt = bcrypt.gensalt()
+        password = bcrypt.hashpw(password.encode('utf8'), salt)
+
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("INSERT INTO sellers (name, email, password, isAdmin) VALUES (?,?, ?, 'false')",
+                        (name, username, password))
+            flash("Användare {} skapad.".format(username))
+        authed_user = auth(username, password)
+        if authed_user:
+            print("new user logged in {} {}".format(user, username))
+            login_user(authed_user)
+
+        return redirect(url_for('index'))
+    else:
+        return render_template('register.html')
+
+
+@app.route("/logout", methods=["GET"])
+@login_required
+def logout():
+    """
+    Logout a user
+    :return:
+    """
+    logout_user()
+    return render_template('index.html')
 
 
 
@@ -461,6 +616,15 @@ def page_not_found(error):
     """
     return render_template('page_not_found.html'), 404
 
+
+@app.errorhandler(401)
+def page_not_found(error):
+    """
+    Page not found
+    :param error:
+    :return:
+    """
+    return render_template('login_failed.html'), 401
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -42,7 +42,7 @@ $(document).ready(function(){
                         $('#scientific_name').html(data.scientific_name).fadeIn();
                         $('#plain_name').html(data.plain_name).fadeIn();
                         $('#description').html(data.description).fadeIn();
-                        $('#seller_name').html(data.firstname + " " + data.lastname).fadeIn()
+                        $('#seller_name').html(data.name).fadeIn()
                 //          Warning for posts not registrated for auction
                         if (data.type != "fixed_price") {
                             $('#type').html("Ej registrerad för fasta bordet").fadeIn();
