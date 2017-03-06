@@ -14,6 +14,8 @@
         <th>telefon</th>
         <th>Förening</th>
         <th>Etikett</th>
+        <th>kvitto</th>
+
   </tr>
   {% for row in data %}
    <tr>
@@ -23,12 +25,14 @@
        <td> {{ row[3] }} </td>
        <td> {{ row[4] }} </td>
        <td><a href=" {{ url_for('make_labels', id=row[5]) }} " >{{ row[5] }}</a>  </td>
+       <td><a href=" {{ url_for('receipt', id=row[5]) }} " >{{ row[5] }}</a>  </td>
    </tr>
   {% endfor %}
 
 </table>
-<p> <a href=" {{ url_for('make_labels') }} " > Etiketter för alla säljare </a>  </p>
-<p> <a href=" {{ url_for('comp') }} " > Sammanställning för alla säljare </a>  </p>
+<!--<p> <a href=" {{ url_for('make_labels') }} " > Etiketter för alla säljare </a>  </p>-->
+<!--<p> <a href=" {{ url_for('comp') }} " > Sammanställning för alla säljare </a>  </p>-->
+<!--<p> <a href=" {{ url_for('receipt') }} " > Inlämningskvitton för alla säljare </a>  </p>-->
 
 
 {% endblock %}

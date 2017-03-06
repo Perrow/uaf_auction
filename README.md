@@ -14,14 +14,24 @@ This program are to be used during an auction or a fleamarket by an aquarium clu
 ## Requirements
 
 This is a client server program written in Python 2.7, HTML, JavaScript and CSS. 
-It is meant to be run on a Linux (tested on Ubuntu) server with Apache, but should run under other python compatible servers.
+It is meant to be run on a Linux (tested on Ubuntu) server with Apache, but should run on other python compatible servers.
 
 Needed Python libraries:
 
 * flask
-* wtforms
+* wtforms (flask-wtf)
+* flask_login
 * reportlab
+* bcrypt
+
 
 Recommended Python environment is anaconda then:
+```
 pip install flask-wtf
 pip install reportlab
+pip install bcrypt
+```
+In order to install bcrypt on Ubuntu 14.04 libffi-dev was needed.
+```
+sudo apt-get install  libffi-dev   
+```

@@ -1,0 +1,171 @@
+# coding=utf-8
+from reportlab.platypus import PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib.colors import red, blueviolet, yellowgreen, lawngreen, black, grey
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER, TA_JUSTIFY
+from reportlab.lib.styles import ParagraphStyle
+
+from PdfLine import LeftLine, CenterLine
+
+
+class EconomicReport(object):
+
+    def __init__(self, event_name, Association, Association_short_name, event_date, event_city ):
+        """
+        Class for generating labels in the size 70*37 mm in a 3 by 8 grid on A4 paper
+        :param event_name: Name of the event
+        :param Association: Name of hosting association
+        :param Association_short_name: Short form of the hosting associations name
+        :param event_date: Date for the event
+        :param event_city: location of the event
+        """
+        self.event_name = event_name
+        self.Association = Association
+        self.Association_short_name = Association_short_name
+        self.event_date = event_date
+        self.event_city = event_city
+
+        self.paper_width, self.paper_height = A4
+
+    # [
+    #     [u'Kalle Persson', 1, u'UAF', 150.0, 23, 127, 3, 2, [[u'auktion', 150.0, u'Fisk till auktionen']]],
+    #     [u'Olle Karlsson', 2, u'UAF', 95.0, 14, 81, 2, 2, [[u'auktion', 95.0, u'Fisk till auktionen']]],
+    #     [u'Lena Svensson', 3, u'Haninge AF', 290.0, 44, 246, 4, 4,[[u'auktion', 150.0, u'Fisk till auktionen'], [u'fasta bordet', 40.0, u'Fisk till auktionen'],[u'fasta bordet', 25.0, u'V\xe4xter till fasta bordet'],[u'fasta bordet', 75.0, u'Tillbeh\xf6r till fasta bordet']]],
+    #     [u'Pia Larsson', 4, u'Malm\xf6 AF', 30.0, 5, 25, 1, 1, [[u'fasta bordet', 30.0, u'Fisk till auktionen']]]
+    # ]
+
+    def make_pdf(self, data, tot_data):
+        """
+        Generate pdf with the data in the data argument
+        :param data: data to render in the pdf
+        :return: a pdf document
+        """
+        import cStringIO
+        output = cStringIO.StringIO()
+        doc = SimpleDocTemplate(output)
+
+        # Set up styles
+        styles = getSampleStyleSheet()
+        normal = styles["Normal"]
+        h1 = styles["h1"]
+        h2 = styles["h2"]
+        h3 = styles["h3"]
+        title = styles["title"]
+
+        # Make a right aligned paragraph style
+        styles.add(ParagraphStyle(name='RightAlign', alignment=TA_RIGHT))
+        normal_right = styles['RightAlign']
+        # Make a centered paragraph style
+        styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+        normal_center = styles['Center']
+
+        # Start document
+        story = [Spacer(1, 25 * mm)]
+
+        # Start page
+        p = Paragraph(u"Ekonomisk sammanställning", title)
+        story.append(p)
+        p = Paragraph(self.event_name, title)
+        story.append(p)
+        p = Paragraph(self.event_date, title)
+        story.append(p)
+        line = LeftLine(doc.width)
+        story.append(line)
+        story.append(Spacer(1, 10 * mm))
+
+        for seller in data:
+            # [seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_posts, count_sold, sold_stat_data]
+            seller_id = seller[0]
+            seller_name = seller[1]
+            club = seller[2]
+            tot_sold = seller[3]
+            to_society = seller[4]
+            to_seller = seller[5]
+            tot_posts = seller[6]
+            count_sold = seller[7]
+            data2 = seller[8]
+
+            data1 = [['Säljare nr:', seller_id, seller_name, club, ""]]
+
+            t1 = Table(data1, colWidths=(20 * mm, 10 * mm, 90 * mm, 40 * mm, doc.width - (20 + 10 + 90 + 40)*mm))  # column width
+            t1.setStyle(TableStyle([("LINEABOVE", (0, 0), (4, 0), 1, black),
+                                # ("LINEBELOW", (3, 2), (4, 2), 1, black),
+                                ('ALIGN', (0, 0), (0, 0), "RIGHT"),
+                                ('ALIGN', (1, 0), (1, 0), "LEFT")
+                                ]))
+            # t1.setStyle(TableStyle([('BACKGROUND', (0, 0), (4, 2), grey)]))
+            story.append(t1)
+            print(doc.width)
+            t2 = Table(data2, colWidths=(60 * mm, 30 * mm, 70*mm, doc.width - (60 + 30 + 70)*mm ))  # column width
+            t2.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
+                                    ('BACKGROUND', (1, 0), (1, -1), blueviolet),
+                                    ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
+                                    ('BACKGROUND', (3, 0), (3, -1), lawngreen),
+                                    ]))
+
+            story.append(t2)
+
+            data3 = [['Sålt:', tot_sold, 'Avgår provision:', to_society, 'Netto:', to_seller, ""],
+                     ['Inlämnade poster:', tot_posts, 'Sålda poster:', count_sold, 'Osålda poster:', tot_posts - count_sold, ""]]
+            t3 = Table(data3, colWidths=(30 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, 20 * mm,  doc.width - (30 + 20 + 30 + 20 + 30 + 20)*mm ))  # column width
+            t3.setStyle(TableStyle([('ALIGN', (0, 0), (0, 1), "RIGHT"),
+                                    ('ALIGN', (2, 0), (2, 1), "RIGHT"),
+                                    ('ALIGN', (4, 0), (4, 1), "RIGHT"),
+                                    ]))
+            t3.setStyle(TableStyle([("LINEABOVE", (0, 0), (6, 0), 1, black),
+                                    ('BACKGROUND', (0, 0), (0, 1), grey),
+                                    ('BACKGROUND', (1, 0), (1, 1), blueviolet),
+                                    ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
+                                    ('BACKGROUND', (3, 0), (3, 1), lawngreen),
+                                    ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
+                                    ('BACKGROUND', (5, 0), (5, 1), lawngreen),
+                                    ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
+                                    ]))
+            story.append(t3)
+            story.append(Spacer(1, 10 * mm))
+
+        p = Paragraph(u"Totalt resultat", title)
+        story.append(p)
+
+        data5 = tot_data[5]
+        t5 = Table(data5, colWidths=(40 * mm, 40 * mm, 40 * mm,  doc.width - (40 + 40 + 40)*mm ))
+        story.append(t5)
+
+        data4 = [["Total försäljningssumma", tot_data[0], "Avgår provision", tot_data[1], "Netto", tot_data[2]],
+                 ["Antal inlämnade poster", tot_data[3], "Antal sålda", tot_data[4], "Antal osålda", tot_data[3] - tot_data[4]]]
+        t4 = Table(data4, colWidths=(45 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, doc.width - (45+20+30+20+30)*mm))
+        t4.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, 1), grey),
+                                ('BACKGROUND', (1, 0), (1, 1), blueviolet),
+                                ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
+                                ('BACKGROUND', (3, 0), (3, 1), lawngreen),
+                                ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
+                                ('BACKGROUND', (5, 0), (5, 1), lawngreen),
+                                # ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
+                                ]))
+        story.append(t4)
+
+        # data6 = [["Antal inlämnade poster", tot_data[3], "Antal sålda poster", tot_data[4], "Antal osålda poster", tot_data[3] - tot_data[4]]]
+        # t6 = Table(data6, colWidths=(30 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, doc.width - (30 + 20 + 30 + 20 + 30 + 20)*mm))
+        # story.append(t6)
+
+
+        doc.build(story) #, onFirstPage=self.my_first_page) #, onLaterPages=my_later_pages)
+
+        pdf_out = output.getvalue()
+        output.close()
+        return pdf_out
+
+if __name__ == "__main__":
+    test_data = [
+    [1, u'Kristian Persson', u'UAF', u'0123-456789', 7, "1, 2, 47, 48, 49, 50-51"],
+    [2, u'Olle Karlsson', u'Haninge', u'0258-468751', 5, "3, 4, 5, 6, 7"],
+
+    [4, u'Pia Larsson', u'Malmö', u'06543-987654', 3, "8, 9, 10"]
+    ]
+
+
+    C = Receipt("Uppsala storauktion", "Uppsala Akvarieförening", "UAF", "2016-11-27", "Uppsala")
+    C.make_pdf(test_data)

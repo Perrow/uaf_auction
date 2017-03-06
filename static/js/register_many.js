@@ -16,9 +16,8 @@ $(document).ready(function(){
     };
 
 
-
+    // Toggles the fixed price and minimum price boxes according to the select status
     var add_toggler_func = function(rownr) {
-        // Toggles the fixed price and minimum price boxes according to the select status
         console.log("row " + rownr);
         var type_id = "#type" + rownr;
         var fixed_price_div = "#fixed_price_div" + rownr;
@@ -63,8 +62,9 @@ $(document).ready(function(){
 
     ;}
 
+
+    //  Copies all values from the post above to current post
     var copy_func = function(rownr) {
-        //  Copies all values from the post above to current post
         var prev_row = rownr - 1;
         var copybutton_id = "#" + "copybutton" + rownr;
         var source_type_id = "#" + "type" + prev_row;
@@ -91,11 +91,39 @@ $(document).ready(function(){
 
     };
 
+    // Makes a json call to server and fetches the sell types from the database in order to generate the drop down
+    var make_option_value = function(){
+        console.log("make_dropdown");
+        option_values = "";
+        jQuery.ajax({
+            async: false,
+            url: 'json_get_sell_types',
+            dataType: 'json',
+            success: function(data){
+                if(data.hasOwnProperty('error')){
+                    console.log("Not found");
+                } else {
+                    console.log("Found");
+                    $(jQuery.parseJSON(JSON.stringify(data))).each(function() {
+                        option_values += '<option value="' + this.type_id + '">' + this.description + '</option>';
+                    });
+                    console.log(option_values);
+                };
+                console.log('.ajax() request returned successfully.');
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
+            },
+        });
+    };
+
 
     // Add a a number of new post forms
     var rowNum = 0;
     $("#addbutton").click(function(){
         console.log("addbutton clicked");
+
+        console.log("+++" + option_values);
         rowNum = Number($("#numberofposts").val());
         for (var i=0; i < rowNum; i++) {
             var type_id = "type" + i;
@@ -110,19 +138,9 @@ $(document).ready(function(){
             var copybutton_id = "copybutton" + i;
 
             var new_post_html = '<br>' +
-                '<div class="blackborder">' +
-                '<label for="' + type_id + '">Godstyp</label>' +
-                '<select id="' + type_id + '" name="type">' +
-                '<option value="1">Fisk till auktionen</option>' +
-                '<option value="2">Fisk till fasta bordet</option>' +
-                '<option value="3">Övriga djur till fasta bordet</option>' +
-                '<option value="4">Övrigt levande till auktionen</option>' +
-                '<option value="5">Övrigt till fasta bordet</option>' +
-                '<option value="6">Räkor till auktionen</option>' +
-                '<option value="7">Tillbehör till auktionen</option>' +
-                '<option value="8">Tillbehör till fasta bordet</option>' +
-                '<option value="9">Växter</option>' +
-                '<option value="10">Växter till fasta bordet</option>' +
+            '<div class="blackborder">' +
+            '<label for="' + type_id + '">Godstyp</label>' +
+            '<select id="' + type_id + '" name="type">' + option_values +
             '</select>' +
             '<br>' +
 
@@ -135,7 +153,7 @@ $(document).ready(function(){
                 '<input class="ninety" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
             '</div>' +
             '<div  id="' + min_price_div_id + '" class="left ten">' +
-                '<label for="' + min_price_id + '">Utropspris:</label><br>' +
+                '<label for="' + min_price_id + '">Reservationspris:</label><br>' +
             '   <input class="ninety" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
             '</div>' +
             '<div  id="' + fixed_price_div_id + '" class="left ten ">' +
@@ -155,9 +173,12 @@ $(document).ready(function(){
             $("#form_elements").append(new_post_html);
             copy_func(i);
             add_toggler_func(i);
+
         }
     });
 
+    var option_values = "";
+    make_option_value();
 
     console.log('Everything is ready.');
 });

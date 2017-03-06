@@ -11,13 +11,8 @@ sys.setdefaultencoding('utf-8')
 conn = sqlite3.connect("auktion.db3")
 conn.text_factory = str
 
-
-
-
-
-
 auction_info = (
-    ("Uppsala storauktion", "2017", "2017-11-19", 0.15),
+    ("Uppsala Akvarieförening", "UAF", "Uppsala", "Uppsala storauktion", "2017", "2017-11-19", 0.15),
 )
 
 sellers = (
@@ -41,15 +36,13 @@ posts = (
 types = (
     (1, "Fisk till auktionen", "auction"),
     (2, "Fisk till fasta bordet", "fixed_price"),
-    (3, "Övriga djur till fasta bordet", "fixed_price"),
-    (4, "Övrigt levande","auction"),
-    (5, "Övrigt till fasta bordet", "fixed_price"),
-    (6, "Räkor till auktionen", "auction"),
-    (7, "Tillbehör", "auction"),
+    (3, "Räkor till auktionen", "auction"),
+    (4, "Räkor till fasta bordet", "fixed_price"),
+    (5, "Övriga djur till fasta bordet", "fixed_price"),
+    (6, "Växter till auktionen", "auction"),
+    (7, "Växter till fasta bordet", "fixed_price"),
     (8, "Tillbehör till fasta bordet", "fixed_price"),
-    (9, "Växter", "auction"),
-    (10, "Växter till fasta bordet", "fixed_price")
-)
+    (9, "Övrigt till fasta bordet", "fixed_price"))
 
 with conn:
     cur = conn.cursor()
@@ -63,7 +56,9 @@ with conn:
     cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, quantity TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT)')
     cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
-    cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
+    # cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
+    cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT)')
+
 
 
     for seller in sellers:
@@ -77,7 +72,7 @@ with conn:
     # cur.executemany("INSERT INTO sellers (firstname, lastname, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?, ?)", sellers)
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type) VALUES(?, ?, ?, ?, ?, ?)", posts)
     cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
-    cur.executemany("INSERT INTO auction_info (name, year, date, commission) VALUES(?, ?, ?, ?)", auction_info)
+    cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission) VALUES(?, ?, ?, ?, ?, ?, ?)", auction_info)
 
 
 

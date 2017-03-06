@@ -23,7 +23,9 @@ from functools import wraps
 import user_model
 import zlabels
 import compilation
-
+import make_receipt_pdf
+import list_shorter
+import make_economic_report_pdf
 
 # set default encoding on the server to utf-8 pyhton 2.7
 import sys
@@ -93,7 +95,7 @@ class AuctionForm(Form):
     sale_type = HiddenField("", default="auktion")
     submit = SubmitField('Skicka')
 
-
+#### Login and Authentication ####
 
 def admin_required(func):
     """
@@ -161,7 +163,7 @@ def auth(username, password):
         else:
             return None
 
-
+#### Routes ####
 
 @app.route('/')
 def index():
@@ -257,6 +259,7 @@ def register_many():
 
     return render_template('register_many_posts.html')
 
+
 @app.route("/new_post", methods=['GET', 'POST'])
 def add_object():
     """
@@ -302,30 +305,6 @@ def add_object():
         return render_template('object.html', form=form)
 
 
-@app.route('/json_get_type/<type_nr>')
-def json_get_type(type_nr):
-    """
-    Returns the type for a type_id as a jsonobject. Useful for javascript to know if a sell type is an auction or a fixed price
-    :param type_nr: id of seller type
-    :return: a json object
-    """
-    conn = sqlite3.connect(DATABASE)
-    with conn:
-        cur = conn.cursor()
-        cur.execute(""" SELECT sale_type FROM types WHERE type_id=?""", (type_nr,))
-
-        columns = [d[0] for d in cur.description]
-        sql_result = cur.fetchall()
-
-        if sql_result:
-            result = [dict(zip(columns, row)) for row in sql_result]
-            return jsonify(result[0])
-        else:
-            return jsonify({"error": "id not found"})
-
-
-
-
 @app.route('/list')
 def list():
     """
@@ -357,6 +336,91 @@ def list_seller():
         cur.execute("SELECT name, address, email, phone, aquarium_club, seller_id FROM sellers")
         result = cur.fetchall()
         return render_template('list_seller.html', data=result)
+
+@app.route('/reports')
+def reports():
+    """
+    Reports page
+    :return:
+    """
+    return render_template('reports.html')
+
+
+
+@app.route("/auktion", methods=['GET', 'POST'])
+@admin_required
+def auktion():
+    """
+    Shows the auction form and updates the database with the price it sold for and the sale type
+    :return:
+    """
+    form = AuctionForm()
+    if form.validate_on_submit():
+
+        post_id = form.post_id.data
+        price = form.price.data
+        sale_type = form.sale_type.data
+        print(sale_type)
+
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
+            flash("Post {} registrerad som såld.".format(post_id))
+
+        form.post_id.raw_data = [""]
+        form.price.raw_data = [""]
+        # form.sale_type.data = ""
+        return render_template('auktion.html', form=form)
+
+    return render_template('auktion.html', form=form)
+
+
+@app.route("/loppis", methods=['GET', 'POST'])
+def flea_market():
+    """
+    Handels the sale of posts at the fixed price table / fleamarket. Updates the sold post with the price and the sale type
+    :return:
+    """
+    post_ids = request.form.getlist('post_id')
+    prices = request.form.getlist('price')
+    print(post_ids)
+    print(prices)
+    sold_items = zip(post_ids, prices)
+    sale_type = "fasta bordet"
+
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        for post_id, price in sold_items:
+            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
+            flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
+
+    return render_template('flea_market.html')
+
+
+#### JSON ####
+
+@app.route('/json_get_type/<type_nr>')
+def json_get_type(type_nr):
+    """
+    Returns the type for a type_id as a jsonobject. Useful for javascript to know if a sell type is an auction or a fixed price
+    :param type_nr: id of seller type
+    :return: a json object
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        cur.execute(""" SELECT sale_type FROM types WHERE type_id=?""", (type_nr,))
+
+        columns = [d[0] for d in cur.description]
+        sql_result = cur.fetchall()
+
+        if sql_result:
+            result = [dict(zip(columns, row)) for row in sql_result]
+            return jsonify(result[0])
+        else:
+            return jsonify({"error": "id not found"})
 
 
 @app.route('/json/<post_id>')
@@ -390,56 +454,29 @@ def get_json(post_id):
             return jsonify({"error": "id not found"})
 
 
-@app.route("/auktion", methods=['GET', 'POST'])
-@admin_required
-def auktion():
+@app.route('/json_get_sell_types')
+def json_get_sell_types():
     """
-    Shows the auction form and updates the database with the price it sold for and the sale type
-    :return:
+    Returns the type for a type_id as a jsonobject. Useful for javascript to know if a sell type is an auction or a fixed price
+    :return: a json object
     """
-    form = AuctionForm()
-    if form.validate_on_submit():
-
-        post_id = form.post_id.data
-        price = form.price.data
-        sale_type = form.sale_type.data
-
-        conn = sqlite3.connect(DATABASE)
-        with conn:
-            cur = conn.cursor()
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
-            flash("Post {} registrerad som såld.".format(post_id))
-
-        form.post_id.raw_data = [""]
-        form.price.raw_data = [""]
-        form.sale_type.data = ""
-        return render_template('auktion.html', form=form)
-
-    return render_template('auktion.html', form=form)
-
-
-@app.route("/loppis", methods=['GET', 'POST'])
-def flea_market():
-    """
-    Handels the sale of posts at the fixed price table / fleamarket. Updates the sold post with the price and the sale type
-    :return:
-    """
-    post_ids = request.form.getlist('post_id')
-    prices = request.form.getlist('price')
-    print(post_ids)
-    print(prices)
-    sold_items = zip(post_ids, prices)
-    sale_type = "fasta bordet"
-
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        for post_id, price in sold_items:
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
-            flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
+        cur.execute(""" SELECT type_id, description, sale_type FROM types""")
 
-    return render_template('flea_market.html')
+        columns = [d[0] for d in cur.description]
+        sql_result = cur.fetchall()
 
+        if sql_result:
+            result = [dict(zip(columns, row)) for row in sql_result]
+            return jsonify(result)
+        else:
+            return jsonify({"error": "id not found"})
+
+
+
+#### PDF Generation ####
 
 @app.route('/labels')
 @app.route('/labels/<id>')
@@ -452,7 +489,7 @@ def make_labels(id=None):
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT name, date from auction_info")
+        cur.execute("SELECT event_name, date from auction_info")
         auction_info = cur.fetchone()
         auction_name = auction_info[0]
         auction_date = auction_info[1]
@@ -462,7 +499,7 @@ def make_labels(id=None):
         if id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", id)
         else:
-            cur.execute("SELECT seller_id, tname, phone, aquarium_club FROM sellers")
+            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers")
         sellers = cur.fetchall()
         data = []
         for seller in sellers:
@@ -486,6 +523,101 @@ def make_labels(id=None):
     return response
 
 
+@app.route('/economic_report')
+def economic_report():
+    conn = sqlite3.connect(DATABASE)
+    data = []
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
+        auction_info = cur.fetchone()
+        hosting_association = auction_info[0]
+        auction_name = auction_info[1]
+        auction_date = auction_info[2]
+        event_city = auction_info[3]
+        commision = auction_info[4]
+        print(auction_name, auction_date, id)
+
+        economic_pdf = make_economic_report_pdf.EconomicReport(hosting_association, auction_name, auction_date, event_city, commision)
+
+        cur.execute("SELECT DISTINCT seller_id, name, aquarium_club FROM sellers")
+        sellers = cur.fetchall()
+
+        for seller in sellers:
+            seller_id = seller[0]
+            seller_name = seller[1]
+            club = seller[2]
+
+            # Get sold total sum and count sold posts
+            cur.execute("SELECT sum(sold_price), count(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
+            sold = cur.fetchone()
+            tot_sold = sold[0]
+            count_sold = sold[1]
+
+            to_society = tot_sold * commision
+            to_society = int(to_society + 0.5)
+            to_seller = int(tot_sold - to_society)
+
+            cur.execute("SELECT  count(*) FROM posts WHERE seller_id=?", [seller_id])
+            tot_nr_posts = cur.fetchone()[0]
+
+            print(seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold)
+
+            # cur.execute("Select posts.seller_id, posts.type, sum(posts.sold_price), types.description from posts LEFT JOIN types on types.type_id=posts.type WHERE posts.seller_id=? GROUP BY type", [seller_id])
+            cur.execute(""" Select posts.seller_id, posts.type, sum(posts.sold_price), posts.sold_on, types.description FROM posts
+                            LEFT JOIN types on types.type_id=posts.type
+                            WHERE posts.seller_id=?  and sold_price>0
+                            GROUP BY type, sold_on
+                            ORDER BY posts.sold_on ASC""", [seller_id])
+            sold_stats = cur.fetchall()
+
+            sold_stat_data = [['Kategori', 'Summa', 'Sålt på']]
+            for sold_stat in sold_stats:
+                print(sold_stat[0], sold_stat[1], sold_stat[2], sold_stat[3], sold_stat[4])
+                sold_stat_data.append([sold_stat[4], int(sold_stat[2]), sold_stat[3], ""])
+
+            data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
+
+        # Summation for the whole auction and flea market
+        cur.execute("SELECT count(obj_id), sold_on FROM posts GROUP BY sold_on")
+        res = cur.fetchall()
+        tot_nr_posts = 0
+        for row in res:
+            tot_nr_posts += row[0]
+            print(row[0], row[1])
+
+        cur.execute("SELECT sum(sold_price), count(obj_id), count(sold_price), sold_on FROM posts WHERE sold_price>0 GROUP BY sold_on")
+        res2 = cur.fetchall()
+        tot_sold_sum = 0
+
+        tot_nr_sold_posts = 0
+        tot_data_type = [[u"Sålt på", u"Antal inlämnade poster", u"Antal Sålda poster", u"Summa"]]
+        i = 0
+        for row in res2:
+            tot_sold_sum += row[0]
+            tot_nr_sold_posts += row[2]
+            # tot_data_type.append([row[3], row[1], row[2], row[0]])
+            tot_data_type.append([row[3], res[i][0], row[2], row[0]])
+            i += 1
+
+        tot_commision = tot_sold_sum * commision
+        tot_commision = int(tot_commision + 0.5)
+        netto = int(tot_sold_sum - tot_commision)
+
+        tot_data = [tot_sold_sum, tot_commision, netto, tot_nr_posts, tot_nr_sold_posts, tot_data_type]
+
+
+    print(data)
+    print(tot_data)
+
+
+    pdf = economic_pdf.make_pdf(data, tot_data)
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
 @app.route('/compilation')
 @app.route('/compilation/<id>')
 def comp(id=None):
@@ -498,13 +630,15 @@ def comp(id=None):
     data = []
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT name, date, commission from auction_info")
+        cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
         auction_info = cur.fetchone()
-        auction_name = auction_info[0]
-        auction_date = auction_info[1]
-        commision = auction_info[2]
+        hosting_association = auction_info[0]
+        auction_name = auction_info[1]
+        auction_date = auction_info[2]
+        event_city = auction_info[3]
+        commision = auction_info[4]
         print(auction_name, auction_date, id)
-        comp_pdf = compilation.Compilation("mypdf", auction_name, auction_date, commision)
+        comp_pdf = compilation.Compilation(hosting_association, auction_name, auction_date, event_city, commision)
 
         cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
         seller_ids = cur.fetchall()
@@ -520,9 +654,9 @@ def comp(id=None):
 
             cur.execute("SELECT obj_id, type, plain_name, sold_price, sold_on FROM posts WHERE seller_id = ? and sold_price>0", [seller_id])
             res = cur.fetchall()
-            data_posts = []
+            data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld']]
             for posts in res:
-                data_posts.append([posts[0], posts[1], posts[2], posts[3], posts[4]])
+                data_posts.append([posts[0], posts[1], posts[2], int(posts[3]), posts[4]])
             data.append([seller_id, seller_name, sold_for, data_posts])
 
         print(data)
@@ -535,6 +669,58 @@ def comp(id=None):
     return response
 
 
+@app.route('/receipt')
+@app.route('/receipt/<id>')
+def receipt(id=None):
+
+    conn = sqlite3.connect(DATABASE)
+    data = []
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT hosting_association, hosting_association_abrv, city, event_name, year, date from auction_info")
+        auction_info = cur.fetchone()
+        hosting_association = auction_info[0]
+        hosting_association_abrv = auction_info[1]
+        city = auction_info[2]
+        event_name = auction_info[3]
+        year = auction_info[4]
+        auction_date = auction_info[5]
+
+        recit_pdf = make_receipt_pdf.Receipt(event_name, hosting_association, hosting_association_abrv, auction_date, city)
+
+        if id:
+            seller_ids = [id]
+        else:
+            cur.execute("SELECT DISTINCT seller_id FROM posts ORDER BY seller_id")
+            seller_ids = cur.fetchall()
+
+        for seller_id in seller_ids:
+            seller_id = seller_id[0]
+            cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", [seller_id])
+            result = cur.fetchone()
+            seller_name = result[0]
+            seller_address = result[1]
+            seller_email = result[2]
+            seller_phone = result[3]
+            seller_club = result[4]
+            cur.execute("SELECT obj_id  FROM posts WHERE seller_id = ? ORDER BY obj_id", [seller_id])
+            res = cur.fetchall()
+            post_ids = []
+            for posts in res:
+                post_ids.append( posts[0])
+            nr_posts = len(post_ids)
+            shorter = list_shorter.ListShorter()
+            post_ids = shorter.short(post_ids)
+            data.append([seller_id, seller_name,seller_club, seller_phone, nr_posts, post_ids])
+
+    pdf = recit_pdf.make_pdf(data)
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=receipt.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+#### User handling ####
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -566,10 +752,20 @@ def login():
         return render_template('login.html')
 
 
+@app.route("/logout", methods=["GET"])
+@login_required
+def logout():
+    """
+    Logout a user
+    :return:
+    """
+    logout_user()
+    return render_template('index.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """
-    Register of user
+    Register a new user
     :return:
     """
     if request.method == 'POST':
@@ -597,17 +793,8 @@ def register():
         return render_template('register.html')
 
 
-@app.route("/logout", methods=["GET"])
-@login_required
-def logout():
-    """
-    Logout a user
-    :return:
-    """
-    logout_user()
-    return render_template('index.html')
 
-
+#### ERROR handling ####
 
 @app.errorhandler(404)
 def page_not_found(error):
