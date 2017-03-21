@@ -22,7 +22,7 @@ from functools import wraps
 ###
 import user_model
 import zlabels
-import compilation
+import make_compilation_pdf
 import make_receipt_pdf
 import list_shorter
 import make_economic_report_pdf
@@ -45,6 +45,8 @@ lm = LoginManager()
 lm.init_app(app)
 lm.login_view = "login"
 # lm.anonymous_user = anonymous_user.Anonymous
+
+# *** WTF Form classes *** #
 
 
 class PersonForm(Form):
@@ -95,7 +97,8 @@ class AuctionForm(Form):
     sale_type = HiddenField("", default="auktion")
     submit = SubmitField('Skicka')
 
-#### Login and Authentication ####
+# *** Login and Authentication *** #
+
 
 def admin_required(func):
     """
@@ -114,6 +117,7 @@ def admin_required(func):
             return render_template('index.html')
 
     return func_wrapper
+
 
 @lm.user_loader
 def load_user(user_id):
@@ -163,7 +167,8 @@ def auth(username, password):
         else:
             return None
 
-#### Routes ####
+# *** Routes *** #
+
 
 @app.route('/')
 def index():
@@ -247,10 +252,8 @@ def register_many():
             if result:
                 seller_id = result[0]
                 session["seller_id"] = seller_id
-                for scientific_name, plain_name, description, type, minimum_price, fixed_price in new_items:
-                    cur.execute(
-                        "INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?)",
-                    (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price))
+                for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price))
 
                 flash("Posterna registrerade.")
             else:
@@ -273,7 +276,7 @@ def add_object():
         scientific_name = form.scientific_name.data
         plain_name = form.plain_name.data
         quantity = form.quantity.data
-        type = form.type.data
+        post_type = form.type.data
         min_price = form.min_price.data
         fixed_price = form.fixed_price.data
         session["seller_email"] = seller_email
@@ -285,7 +288,7 @@ def add_object():
             if result:
                 seller_id = result[0]
                 session["seller_id"] = seller_id
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, quantity, type, min_price, fixed_price))
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, quantity, post_type, min_price, fixed_price))
 
                 form.description.data = None
                 form.scientific_name.data = None
@@ -306,7 +309,7 @@ def add_object():
 
 
 @app.route('/list')
-def list():
+def list_posts():
     """
     Page for listing all posts in the database
     """
@@ -337,6 +340,7 @@ def list_seller():
         result = cur.fetchall()
         return render_template('list_seller.html', data=result)
 
+
 @app.route('/reports')
 def reports():
     """
@@ -344,7 +348,6 @@ def reports():
     :return:
     """
     return render_template('reports.html')
-
 
 
 @app.route("/auktion", methods=['GET', 'POST'])
@@ -398,8 +401,8 @@ def flea_market():
 
     return render_template('flea_market.html')
 
+# *** JSON *** #
 
-#### JSON ####
 
 @app.route('/json_get_type/<type_nr>')
 def json_get_type(type_nr):
@@ -474,16 +477,15 @@ def json_get_sell_types():
         else:
             return jsonify({"error": "id not found"})
 
+# *** PDF Generation *** #
 
-
-#### PDF Generation ####
 
 @app.route('/labels')
-@app.route('/labels/<id>')
-def make_labels(id=None):
+@app.route('/labels/<selected_id>')
+def make_labels(selected_id=None):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
-    :param id:
+    :param selected_id:
     :return:
     """
     conn = sqlite3.connect(DATABASE)
@@ -493,11 +495,11 @@ def make_labels(id=None):
         auction_info = cur.fetchone()
         auction_name = auction_info[0]
         auction_date = auction_info[1]
-        print(auction_name, auction_date, id)
-        MK = zlabels.ZLabels("mypdf", auction_name, auction_date)
+        print(auction_name, auction_date, selected_id)
+        labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
 
-        if id:
-            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", id)
+        if selected_id:
+            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", selected_id)
         else:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers")
         sellers = cur.fetchall()
@@ -515,7 +517,7 @@ def make_labels(id=None):
             data.append(seller_data)
         print(data)
 
-    pdf = MK.make_pdf(data)
+    pdf = labels.make_pdf(data)
 
     response = make_response(pdf)
     response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
@@ -529,16 +531,16 @@ def economic_report():
     data = []
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
+        cur.execute("SELECT hosting_association, hosting_association_abrv, event_name, date, city, commission from auction_info")
         auction_info = cur.fetchone()
-        hosting_association = auction_info[0]
-        auction_name = auction_info[1]
-        auction_date = auction_info[2]
-        event_city = auction_info[3]
-        commision = auction_info[4]
-        print(auction_name, auction_date, id)
+        club_name = auction_info[0]
+        club_short_name = auction_info[1]
+        event_name = auction_info[2]
+        event_date = auction_info[3]
+        event_city = auction_info[4]
+        commision = auction_info[5]
 
-        economic_pdf = make_economic_report_pdf.EconomicReport(hosting_association, auction_name, auction_date, event_city, commision)
+        economic_pdf = make_economic_report_pdf.EconomicReport(event_name, club_name, club_short_name, event_date, event_city)
 
         cur.execute("SELECT DISTINCT seller_id, name, aquarium_club FROM sellers")
         sellers = cur.fetchall()
@@ -551,7 +553,7 @@ def economic_report():
             # Get sold total sum and count sold posts
             cur.execute("SELECT sum(sold_price), count(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold = cur.fetchone()
-            tot_sold = sold[0]
+            tot_sold = int(sold[0])
             count_sold = sold[1]
 
             to_society = tot_sold * commision
@@ -561,9 +563,6 @@ def economic_report():
             cur.execute("SELECT  count(*) FROM posts WHERE seller_id=?", [seller_id])
             tot_nr_posts = cur.fetchone()[0]
 
-            print(seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold)
-
-            # cur.execute("Select posts.seller_id, posts.type, sum(posts.sold_price), types.description from posts LEFT JOIN types on types.type_id=posts.type WHERE posts.seller_id=? GROUP BY type", [seller_id])
             cur.execute(""" Select posts.seller_id, posts.type, sum(posts.sold_price), posts.sold_on, types.description FROM posts
                             LEFT JOIN types on types.type_id=posts.type
                             WHERE posts.seller_id=?  and sold_price>0
@@ -579,51 +578,62 @@ def economic_report():
             data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
 
         # Summation for the whole auction and flea market
-        cur.execute("SELECT count(obj_id), sold_on FROM posts GROUP BY sold_on")
+        # GEt the total number of registered posts and for auction and fleamarket
+        cur.execute(""" SELECT types.sale_type, count(posts.obj_id) as antal FROM posts
+                        LEFT JOIN types
+                        ON posts.type=types.type_id
+                        GROUP BY types.sale_type
+                    """)
         res = cur.fetchall()
         tot_nr_posts = 0
+        stat = {}
         for row in res:
-            tot_nr_posts += row[0]
-            print(row[0], row[1])
+            tot_nr_posts += row[1]
+            key = ""
+            if row[0] == "auction":
+                key = "auktion"
+            elif row[0] == "fixed_price":
+                key = "fasta bordet"
+            stat[key] = row[1]
 
-        cur.execute("SELECT sum(sold_price), count(obj_id), count(sold_price), sold_on FROM posts WHERE sold_price>0 GROUP BY sold_on")
+        # Get total sum and number of sales per auction or fleamarket
+        cur.execute("SELECT sum(sold_price), count(sold_price), sold_on FROM posts WHERE sold_price>0 GROUP BY sold_on")
         res2 = cur.fetchall()
         tot_sold_sum = 0
 
         tot_nr_sold_posts = 0
-        tot_data_type = [[u"Sålt på", u"Antal inlämnade poster", u"Antal Sålda poster", u"Summa"]]
-        i = 0
+        tot_data_type = [[u"Sålt på", u"Antal inlämnade poster", u"Antal sålda poster", u"Summa"]]
+
         for row in res2:
             tot_sold_sum += row[0]
-            tot_nr_sold_posts += row[2]
-            # tot_data_type.append([row[3], row[1], row[2], row[0]])
-            tot_data_type.append([row[3], res[i][0], row[2], row[0]])
-            i += 1
+            tot_nr_sold_posts += row[1]
 
+            print("key {}".format(stat[key]))
+            print([row[2], stat[key], row[1], row[0]])
+            # tot_data_type.append([row[3], row[1], row[2], row[0]])
+            tot_data_type.append([row[2], stat[row[2]], row[1], int(row[0])])
+
+        tot_sold_sum = int(tot_sold_sum)
         tot_commision = tot_sold_sum * commision
         tot_commision = int(tot_commision + 0.5)
         netto = int(tot_sold_sum - tot_commision)
 
         tot_data = [tot_sold_sum, tot_commision, netto, tot_nr_posts, tot_nr_sold_posts, tot_data_type]
 
-
-    print(data)
-    print(tot_data)
-
-
     pdf = economic_pdf.make_pdf(data, tot_data)
 
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=economic_report.pdf"
     response.mimetype = 'application/pdf'
     return response
 
+
 @app.route('/compilation')
-@app.route('/compilation/<id>')
-def comp(id=None):
+@app.route('/compilation/<selected_id>')
+def comp(selected_id=None):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
-    :param id:
+    :param selected_id:
     :return:
     """
     conn = sqlite3.connect(DATABASE)
@@ -637,8 +647,8 @@ def comp(id=None):
         auction_date = auction_info[2]
         event_city = auction_info[3]
         commision = auction_info[4]
-        print(auction_name, auction_date, id)
-        comp_pdf = compilation.Compilation(hosting_association, auction_name, auction_date, event_city, commision)
+        print(auction_name, auction_date, selected_id)
+        comp_pdf = make_compilation_pdf.Compilation(hosting_association, auction_name, auction_date, event_city, commision)
 
         cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
         seller_ids = cur.fetchall()
@@ -670,9 +680,8 @@ def comp(id=None):
 
 
 @app.route('/receipt')
-@app.route('/receipt/<id>')
-def receipt(id=None):
-
+@app.route('/receipt/<selected_id>')
+def receipt(selected_id=None):
     conn = sqlite3.connect(DATABASE)
     data = []
     with conn:
@@ -683,13 +692,13 @@ def receipt(id=None):
         hosting_association_abrv = auction_info[1]
         city = auction_info[2]
         event_name = auction_info[3]
-        year = auction_info[4]
+        # year = auction_info[4]
         auction_date = auction_info[5]
 
         recit_pdf = make_receipt_pdf.Receipt(event_name, hosting_association, hosting_association_abrv, auction_date, city)
 
-        if id:
-            seller_ids = [id]
+        if selected_id:
+            seller_ids = [selected_id]
         else:
             cur.execute("SELECT DISTINCT seller_id FROM posts ORDER BY seller_id")
             seller_ids = cur.fetchall()
@@ -699,19 +708,19 @@ def receipt(id=None):
             cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", [seller_id])
             result = cur.fetchone()
             seller_name = result[0]
-            seller_address = result[1]
-            seller_email = result[2]
+            # seller_address = result[1]
+            # seller_email = result[2]
             seller_phone = result[3]
             seller_club = result[4]
             cur.execute("SELECT obj_id  FROM posts WHERE seller_id = ? ORDER BY obj_id", [seller_id])
             res = cur.fetchall()
             post_ids = []
             for posts in res:
-                post_ids.append( posts[0])
+                post_ids.append(posts[0])
             nr_posts = len(post_ids)
             shorter = list_shorter.ListShorter()
             post_ids = shorter.short(post_ids)
-            data.append([seller_id, seller_name,seller_club, seller_phone, nr_posts, post_ids])
+            data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, post_ids])
 
     pdf = recit_pdf.make_pdf(data)
 
@@ -720,7 +729,8 @@ def receipt(id=None):
     response.mimetype = 'application/pdf'
     return response
 
-#### User handling ####
+# *** User handling *** #
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -762,6 +772,7 @@ def logout():
     logout_user()
     return render_template('index.html')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """
@@ -792,15 +803,15 @@ def register():
     else:
         return render_template('register.html')
 
+# *** ERROR handling *** #
 
-
-#### ERROR handling ####
 
 @app.errorhandler(404)
 def page_not_found(error):
     """
     Route for non existing pages
     """
+    print(error)
     return render_template('page_not_found.html'), 404
 
 
@@ -811,6 +822,7 @@ def page_not_found(error):
     :param error:
     :return:
     """
+    print(error)
     return render_template('login_failed.html'), 401
 
 if __name__ == '__main__':

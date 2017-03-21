@@ -13,18 +13,18 @@ from PdfLine import LeftLine, CenterLine
 
 class EconomicReport(object):
 
-    def __init__(self, event_name, Association, Association_short_name, event_date, event_city ):
+    def __init__(self, event_name, club_name, club_short_name, event_date, event_city):
         """
         Class for generating labels in the size 70*37 mm in a 3 by 8 grid on A4 paper
         :param event_name: Name of the event
-        :param Association: Name of hosting association
-        :param Association_short_name: Short form of the hosting associations name
+        :param club_name: Name of hosting club
+        :param club_short_name: Short form of the hosting club name
         :param event_date: Date for the event
         :param event_city: location of the event
         """
         self.event_name = event_name
-        self.Association = Association
-        self.Association_short_name = Association_short_name
+        self.club_name = club_name
+        self.club_short_name = club_short_name
         self.event_date = event_date
         self.event_city = event_city
 
@@ -40,7 +40,8 @@ class EconomicReport(object):
     def make_pdf(self, data, tot_data):
         """
         Generate pdf with the data in the data argument
-        :param data: data to render in the pdf
+        :param tot_data: data for the total result of the auction
+        :param data: data for each individual seller
         :return: a pdf document
         """
         import cStringIO
@@ -73,8 +74,10 @@ class EconomicReport(object):
         p = Paragraph(self.event_date, title)
         story.append(p)
         line = LeftLine(doc.width)
-        story.append(line)
+        # story.append(line)
         story.append(Spacer(1, 10 * mm))
+
+        # *** Result per seller *** #
 
         for seller in data:
             # [seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_posts, count_sold, sold_stat_data]
@@ -92,19 +95,19 @@ class EconomicReport(object):
 
             t1 = Table(data1, colWidths=(20 * mm, 10 * mm, 90 * mm, 40 * mm, doc.width - (20 + 10 + 90 + 40)*mm))  # column width
             t1.setStyle(TableStyle([("LINEABOVE", (0, 0), (4, 0), 1, black),
-                                # ("LINEBELOW", (3, 2), (4, 2), 1, black),
-                                ('ALIGN', (0, 0), (0, 0), "RIGHT"),
-                                ('ALIGN', (1, 0), (1, 0), "LEFT")
-                                ]))
+                                    ("LINEBELOW", (0, -1), (4, -1), 0.5, black),
+                                    ('ALIGN', (0, 0), (0, 0), "RIGHT"),
+                                    ('ALIGN', (1, 0), (1, 0), "LEFT")
+                                    ]))
             # t1.setStyle(TableStyle([('BACKGROUND', (0, 0), (4, 2), grey)]))
             story.append(t1)
             print(doc.width)
             t2 = Table(data2, colWidths=(60 * mm, 30 * mm, 70*mm, doc.width - (60 + 30 + 70)*mm ))  # column width
-            t2.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
-                                    ('BACKGROUND', (1, 0), (1, -1), blueviolet),
-                                    ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
-                                    ('BACKGROUND', (3, 0), (3, -1), lawngreen),
-                                    ]))
+            # t2.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
+            #                         ('BACKGROUND', (1, 0), (1, -1), blueviolet),
+            #                         ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
+            #                         ('BACKGROUND', (3, 0), (3, -1), lawngreen),
+            #                         ]))
 
             story.append(t2)
 
@@ -115,35 +118,47 @@ class EconomicReport(object):
                                     ('ALIGN', (2, 0), (2, 1), "RIGHT"),
                                     ('ALIGN', (4, 0), (4, 1), "RIGHT"),
                                     ]))
-            t3.setStyle(TableStyle([("LINEABOVE", (0, 0), (6, 0), 1, black),
-                                    ('BACKGROUND', (0, 0), (0, 1), grey),
-                                    ('BACKGROUND', (1, 0), (1, 1), blueviolet),
-                                    ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
-                                    ('BACKGROUND', (3, 0), (3, 1), lawngreen),
-                                    ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
-                                    ('BACKGROUND', (5, 0), (5, 1), lawngreen),
-                                    ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
+            t3.setStyle(TableStyle([("LINEABOVE", (0, 0), (6, 0), 0.5, black),
+                                    ("LINEBELOW", (0, -1), (6, -1), 1, black)
+                                    # ('BACKGROUND', (0, 0), (0, 1), grey),
+                                    # ('BACKGROUND', (1, 0), (1, 1), blueviolet),
+                                    # ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
+                                    # ('BACKGROUND', (3, 0), (3, 1), lawngreen),
+                                    # ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
+                                    # ('BACKGROUND', (5, 0), (5, 1), lawngreen),
+                                    # ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
                                     ]))
             story.append(t3)
             story.append(Spacer(1, 10 * mm))
+
+        # *** Total result *** #
 
         p = Paragraph(u"Totalt resultat", title)
         story.append(p)
 
         data5 = tot_data[5]
         t5 = Table(data5, colWidths=(40 * mm, 40 * mm, 40 * mm,  doc.width - (40 + 40 + 40)*mm ))
+        t5.setStyle(TableStyle([("LINEABOVE", (0, 0), (3, 0), 1, black),
+                                ("LINEBELOW", (0, -1), (3, -1), 0.5, black)
+                                # ('BACKGROUND', (0, 0), (0, -1), grey),
+        #                         ('BACKGROUND', (1, 0), (1, -1), blueviolet),
+        #                         ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
+        #                         ('BACKGROUND', (3, 0), (3, -1), lawngreen),
+                                ]))
         story.append(t5)
 
         data4 = [["Total försäljningssumma", tot_data[0], "Avgår provision", tot_data[1], "Netto", tot_data[2]],
                  ["Antal inlämnade poster", tot_data[3], "Antal sålda", tot_data[4], "Antal osålda", tot_data[3] - tot_data[4]]]
         t4 = Table(data4, colWidths=(45 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, doc.width - (45+20+30+20+30)*mm))
-        t4.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, 1), grey),
-                                ('BACKGROUND', (1, 0), (1, 1), blueviolet),
-                                ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
-                                ('BACKGROUND', (3, 0), (3, 1), lawngreen),
-                                ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
-                                ('BACKGROUND', (5, 0), (5, 1), lawngreen),
-                                # ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
+        t4.setStyle(TableStyle([("LINEABOVE", (0, 0), (6, 0), 0.5, black),
+                                ("LINEBELOW", (0, -1), (6, -1), 1, black)
+        #                         ('BACKGROUND', (0, 0), (0, 1), grey),
+        #                         ('BACKGROUND', (1, 0), (1, 1), blueviolet),
+        #                         ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
+        #                         ('BACKGROUND', (3, 0), (3, 1), lawngreen),
+        #                         ('BACKGROUND', (4, 0), (4, 1), yellowgreen),
+        #                         ('BACKGROUND', (5, 0), (5, 1), lawngreen),
+        #                         # ('BACKGROUND', (6, 0), (6, 1), yellowgreen),
                                 ]))
         story.append(t4)
 
@@ -158,14 +173,3 @@ class EconomicReport(object):
         output.close()
         return pdf_out
 
-if __name__ == "__main__":
-    test_data = [
-    [1, u'Kristian Persson', u'UAF', u'0123-456789', 7, "1, 2, 47, 48, 49, 50-51"],
-    [2, u'Olle Karlsson', u'Haninge', u'0258-468751', 5, "3, 4, 5, 6, 7"],
-
-    [4, u'Pia Larsson', u'Malmö', u'06543-987654', 3, "8, 9, 10"]
-    ]
-
-
-    C = Receipt("Uppsala storauktion", "Uppsala Akvarieförening", "UAF", "2016-11-27", "Uppsala")
-    C.make_pdf(test_data)
