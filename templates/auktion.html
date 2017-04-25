@@ -23,7 +23,7 @@ input[type=text] {
         {% for error in form.post_id.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.post_id() }}
+        {{ form.post_id(autofocus="autofocus") }}
 
         {{ form.price.label }}
         {% for error in form.price.errors %}

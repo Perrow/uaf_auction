@@ -39,6 +39,12 @@
         {% endfor %}
         {{ form.aquarium_club() }}
 
+        {{ form.password.label }}
+        {% for error in form.password.errors %}
+            <span class="error" >{{ error }}</span>
+        {% endfor %}
+        {{ form.password() }}        
+        
         {{ form.submit() }}
 
     </form>

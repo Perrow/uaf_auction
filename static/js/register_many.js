@@ -94,6 +94,9 @@ $(document).ready(function(){
     // Makes a json call to server and fetches the sell types from the database in order to generate the drop down
     var make_option_value = function(){
         console.log("make_dropdown");
+        var e = document.getElementById("master_type");
+        var selected_id = e.options[e.selectedIndex].value;
+        console.log("selected: " + selected_id);
         option_values = "";
         jQuery.ajax({
             async: false,
@@ -105,7 +108,13 @@ $(document).ready(function(){
                 } else {
                     console.log("Found");
                     $(jQuery.parseJSON(JSON.stringify(data))).each(function() {
-                        option_values += '<option value="' + this.type_id + '">' + this.description + '</option>';
+                    if (this.type_id == selected_id) {
+                        option_values += '<option value="' + this.type_id + '" selected="selected" >' + this.description + '</option>'; 
+                        sale_type = this.sale_type;
+                    } else {
+                        option_values += '<option value="' + this.type_id + '">' + this.description + '</option>';                    
+                    }
+
                     });
                     console.log(option_values);
                 };
@@ -122,6 +131,7 @@ $(document).ready(function(){
     var rowNum = 0;
     $("#addbutton").click(function(){
         console.log("addbutton clicked");
+        make_option_value();
 
         console.log("+++" + option_values);
         rowNum = Number($("#numberofposts").val());
@@ -173,12 +183,21 @@ $(document).ready(function(){
             $("#form_elements").append(new_post_html);
             copy_func(i);
             add_toggler_func(i);
-
+            console.log(sale_type);
+            if (sale_type == "auction") {
+                $("#" + fixed_price_div_id).hide();
+                $("#" + min_price_div_id).show();
+            } 
+            if (sale_type == "fixed_price") {
+                          $("#" + fixed_price_div_id).show();
+                $("#" + min_price_div_id).hide();
+            } 
+            $("#create_posts").hide();
         }
     });
 
     var option_values = "";
-    make_option_value();
+    var sale_type = "error";
 
     console.log('Everything is ready.');
 });

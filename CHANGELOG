@@ -1,0 +1,41 @@
+Version 0.13
+    Added password to register user.
+    Added log in to register post and register many posts.
+    Must be an admin to see the Reports, auction and fleamarket pages.
+    Changed Register many posts so the user can select which type of post should be default for all the posts, can be changed individually.
+    Added create timestamp to seller and posts datatable, and sold timestamp on posts datatable in the database.
+    List of posts shows total number of posts and how many are registered in auction and fleamarket.
+    Fixed bug in economic rapport, if a seller hadn't sold anything the pdf generation faild.
+    Fixed bug in link to individual labels and receipt.
+    Post id input has autofocus in auction page.
+
+Version 0.12 2017-03-21
+    Finished the economic report.
+    Added receipt for seller to sign, that they got their money.
+
+Version 0.11 2017-03-21
+    Updated README.md with better description on how to get the system working on the server.
+
+Version 0.10 2017-03-03
+    Added pdfs for economic report, receipt.
+    Updated make_database, with more datafields.
+
+Version 0.9 2017-02-27
+    Changed name of user.py to user_model.py because there was a conflict with some other python package on the server.
+    Added a rudimentary  notification about the current logged in person.
+    Also I forgot to write in the last commit about the new register many posts view.
+
+Version 0.8 2017-02-27
+    Added support for login and registration of passwords that are encrypted with bcrypt in the database.
+    Support for regular users and admin users.
+
+Version 0.7 2017-02-20
+    Added a page for adding multiple posts.
+
+Version 0.6 2017-02-11
+    Added text in README.md.
+    Fixed a small bug in the auction page, the number and price were not nulled when commiting an auction sell.
+
+Version 0.5 Initial commit to gitlab
+    This is a python program built with Flask for use during auctions and fleamarkets by an aquarium club.
+

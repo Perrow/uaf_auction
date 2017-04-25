@@ -2,6 +2,7 @@
 
 
 import sqlite3
+import time
 from flask import Flask
 from flask import jsonify
 # from flask import url_for
@@ -13,7 +14,7 @@ from flask import make_response
 from flask import session
 from flask import flash
 from flask_wtf import Form
-from wtforms import StringField, SubmitField, SelectField, IntegerField, HiddenField
+from wtforms import StringField, SubmitField, SelectField, IntegerField, HiddenField, PasswordField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange
 import bcrypt
 from flask_login import LoginManager, login_required, UserMixin, login_user, logout_user, current_user
@@ -58,6 +59,7 @@ class PersonForm(Form):
     email = StringField('Email:', validators=[DataRequired(), Email()])
     phone = StringField('Telefonnummer:', validators=[DataRequired()])
     aquarium_club = StringField('Akvarieförening:', validators=[DataRequired()])
+    password = PasswordField('Lösenord:', validators=[DataRequired()])
     submit = SubmitField('Skicka')
 
 
@@ -75,7 +77,7 @@ class ObjectForm(Form):
         for row in result:
             choices.append((str(row[0]), row[1]))
 
-    seller_email = StringField('Säljarens email:', validators=[DataRequired(), Email()])
+    # seller_email = StringField('Säljarens email:', validators=[DataRequired(), Email()])
     plain_name = StringField('Namn:', validators=[DataRequired()])
     scientific_name = StringField('Vetenskapligt namn:', validators=[Optional()])
     description = StringField('Beskrivning:', validators=[Optional()])
@@ -198,6 +200,7 @@ def new_seller():
         address = form.address.data
         phone = form.phone.data
         aquarium_club = form.aquarium_club.data
+        password = form.password.data.encode('utf-8')
 
         conn = sqlite3.connect(DATABASE)
         with conn:
@@ -205,27 +208,33 @@ def new_seller():
             cur.execute("SELECT email, seller_id FROM sellers WHERE email=?", (email,))
             result = cur.fetchone()
             if result:
-                session["seller_id"] = result[1]
-                session["seller_email"] = result[0]
-                return render_template('done_seller_exists.html', cur_seller_id=session.get("seller_email"))
+                return render_template('done_seller_exists.html')
             else:
-                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?)", (name, address, email, phone, aquarium_club))
-                cur_seller_id = cur.lastrowid
-                session["seller_id"] = cur_seller_id
-                session["seller_email"] = email
-                return render_template('done.html', name=name, address=address, email=email, phone=phone, aquarium_club=aquarium_club, cur_seller_id=cur_seller_id)
+                salt = bcrypt.gensalt()
+                encrypted_password = bcrypt.hashpw(password, salt)
+                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (name, address, email, phone, aquarium_club, encrypted_password, "no", time.strftime("%Y-%m-%d %H:%M:%S")))
+
+                flash("Användare {} skapad.".format(name))
+            authed_user = auth(name, password)
+            if authed_user:
+                # print("new user logged in {} {}".format(user_model, username))
+                login_user(authed_user)
+
+            return redirect(url_for('index'))
+                # return render_template('done.html', name=name, address=address, email=email, phone=phone, aquarium_club=aquarium_club, cur_seller_id=cur_seller_id)
     else:
         return render_template('new_seller.html', form=form)
 
 
-@app.route("/register_many", methods=['GET', 'POST'])
-def register_many():
+@app.route("/register_many_posts", methods=['GET', 'POST'])
+@login_required
+def register_many_posts():
     """
     Register many new post at the same time
     :return:
     """
     if request.method == 'POST':
-        seller_email = request.form['seller_email']
+        # seller_email = request.form['seller_email']
         types = request.form.getlist('type')
         scinames = request.form.getlist('sciname')
         popnames = request.form.getlist('popname')
@@ -233,7 +242,7 @@ def register_many():
         fixed_prices = request.form.getlist('fixed_price')
         descriptions = request.form.getlist('description')
 
-        print(seller_email)
+        # print(seller_email)
         print(types)
         print(scinames)
         print(popnames)
@@ -241,37 +250,41 @@ def register_many():
         print(fixed_prices)
         print(descriptions)
         new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
-        print(new_items)
+        # print(new_items)
 
-        session["seller_email"] = seller_email
+        seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            cur.execute("SELECT seller_id FROM sellers WHERE email=?", [seller_email])
-            result = cur.fetchone()
-            if result:
-                seller_id = result[0]
-                session["seller_id"] = seller_id
-                for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price))
+            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
 
-                flash("Posterna registrerade.")
-            else:
-                flash(
-                    "Email-adressen finns inte i databasen, kontrollera att du skrivit rätt email eller registrera dig som säljare.")
+            flash("Posterna registrerade.")
+ 
+    # Fetch sale types from database, generate a select for the default sale type
+    conn = sqlite3.connect(DATABASE)
+    select = '<select id="master_type" name="master_type">'
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
+        result = cur.fetchall()
+        for row in result:
+            tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
+            select += tempstr
+    select += '</select>'
+    return render_template('register_many_posts.html', select=select)
 
-    return render_template('register_many_posts.html')
 
-
-@app.route("/new_post", methods=['GET', 'POST'])
-def add_object():
+@app.route("/register_post", methods=['GET', 'POST'])
+@login_required
+def register_post():
     """
     Page for adding new posts to the database
     :return:
     """
     form = ObjectForm()
     if form.validate_on_submit():
-        seller_email = form.seller_email.data
+        # seller_email = form.seller_email.data
         description = form.description.data
         scientific_name = form.scientific_name.data
         plain_name = form.plain_name.data
@@ -279,32 +292,33 @@ def add_object():
         post_type = form.type.data
         min_price = form.min_price.data
         fixed_price = form.fixed_price.data
-        session["seller_email"] = seller_email
+        # session["seller_email"] = seller_email
+        seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            cur.execute("SELECT seller_id FROM sellers WHERE email=?", [seller_email])
-            result = cur.fetchone()
-            if result:
-                seller_id = result[0]
-                session["seller_id"] = seller_id
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type, minimum_price, fixed_price) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, quantity, post_type, min_price, fixed_price))
+            # cur.execute("SELECT seller_id FROM sellers WHERE email=?", [seller_email])
+            # result = cur.fetchone()
+            # if result:
+            #     seller_id = result[0]
+            #     session["seller_id"] = seller_id
+            cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, quantity, post_type, min_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
 
-                form.description.data = None
-                form.scientific_name.data = None
-                form.plain_name.data = None
-                form.quantity.data = None
-                form.type.data = None
-                form.min_price.data = None
-                form.fixed_price.data = None
-                flash("Posten registrerad.")
-            else:
-                flash("Email-adressen finns inte i databasen, kontrollera att du skrivit rätt eller registrera dig som säljare.")
+            form.description.data = None
+            form.scientific_name.data = None
+            form.plain_name.data = None
+            form.quantity.data = None
+            form.type.data = None
+            form.min_price.data = None
+            form.fixed_price.data = None
+            flash("Posten registrerad.")
+            # else:
+            #     flash("Email-adressen finns inte i databasen, kontrollera att du skrivit rätt eller registrera dig som säljare.")
 
         return render_template('object.html', form=form)
     else:
-        form.seller_email.data = session.get("seller_email")
-        print("session seller_email: {}".format(session.get("seller_email")))
+        # form.seller_email.data = session.get("seller_email")
+        # print("session seller_email: {}".format(session.get("seller_email")))
         return render_template('object.html', form=form)
 
 
@@ -316,16 +330,25 @@ def list_posts():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        # cur.execute("""SELECT sellers.firstname, sellers.lastname, objects.description, objects.scientific_name, objects.quantity, objects.type
-        # FROM sellers
-        # INNER JOIN objects
-        # ON sellers.seller_id=objects.seller_id""")
+        nr_posts = []
+        cur.execute("select count(*) from posts")
+        res = cur.fetchone()
+        nr_posts.append("Antal poster: {}".format(res[0]))
+        cur.execute("SELECT count(posts.type), types.sale_type from posts LEFT JOIN types ON posts.type = types.type_id group by types.sale_type")
+        res = cur.fetchall()
+
+        for row in res:
+            if row[1] == "auction":
+                nr_posts.append("Auktion: {}".format(row[0]))
+            if row[1] == "fixed_price":
+                nr_posts.append("Fastpris: {}".format(row[0]))
+            
         cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, posts.quantity, types.description
         FROM posts
         INNER JOIN types
         ON posts.type=types.type_id""")
         result = cur.fetchall()
-        return render_template('list_posts.html', data=result)
+        return render_template('list_posts.html', nr_posts=nr_posts, data=result)
 
 
 @app.route('/list_seller')
@@ -368,7 +391,7 @@ def auktion():
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
+            cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
             flash("Post {} registrerad som såld.".format(post_id))
 
         form.post_id.raw_data = [""]
@@ -396,7 +419,7 @@ def flea_market():
     with conn:
         cur = conn.cursor()
         for post_id, price in sold_items:
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=? WHERE obj_id=?", (price, sale_type, post_id))
+            cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
             flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
 
     return render_template('flea_market.html')
@@ -497,7 +520,7 @@ def make_labels(selected_id=None):
         auction_date = auction_info[1]
         print(auction_name, auction_date, selected_id)
         labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
-
+        print("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", selected_id)
         if selected_id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", selected_id)
         else:
@@ -553,7 +576,10 @@ def economic_report():
             # Get sold total sum and count sold posts
             cur.execute("SELECT sum(sold_price), count(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold = cur.fetchone()
-            tot_sold = int(sold[0])
+            try:
+                tot_sold = int(sold[0])
+            except TypeError:
+                tot_sold = 0
             count_sold = sold[1]
 
             to_society = tot_sold * commision
@@ -571,9 +597,12 @@ def economic_report():
             sold_stats = cur.fetchall()
 
             sold_stat_data = [['Kategori', 'Summa', 'Sålt på']]
-            for sold_stat in sold_stats:
-                print(sold_stat[0], sold_stat[1], sold_stat[2], sold_stat[3], sold_stat[4])
-                sold_stat_data.append([sold_stat[4], int(sold_stat[2]), sold_stat[3], ""])
+            if sold_stats:
+                for sold_stat in sold_stats:
+                    print(sold_stat[0], sold_stat[1], sold_stat[2], sold_stat[3], sold_stat[4])
+                    sold_stat_data.append([sold_stat[4], int(sold_stat[2]), sold_stat[3], ""])
+            else:
+                sold_stat_data.append(["", "", "", ""])
 
             data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
 
@@ -773,35 +802,35 @@ def logout():
     return render_template('index.html')
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    """
-    Register a new user
-    :return:
-    """
-    if request.method == 'POST':
-        logout_user()
-        name = request.form['name']
-        username = request.form['username']
-        password = request.form['password']
-        # encrypt password
-        salt = bcrypt.gensalt()
-        password = bcrypt.hashpw(password.encode('utf8'), salt)
-
-        conn = sqlite3.connect(DATABASE)
-        with conn:
-            cur = conn.cursor()
-            cur.execute("INSERT INTO sellers (name, email, password, isAdmin) VALUES (?,?, ?, 'false')",
-                        (name, username, password))
-            flash("Användare {} skapad.".format(username))
-        authed_user = auth(username, password)
-        if authed_user:
-            # print("new user logged in {} {}".format(user_model, username))
-            login_user(authed_user)
-
-        return redirect(url_for('index'))
-    else:
-        return render_template('register.html')
+# @app.route('/register', methods=['GET', 'POST'])
+# def register():
+#     """
+#     Register a new user
+#     :return:
+#     """
+#     if request.method == 'POST':
+#         logout_user()
+#         name = request.form['name']
+#         username = request.form['username']
+#         password = request.form['password']
+#         # encrypt password
+#         salt = bcrypt.gensalt()
+#         password = bcrypt.hashpw(password.encode('utf8'), salt)
+# 
+#         conn = sqlite3.connect(DATABASE)
+#         with conn:
+#             cur = conn.cursor()
+#             cur.execute("INSERT INTO sellers (name, email, password, isAdmin) VALUES (?,?, ?, 'false')",
+#                         (name, username, password))
+#             flash("Användare {} skapad.".format(username))
+#         authed_user = auth(username, password)
+#         if authed_user:
+#             # print("new user logged in {} {}".format(user_model, username))
+#             login_user(authed_user)
+# 
+#         return redirect(url_for('index'))
+#     else:
+#         return render_template('register.html')
 
 # *** ERROR handling *** #
 

@@ -4,7 +4,12 @@
     {{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Förhandsinlagda poster </h1>
+<h1> Förhandsanmälda poster </h1>
+
+<h2>{{ nr_posts[0] }}</h2>
+<p>
+    {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
+</p>
 
 <table style="width:100%">
     <tr>

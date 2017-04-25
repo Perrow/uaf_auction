@@ -6,16 +6,18 @@
 {% block body %}
     <h1>Registrera många poster</h1>
 
-    <div> </div>
+    <form  action="/register_many_posts" method="POST">
 
-    <form  action="/register_many" method="POST">
-        <label for="seller_email">Säljarens email:</label>
-        <input id="seller_email" name="seller_email" type="text" value="">
-
-        <label for="numberofposts">Antal poster att registrera:</label><br>
-        <input class="forty" id="numberofposts" name="numberofposts" type="text" value="">
-        <button id="addbutton" type="button">Skapa poster</button>
-
+        <div id="create_posts">
+            <label for="numberofposts">Antal poster att registrera:</label><br>
+            <input class="forty" id="numberofposts" name="numberofposts" type="text" value="">
+            Välj typ av post <br>
+            {% autoescape false %}
+            {{ select }}
+            {% endautoescape %}
+            <br>
+            <button id="addbutton" type="button">Skapa poster</button>
+        </div>
 
         <div id="form_elements">
 

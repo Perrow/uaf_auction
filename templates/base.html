@@ -16,17 +16,19 @@
   <a href=" {{ url_for('index') }} ">Start</a> |
   <a href=" {{ url_for('login') }} ">Login</a> |
   <a href=" {{ url_for('logout') }} ">Logout</a> |
-  <a href=" {{ url_for('register') }} ">Registrera</a> |
 
   <a href=" {{ url_for('new_seller') }} ">Registrera säljare</a> |
-  <a href=" {{ url_for('add_object') }} ">Registrera post</a> |
-  <a href=" {{ url_for('register_many') }} ">Registrera många poster</a> |
-  <a href=" {{ url_for('list_seller') }} ">Visa säljare</a> |
+  {% if current_user.is_authenticated %}
+    <a href=" {{ url_for('register_post') }} ">Registrera post</a> |
+    <a href=" {{ url_for('register_many_posts') }} ">Registrera många poster</a> |
+    <a href=" {{ url_for('list_seller') }} ">Visa säljare</a> |
+  {% endif %}
   <a href=" {{ url_for('list_posts') }} ">Visa poster</a> |
-  <a href=" {{ url_for('reports') }} ">Rapporter</a> |
-
-  <a href=" {{ url_for('auktion') }} ">Auktion</a> |
-  <a href=" {{ url_for('flea_market') }} ">Loppis</a> |
+  {% if current_user.is_admin %}     
+    <a href=" {{ url_for('reports') }} ">Rapporter</a> |
+    <a href=" {{ url_for('auktion') }} ">Auktion</a> |
+    <a href=" {{ url_for('flea_market') }} ">Loppis</a> |
+  {% endif %}     
 </nav>
 {% if current_user.is_authenticated %}
   Inloggad som {{ current_user.name }}!

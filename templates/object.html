@@ -6,14 +6,8 @@
 {% block body %}
     <h1>Registrera post</h1>
 
-    <form  action="/new_post" method="POST">
+    <form  action="/register_post" method="POST">
         {{ form.csrf_token }}
-
-        {{ form.seller_email.label }}
-        {% for error in form.seller_email.errors %}
-            <span class="error" >{{ error }}</span>
-        {% endfor %}
-        {{ form.seller_email() }}
 
         {{ form.type.label }}
         {% for error in form.type.errors %}
