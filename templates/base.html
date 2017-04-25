@@ -21,10 +21,10 @@
   {% if current_user.is_authenticated %}
     <a href=" {{ url_for('register_post') }} ">Registrera post</a> |
     <a href=" {{ url_for('register_many_posts') }} ">Registrera många poster</a> |
-    <a href=" {{ url_for('list_seller') }} ">Visa säljare</a> |
   {% endif %}
   <a href=" {{ url_for('list_posts') }} ">Visa poster</a> |
   {% if current_user.is_admin %}     
+    <a href=" {{ url_for('list_seller') }} ">Visa säljare</a> |
     <a href=" {{ url_for('reports') }} ">Rapporter</a> |
     <a href=" {{ url_for('auktion') }} ">Auktion</a> |
     <a href=" {{ url_for('flea_market') }} ">Loppis</a> |

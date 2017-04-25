@@ -352,6 +352,7 @@ def list_posts():
 
 
 @app.route('/list_seller')
+@admin_required
 def list_seller():
     """
     Page for listing all sellers in the database
@@ -365,6 +366,7 @@ def list_seller():
 
 
 @app.route('/reports')
+@admin_required
 def reports():
     """
     Reports page
@@ -403,6 +405,7 @@ def auktion():
 
 
 @app.route("/loppis", methods=['GET', 'POST'])
+@admin_required
 def flea_market():
     """
     Handels the sale of posts at the fixed price table / fleamarket. Updates the sold post with the price and the sale type
@@ -505,6 +508,7 @@ def json_get_sell_types():
 
 @app.route('/labels')
 @app.route('/labels/<selected_id>')
+@admin_required
 def make_labels(selected_id=None):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
@@ -549,6 +553,7 @@ def make_labels(selected_id=None):
 
 
 @app.route('/economic_report')
+@admin_required
 def economic_report():
     conn = sqlite3.connect(DATABASE)
     data = []
@@ -659,6 +664,7 @@ def economic_report():
 
 @app.route('/compilation')
 @app.route('/compilation/<selected_id>')
+@admin_required
 def comp(selected_id=None):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
@@ -710,6 +716,7 @@ def comp(selected_id=None):
 
 @app.route('/receipt')
 @app.route('/receipt/<selected_id>')
+@admin_required
 def receipt(selected_id=None):
     conn = sqlite3.connect(DATABASE)
     data = []

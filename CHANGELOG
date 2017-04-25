@@ -1,4 +1,7 @@
-Version 0.13
+Version 0.14 2017-04-25
+Added @admin_required on more functions.
+
+Version 0.13 2017-04-25
     Added password to register user.
     Added log in to register post and register many posts.
     Must be an admin to see the Reports, auction and fleamarket pages.
