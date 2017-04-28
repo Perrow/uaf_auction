@@ -103,16 +103,18 @@ background-color:#7892c2;
 	position:relative;
 	top:1px;
 }
-
+.error_border {
+    border-color: red;
+}
 
 .error {
     color: red;
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 .warning {
     color: orange;
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 .info {

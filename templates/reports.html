@@ -6,10 +6,10 @@
 {% block body %}
 <h1> Rapporter </h1>
 
-<p> <a href=" {{ url_for('make_labels') }} " > Etiketter för alla säljare </a>  </p>
-<p> <a href=" {{ url_for('comp') }} " > Sammanställning för alla säljare </a>  </p>
-<p> <a href=" {{ url_for('receipt') }} " > Inlämningskvitton för alla säljare </a>  </p>
-<p> <a href=" {{ url_for('economic_report') }} " > Ekonomisk rapport </a>  </p>
+<p> <a href=" {{ url_for('labels_view') }} " > Etiketter för alla säljare </a> - <a href=" {{ url_for('labels_server_print') }} " > skriv ut </a> </p>
+<p> <a href=" {{ url_for('compilation_view') }} " > Sammanställning för alla säljare </a> - <a href=" {{ url_for('compilation_server_print') }} " > skriv ut </a> </p>
+<p> <a href=" {{ url_for('receipt_view') }} " > Inlämningskvitton för alla säljare </a> - <a href=" {{ url_for('receipt_server_print') }} " >skriv ut </a></p>
+<p> <a href=" {{ url_for('economic_report_view') }} " > Ekonomisk rapport </a> - <a href=" {{ url_for('economic_report_server_print') }} " > skriv ut </a>   </p>
 
 
 {% endblock %}

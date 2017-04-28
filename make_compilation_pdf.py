@@ -69,7 +69,7 @@ class Compilation(object):
             #         ['10', '', 'Tigerbarb', '30', 'Auktion'],
             #         ['11', '', 'Platy', '20', 'Auktion'],
             #         ['12', 'växt', 'Anubias', '50', 'Loppis']]
-            t = Table(data, colWidths=(20 * mm, 20 * mm, 90 * mm, 20 * mm, 30 * mm))  # column width
+            t = Table(data, colWidths=(10 * mm, 50 * mm, 80 * mm, 15 * mm, 25 * mm))  # column width
             t.setStyle(TableStyle([
                 ("LINEBELOW", (0, 0), (-1, 0), 1, black)
                 # (start cell x, y), slut cell x, y) räknat med 0,0 i övre vänstra hörnet på tabellen. (-1,-1) är nedre högra hörnet

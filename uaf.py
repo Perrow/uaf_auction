@@ -1,6 +1,5 @@
 # coding=utf-8
-
-
+import os
 import sqlite3
 import time
 from flask import Flask
@@ -506,14 +505,50 @@ def json_get_sell_types():
 # *** PDF Generation *** #
 
 
-@app.route('/labels')
-@app.route('/labels/<selected_id>')
+@app.route('/lables')
+@app.route('/lables/<selected_id>')
 @admin_required
-def make_labels(selected_id=None):
+def labels_view(selected_id=None):
+    """
+    Generates a downloadable pdf of lables
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_labels_pdf(selected_id)
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+@app.route('/labels_print')
+@app.route('/labels_print/<selected_id>')
+@admin_required
+def labels_server_print(selected_id=None):
+    """
+    Writes the receipt pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_labels_pdf(selected_id)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return ('', 204)  # empty response
+
+# @app.route('/labels')
+# @app.route('/labels/<selected_id>')
+# @admin_required
+def get_labels_pdf(selected_id=None):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
     :param selected_id:
-    :return:
+    :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
     with conn:
@@ -545,16 +580,49 @@ def make_labels(selected_id=None):
         print(data)
 
     pdf = labels.make_pdf(data)
+    return pdf
+
+@app.route('/economic_report_view')
+@admin_required
+def economic_report_view(selected_id=None):
+    """
+    Generates a downloadable pdf of seller receipts
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_economic_report_pdf()
 
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=economic_report.pdf"
     response.mimetype = 'application/pdf'
     return response
 
-
-@app.route('/economic_report')
+@app.route('/economic_report_print')
 @admin_required
-def economic_report():
+def economic_report_server_print(selected_id=None):
+    """
+    Writes the compilation pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_economic_report_pdf()
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return ('', 204)  # empty response
+
+# @app.route('/economic_report')
+# @admin_required
+def get_economic_report_pdf():
+    """
+    Generates a pdf of the economic report
+    :return: a pdf as a cStringIO object
+    """
     conn = sqlite3.connect(DATABASE)
     data = []
     with conn:
@@ -655,21 +723,53 @@ def economic_report():
         tot_data = [tot_sold_sum, tot_commision, netto, tot_nr_posts, tot_nr_sold_posts, tot_data_type]
 
     pdf = economic_pdf.make_pdf(data, tot_data)
+    return pdf
+
+
+@app.route('/compilation_view')
+@app.route('/compilation_view/<selected_id>')
+@admin_required
+def compilation_view(selected_id=None):
+    """
+    Generates a downloadable pdf of seller receipts
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_compilation_pdf(selected_id)
 
     response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=economic_report.pdf"
+    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
     response.mimetype = 'application/pdf'
     return response
 
-
-@app.route('/compilation')
-@app.route('/compilation/<selected_id>')
+@app.route('/compilation_print')
+@app.route('/compilation_print/<selected_id>')
 @admin_required
-def comp(selected_id=None):
+def compilation_server_print(selected_id=None):
+    """
+    Writes the compilation pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_compilation_pdf(selected_id)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return ('', 204)  # empty response
+
+# @app.route('/compilation')
+# @app.route('/compilation/<selected_id>')
+# @admin_required
+def get_compilation_pdf(selected_id=None):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
     :param selected_id:
-    :return:
+    :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
     data = []
@@ -697,7 +797,8 @@ def comp(selected_id=None):
             cur.execute("SELECT sum(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold_for = cur.fetchone()[0]
 
-            cur.execute("SELECT obj_id, type, plain_name, sold_price, sold_on FROM posts WHERE seller_id = ? and sold_price>0", [seller_id])
+            # cur.execute("SELECT obj_id, type, plain_name, sold_price, sold_on FROM posts WHERE seller_id = ? and sold_price>0", [seller_id])
+            cur.execute("SELECT posts.obj_id, types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN types on posts.type=types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
             res = cur.fetchall()
             data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld']]
             for posts in res:
@@ -707,17 +808,53 @@ def comp(selected_id=None):
         print(data)
 
     pdf = comp_pdf.make_pdf(data)
+    return pdf
 
-    response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
-    response.mimetype = 'application/pdf'
-    return response
 
 
 @app.route('/receipt')
 @app.route('/receipt/<selected_id>')
 @admin_required
-def receipt(selected_id=None):
+def receipt_view(selected_id=None):
+    """
+    Generates a downloadable pdf of seller receipts
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_receipt_pdf(selected_id)
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=receipt.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+@app.route('/receipt_print')
+@app.route('/receipt_print/<selected_id>')
+@admin_required
+def receipt_server_print(selected_id=None):
+    """
+    Writes the receipt pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_receipt_pdf(selected_id)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return ('', 204)  # empty response
+
+
+def get_receipt_pdf(selected_id=None):
+    """
+    Generates a receipt pdf for one or all sellers.
+    :param selected_id: id of selected seller or none for all
+    :return: a pdf as a cStringIO object
+    """
     conn = sqlite3.connect(DATABASE)
     data = []
     with conn:
@@ -731,7 +868,7 @@ def receipt(selected_id=None):
         # year = auction_info[4]
         auction_date = auction_info[5]
 
-        recit_pdf = make_receipt_pdf.Receipt(event_name, hosting_association, hosting_association_abrv, auction_date, city)
+        receipt_pdf = make_receipt_pdf.Receipt(event_name, hosting_association, hosting_association_abrv, auction_date, city)
 
         if selected_id:
             seller_ids = [selected_id]
@@ -758,12 +895,9 @@ def receipt(selected_id=None):
             post_ids = shorter.short(post_ids)
             data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, post_ids])
 
-    pdf = recit_pdf.make_pdf(data)
+    pdf = receipt_pdf.make_pdf(data)
+    return pdf
 
-    response = make_response(pdf)
-    response.headers['Content-Disposition'] = "attachment; filename=receipt.pdf"
-    response.mimetype = 'application/pdf'
-    return response
 
 # *** User handling *** #
 

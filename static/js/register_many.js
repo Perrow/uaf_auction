@@ -144,6 +144,7 @@ $(document).ready(function(){
             var fixed_price_id = "fixed_price" + i;
             var min_price_div_id = "min_price_div" + i;
             var fixed_price_div_id = "fixed_price_div" + i;
+            var fixed_price_error_id = "fixed_price_error" + i;
             var description_id = "description" + i;
             var copybutton_id = "copybutton" + i;
 
@@ -167,8 +168,8 @@ $(document).ready(function(){
             '   <input class="ninety" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
             '</div>' +
             '<div  id="' + fixed_price_div_id + '" class="left ten ">' +
-                '<label for="' + fixed_price_id + '">Fast pris:</label><br>' +
-               '<input class="ninety" id="' + fixed_price_id + '" name="fixed_price" type="text" value=""> <br>' +
+                '<label for="' + fixed_price_id + '">Fast pris:</label><span id="' + fixed_price_error_id + ' " class="error"></span><br>' +
+               '<input class="ninety fixed_price_input" id="' + fixed_price_id + '" name="fixed_price" type="text" value=""> <br>' +
            '</div>' +
 
             '<div  class="left ninetyfour">' +
@@ -195,6 +196,28 @@ $(document).ready(function(){
             $("#create_posts").hide();
         }
     });
+
+
+  // Check if all flea_market objects has got a price, else show error text en cancel submit
+  $( "#register_form" ).submit(function( event ) {
+     var all_ok = true;
+     $( ".fixed_price_input:visible" ).each(function( index ) {  // if visible its a flea market object
+        if ($.isNumeric( $(this).val() )) {
+            $(this).removeClass("error_border");
+            $(this).siblings('span').text("");
+            $( "#msg" ).text("OK");
+        } else {
+            $(this).siblings('span').text(" Du måste fylla i ett pris");
+            $(this).addClass("error_border");
+            all_ok = false;
+        }         
+     });
+     if (all_ok) {
+        return true;
+     } else {
+        return false;
+     }
+  });
 
     var option_values = "";
     var sale_type = "error";

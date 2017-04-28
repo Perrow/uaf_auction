@@ -6,7 +6,7 @@
 {% block body %}
     <h1>Registrera post</h1>
 
-    <form  action="/register_post" method="POST">
+    <form  action="/register_post" method="POST" id="register_form">
         {{ form.csrf_token }}
 
         {{ form.type.label }}
@@ -55,12 +55,14 @@
         {% for error in form.fixed_price.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
+            <span id="fixed_price_error" class="error" ></span>
         {{ form.fixed_price() }}
         </div>
 
         {{ form.submit() }}
 
-    </form>
+    </form> 
+    <span id="msg"></span>
 
     <script src="{{ url_for('static', filename='js/new_post.js') }}"></script>
 {% endblock %}

@@ -1,5 +1,13 @@
+Version 0.15 2017-04-28
+    #6 Fixed seller compilation sale type from number to readable category, also joined scientific name and common name.
+    #4 Fixed column headings in list post view, scientific name and common name were switched.
+    #5 Added checks that fleamarket posts have a numeric price before seller is able to commit.
+    #8 Added server side printing using CUPS printing system, a default printer should be set. That is done with the commands:
+        lpstat -p -d to se list of available printers and the default if set.
+        lpoptions -d printer_name to set the default printer.
+
 Version 0.14 2017-04-25
-Added @admin_required on more functions.
+    Added @admin_required on more functions.
 
 Version 0.13 2017-04-25
     Added password to register user.
