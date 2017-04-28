@@ -91,6 +91,14 @@ Needed Python libraries:
 
 Recommended Python environment is anaconda then:
 ```
+conda install flask-wtf
+conda install flask-login
+conda install reportlab
+conda install bcrypt
+```
+
+Or use pip:
+```
 sudo pip install flask-wtf
 sudo pip install flask_login
 sudo pip install reportlab
