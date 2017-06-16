@@ -1,8 +1,11 @@
+Version 0.16 2017-06-16
+    Register many posts now checks that prices are numeric.
+
 Version 0.15 2017-04-28
-    #6 Fixed seller compilation sale type from number to readable category, also joined scientific name and common name.
-    #4 Fixed column headings in list post view, scientific name and common name were switched.
-    #5 Added checks that fleamarket posts have a numeric price before seller is able to commit.
-    #8 Added server side printing using CUPS printing system, a default printer should be set. That is done with the commands:
+    Issue 6 - Fixed seller compilation sale type from number to readable category, also joined scientific name and common name.
+    Issue 4 - Fixed column headings in list post view, scientific name and common name were switched.
+    Issue 5 - Added checks that fleamarket posts have a numeric price before seller is able to commit.
+    Issue 8 - Added server side printing using CUPS printing system, a default printer should be set. That is done with the commands:
         lpstat -p -d to se list of available printers and the default if set.
         lpoptions -d printer_name to set the default printer.
 

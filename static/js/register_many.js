@@ -144,6 +144,7 @@ $(document).ready(function(){
             var fixed_price_id = "fixed_price" + i;
             var min_price_div_id = "min_price_div" + i;
             var fixed_price_div_id = "fixed_price_div" + i;
+            var min_price_error_id = "min_price_error" + i;
             var fixed_price_error_id = "fixed_price_error" + i;
             var description_id = "description" + i;
             var copybutton_id = "copybutton" + i;
@@ -164,8 +165,8 @@ $(document).ready(function(){
                 '<input class="ninety" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
             '</div>' +
             '<div  id="' + min_price_div_id + '" class="left ten">' +
-                '<label for="' + min_price_id + '">Reservationspris:</label><br>' +
-            '   <input class="ninety" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
+                '<label for="' + min_price_id + '">Reservationspris:</label><span id="' + min_price_error_id + ' " class="error"></span><br>' +
+            '   <input class="ninety min_price_input" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
             '</div>' +
             '<div  id="' + fixed_price_div_id + '" class="left ten ">' +
                 '<label for="' + fixed_price_id + '">Fast pris:</label><span id="' + fixed_price_error_id + ' " class="error"></span><br>' +
@@ -198,9 +199,11 @@ $(document).ready(function(){
     });
 
 
-  // Check if all flea_market objects has got a price, else show error text en cancel submit
+  // Check if all flea_market objects has got a price, else show error text and cancel submit
+  // Check that if auction objects have price it is numeric
   $( "#register_form" ).submit(function( event ) {
      var all_ok = true;
+     console.log("checking prices");
      $( ".fixed_price_input:visible" ).each(function( index ) {  // if visible its a flea market object
         if ($.isNumeric( $(this).val() )) {
             $(this).removeClass("error_border");
@@ -211,6 +214,24 @@ $(document).ready(function(){
             $(this).addClass("error_border");
             all_ok = false;
         }         
+     });
+     $( ".min_price_input:visible" ).each(function( index ) {  // if visible its a auction object
+        if ($.isNumeric( $(this).val() )) {
+            $(this).removeClass("error_border");
+            $(this).siblings('span').text("");
+            $( "#msg" ).text("OK");
+            console.log("price ok");
+        } else {
+            if ($(this).val() == "") {
+                // Empty min price which is ok
+                console.log("Empty price");
+            } else {
+                $(this).siblings('span').text(" Du måste fylla i en siffra");
+                $(this).addClass("error_border");
+                all_ok = false;
+                console.log("Non numeric price");
+            }
+        }
      });
      if (all_ok) {
         return true;
