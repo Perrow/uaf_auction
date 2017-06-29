@@ -144,5 +144,11 @@ if __name__ == "__main__":
     ]
 ]
 
-    C = Compilation("test.pdf", "Uppsala storauktion", "2016-11-27", 0.15)
+    C = Compilation("Uppsala akvarieförening", "Uppsala storauktion", "2016-11-27", "Uppsala", 0.15)
+
     C.make_pdf(my_data)
+    pdf = C.make_pdf(my_data)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()

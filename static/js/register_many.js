@@ -195,6 +195,7 @@ $(document).ready(function(){
                 $("#" + min_price_div_id).hide();
             } 
             $("#create_posts").hide();
+            $("#submit").show();
         }
     });
 
@@ -242,6 +243,7 @@ $(document).ready(function(){
 
     var option_values = "";
     var sale_type = "error";
+    $("#submit").hide();
 
     console.log('Everything is ready.');
 });

@@ -26,6 +26,7 @@ import make_compilation_pdf
 import make_receipt_pdf
 import list_shorter
 import make_economic_report_pdf
+import make_wall_list_pdf
 
 # set default encoding on the server to utf-8 pyhton 2.7
 import sys
@@ -168,6 +169,28 @@ def auth(username, password):
         else:
             return None
 
+# *** Utils *** #
+
+
+def get_auction_info():
+    """
+    Extract the auction info from the database
+    :return: club_name, club_short_name, event_name, event_date, event_city, commision
+    """
+    conn = sqlite3.connect(DATABASE)
+
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT hosting_association, hosting_association_abrv, event_name, date, city, commission from auction_info")
+        auction_info = cur.fetchone()
+        club_name = auction_info[0]
+        club_short_name = auction_info[1]
+        event_name = auction_info[2]
+        event_date = auction_info[3]
+        event_city = auction_info[4]
+        commision = auction_info[5]
+        return club_name, club_short_name, event_name, event_date, event_city, commision
+
 # *** Routes *** #
 
 
@@ -259,7 +282,7 @@ def register_many_posts():
                 cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
 
             flash("Posterna registrerade.")
- 
+
     # Fetch sale types from database, generate a select for the default sale type
     conn = sqlite3.connect(DATABASE)
     select = '<select id="master_type" name="master_type">'
@@ -341,7 +364,7 @@ def list_posts():
                 nr_posts.append("Auktion: {}".format(row[0]))
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
-            
+
         cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, posts.quantity, types.description
         FROM posts
         INNER JOIN types
@@ -521,6 +544,7 @@ def labels_view(selected_id=None):
     response.mimetype = 'application/pdf'
     return response
 
+
 @app.route('/labels_print')
 @app.route('/labels_print/<selected_id>')
 @admin_required
@@ -540,6 +564,7 @@ def labels_server_print(selected_id=None):
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
     return ('', 204)  # empty response
+
 
 # @app.route('/labels')
 # @app.route('/labels/<selected_id>')
@@ -582,6 +607,7 @@ def get_labels_pdf(selected_id=None):
     pdf = labels.make_pdf(data)
     return pdf
 
+
 @app.route('/economic_report_view')
 @admin_required
 def economic_report_view(selected_id=None):
@@ -596,6 +622,7 @@ def economic_report_view(selected_id=None):
     response.headers['Content-Disposition'] = "attachment; filename=economic_report.pdf"
     response.mimetype = 'application/pdf'
     return response
+
 
 @app.route('/economic_report_print')
 @admin_required
@@ -726,6 +753,64 @@ def get_economic_report_pdf():
     return pdf
 
 
+@app.route('/wall_list_view')
+@admin_required
+def wall_list_view():
+    """
+    Generates a pdf with all aucktion posts, renders as pdf
+    :return: pdf
+    """
+    pdf = get_auction_wall_list()
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=wall_list.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+
+@app.route('/wall_list_print')
+@admin_required
+def wall_list_server_print():
+    """
+    Writes the wall list pdf on a printer connected to the server via CUPS
+    :return: Nothing
+    """
+    pdf = get_auction_wall_list()
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return ('', 204)  # empty response
+
+
+def get_auction_wall_list():
+    conn = sqlite3.connect(DATABASE)
+
+    with conn:
+        club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
+
+        cur = conn.cursor()
+        sql = """Select posts.obj_id, posts.scientific_name, posts.plain_name, posts.minimum_price from posts
+                 join types on types.type_id=posts.type
+                 where types.sale_type='auction' """
+        cur.execute(sql)
+        my_headings = [("Post", "Vetenskapligt namn", "Populärnamn", "Min pris")]
+        my_data = cur.fetchall()
+        cur.execute(sql)
+        # my_data2 = cur.fetchall()
+        # my_data.extend(my_data2)
+        # my_data.extend(my_data2)
+        my_headings.extend(my_data)  # Add headings to list of auction objects
+
+        MWL = make_wall_list_pdf.MakeWallList(club_name, event_name, event_date, event_city)
+        pdf = MWL.make_pdf(my_headings)
+        return pdf
+
+
 @app.route('/compilation_view')
 @app.route('/compilation_view/<selected_id>')
 @admin_required
@@ -762,6 +847,7 @@ def compilation_server_print(selected_id=None):
     os.unlink(pdf_temp)
     return ('', 204)  # empty response
 
+
 # @app.route('/compilation')
 # @app.route('/compilation/<selected_id>')
 # @admin_required
@@ -775,15 +861,16 @@ def get_compilation_pdf(selected_id=None):
     data = []
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
-        auction_info = cur.fetchone()
-        hosting_association = auction_info[0]
-        auction_name = auction_info[1]
-        auction_date = auction_info[2]
-        event_city = auction_info[3]
-        commision = auction_info[4]
-        print(auction_name, auction_date, selected_id)
-        comp_pdf = make_compilation_pdf.Compilation(hosting_association, auction_name, auction_date, event_city, commision)
+        club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
+        # cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
+        # auction_info = cur.fetchone()
+        # hosting_association = auction_info[0]
+        # auction_name = auction_info[1]
+        # auction_date = auction_info[2]
+        # event_city = auction_info[3]
+        # commision = auction_info[4]
+        print(event_name, event_date, selected_id)
+        comp_pdf = make_compilation_pdf.Compilation(club_name, event_name, event_date, event_city, commision)
 
         cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
         seller_ids = cur.fetchall()
@@ -809,7 +896,6 @@ def get_compilation_pdf(selected_id=None):
 
     pdf = comp_pdf.make_pdf(data)
     return pdf
-
 
 
 @app.route('/receipt')

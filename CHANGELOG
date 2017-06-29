@@ -1,3 +1,8 @@
+Version 0.17 2017-06-29
+    Added a printable list of auction items for displaying at the auction.
+    Changed the layout of the reports page.
+    Minor changes.
+
 Version 0.16 2017-06-16
     Register many posts now checks that prices are numeric.
 
