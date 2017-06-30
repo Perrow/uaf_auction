@@ -17,8 +17,9 @@
         <th>Vetenskapligt namn</th>
         <th>Namn</th>
         <th>Beskrivning av posten</th>
-        <th>Antal</th>
+        <!--<th>Antal</th>-->
         <th>Godstyp</th>
+        <th>Google bildsök</th>
   </tr>
   {% for row in data %}
    <tr>
@@ -26,8 +27,14 @@
        <td> {{ row[1] }} </td>
        <td> {{ row[2] }} </td>
        <td> {{ row[3] }} </td>
-       <td> {{ row[4] }} </td>
+       <!--<td> {{ row[4] }} </td>-->
        <td> {{ row[5] }} </td>
+       {% if row[1] !="" %}
+       <td> <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[1] }}">länk</a> </td>
+       {% else %}
+       <td> <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[2] }}">länk</a> </td>
+       {% endif %}
+
 
    </tr>
   {% endfor %}
