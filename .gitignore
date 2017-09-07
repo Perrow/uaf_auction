@@ -7,3 +7,8 @@ python/
 *pdf
 *pyc
 
+templates/.flea_market.html.swp
+templates/.login.html.swp
+templates/.new_seller.html.swp
+templates/.register.html.swp
+templates/.register_many_posts.html.swp

@@ -6,7 +6,7 @@
 {% block body %}
 <h1> Säljare </h1>
 
-<table style="width:100%">
+<table style="width:100%" class="table-hover">
     <tr>
         <th>Namn</th>
         <th>Adress</th>
@@ -26,10 +26,26 @@
        <td> {{ row[2] }} </td>
        <td> {{ row[3] }} </td>
        <td> {{ row[4] }} </td>
-       <td><a href=" {{ url_for('labels_view') }}/{{ row[5] }} " >{{ row[5] }}</a>  </td>
-       <td><a href=" {{ url_for('labels_server_print') }}/{{ row[5] }} " >{{ row[5] }}</a>  </td>
-       <td><a href=" {{ url_for('receipt_view') }}/{{ row[5] }} " >{{ row[5] }}</a>  </td>
-       <td><a href=" {{ url_for('receipt_server_print') }}/{{ row[5] }} " >{{ row[5] }}</a>  </td>
+       <td>
+         <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[5] }} " >
+           <i class="fa fa-file-pdf-o"></i>
+         </a>
+       </td>
+       <td>
+         <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[5] }} " >
+           <span class="glyphicon glyphicon-print"></span>
+         </a>
+       </td>
+       <td>
+         <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[5] }} " >
+           <i class="fa fa-file-pdf-o"></i>
+         </a>
+       </td>
+       <td>
+         <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[5] }} " >
+           <span class="glyphicon glyphicon-print"></span>
+         </a>
+       </td>
    </tr>
   {% endfor %}
 
