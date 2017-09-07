@@ -13,41 +13,41 @@
         {% for error in form.type.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.type() }}
+        {{ form.type(class_="form-control") }}
         <br>
 
         {{ form.plain_name.label }}
         {% for error in form.plain_name.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.plain_name() }}
+        {{ form.plain_name(class_="form-control") }}
 
         <div id="scientific_name_div">
         {{ form.scientific_name.label }}
         {% for error in form.scientific_name.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.scientific_name() }}
+        {{ form.scientific_name(class_="form-control") }}
         </div>
 
         {{ form.description.label }}
         {% for error in form.description.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.description() }}
+        {{ form.description(class_="form-control") }}
 
         {{ form.quantity.label }}
         {% for error in form.quantity.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.quantity() }}
+        {{ form.quantity(class_="form-control") }}
 
         <div id="min_price_div">
         {{ form.min_price.label }}
         {% for error in form.min_price.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
-        {{ form.min_price() }}
+        {{ form.min_price(class_="form-control") }}
         </div>
 
         <div id="fixed_price_div">
@@ -56,7 +56,7 @@
             <span class="error" >{{ error }}</span>
         {% endfor %}
             <span id="fixed_price_error" class="error" ></span>
-        {{ form.fixed_price() }}
+        {{ form.fixed_price(class_="form-control") }}
         </div>
 
         {{ form.submit() }}
