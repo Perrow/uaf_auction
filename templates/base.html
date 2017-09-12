@@ -41,6 +41,20 @@
         <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
         <li><a href="{{ url_for('auktion') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
         <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
+       <ul class="dropdown-menu">
+        <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>Administration</a></li>
+       </ul>
+       
+       <li class="dropdown">
+          <a class="dropdown-toggle"
+             data-toggle="dropdown" 
+             href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i>Administration<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>Skapa nytt event</a></li>
+          </ul>
+        </li>
+       
       {% endif %}
    </ul>
    <ul class="nav navbar-nav navbar-right">

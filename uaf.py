@@ -449,6 +449,70 @@ def flea_market():
 
     return render_template('flea_market.html')
 
+
+@app.route("/create_event", methods=['GET', 'POST'])
+def create_event():
+    print("WTF")
+    if request.method == 'POST':
+        print("POST")
+
+        hosting_association = request.form['hosting_association']
+        hosting_association_abrv = request.form['hosting_association_abrv']
+        city = request.form['city']
+        event_name = request.form['event_name']
+        date = request.form['date']
+        year = date[:4]
+        commission = float(request.form['commission']) / 100
+
+        admin_name = request.form['admin_name']
+        admin_address = request.form['admin_address']
+        admin_email = request.form['admin_email']
+        admin_phone = request.form['admin_phone']
+        admin_aquarium_club = request.form['admin_aquarium_club']
+        admin_password = request.form['admin_password']
+
+        salt = bcrypt.gensalt()
+        encrypted_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
+        admin_data = [admin_name, admin_address, admin_email, admin_phone, admin_aquarium_club, "yes", encrypted_password, time.strftime("%Y-%m-%d %H:%M:%S")]
+
+        conn = sqlite3.connect("auktion.db3")
+        with conn:
+            cur = conn.cursor()
+
+            cur.execute("DROP TABLE IF EXISTS sellers")
+            cur.execute("DROP TABLE IF EXISTS posts")
+            cur.execute("DROP TABLE IF EXISTS types")
+            cur.execute("DROP TABLE IF EXISTS auction_info")
+            
+            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT)')
+            cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, quantity TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
+            cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission]
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission) VALUES(?, ?, ?, ?, ?, ?, ?)", auction_info)
+
+            types = (
+                (1, u"Fisk till auktionen", u"auction"),
+                (2, u"Fisk till fasta bordet", u"fixed_price"),
+                (3, u"Räkor till auktionen", u"auction"),
+                (4, u"Räkor till fasta bordet", u"fixed_price"),
+                (5, u"Övriga djur till fasta bordet", u"fixed_price"),
+                (6, u"Växter till auktionen", u"auction"),
+                (7, u"Växter till fasta bordet", u"fixed_price"),
+                (8, u"Tillbehör till fasta bordet", u"fixed_price"),
+                (9, u"Övrigt till fasta bordet", u"fixed_price"))
+            cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
+
+            cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
+            conn.commit()
+
+            flash("Ny databas skapad.")
+        return render_template('create_event.html')
+    else:
+        print("GET")
+        return render_template('create_event.html')
+
 # *** JSON *** #
 
 

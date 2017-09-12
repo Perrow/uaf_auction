@@ -15,6 +15,12 @@ $(document).ready(function(){
         });
     };
 
+    // Stop sending form with enter
+    $("form").bind("keypress", function (e) {
+        if (e.keyCode == 13) {
+            return false;
+        }
+    });
 
     // Toggles the fixed price and minimum price boxes according to the select status
     var add_toggler_func = function(rownr) {
