@@ -45,31 +45,10 @@ a:active {
     text-decoration: none;
 }
 
-input[type=text] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
-}
-
 .loppis {
     width: 40%;
     padding: 10px 20px 10px 20px;
     margin: 0px 30px 10px 0px;
-    box-sizing: border-box;
-}
-
-input[type=email] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
-}
-
-input[type=password] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
     box-sizing: border-box;
 }
 
@@ -96,13 +75,6 @@ background-color:#7892c2;
 	padding:10px 30px;
 	text-decoration:none;
 }
-#submit:hover, #addbutton:hover, #sumbutton:hover {
-	background-color:#476e9e;
-}
-#submit:active, #addbutton:active, #sumbutton:active {
-	position:relative;
-	top:1px;
-}
 .error_border {
     border-color: red;
 }
@@ -124,17 +96,6 @@ background-color:#7892c2;
     box-sizing: border-box;
     background: white;
 }
-
-th, td {
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    padding: 5px;
-}
-
-table.table_no_wrapp td{
-    white-space: nowrap;
-}
-
 
 right-align {
     align: right;
@@ -192,13 +153,4 @@ right-align {
 
 .hidden {
     display: none;
-}
-
-a.button {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    appearance: button;
-
-    text-decoration: none;
-    color: initial;
 }
