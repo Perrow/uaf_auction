@@ -668,7 +668,7 @@ def get_labels_pdf(selected_id=None):
             data.append(seller_data)
         print(data)
 
-    pdf = labels.make_pdf(data)
+    pdf = labels.make_pdf(data, border=False)
     return pdf
 
 
