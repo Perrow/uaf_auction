@@ -184,7 +184,7 @@ $(document).ready(function(){
                 '<input class="ninety" id="' + description_id + '" name="description" type="text" value=""> <br>' +
             '</div>'
             if (i > 0) {  // Do not put copy button on the first subform
-                new_post_html += '<button id="' + copybutton_id + '" type="button">Kopiera post</button>'
+                new_post_html += '<button id="' + copybutton_id + '" type="button">Kopiera ovanstående post</button>'
             }
             new_post_html += '</div>' ;
 
