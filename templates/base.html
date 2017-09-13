@@ -7,13 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {%block head %}
         <title>{% block title %}{% endblock %}</title>
-        <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
+
     {% endblock %}
     <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+    <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">    
 </head>
 
 <body>
@@ -23,49 +24,58 @@
       <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
    </div>
    <ul class="nav navbar-nav">
-      <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
       {% if not current_user.is_authenticated %}
+        <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+      
         <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
       {% endif %}
-      {% if current_user.is_authenticated %}
+      
         <li class="dropdown">
           <a class="dropdown-toggle"
              data-toggle="dropdown" 
              href="{{ url_for('list_posts') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Poster<span class="caret"></span>
           </a>
           <ul class="dropdown-menu">
-            <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Lista poster</a></li>
-            <li><a href="{{ url_for('register_post') }}"><i class="fa fa-plus" aria-hidden="true"></i> Registrera en post</a></li>
-            <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i class="fa fa-plus" aria-hidden="true"></i> Registrera flera poster</a></li>
+            <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa anmälda poster</a></li>
+            <!--<li><a href="{{ url_for('register_post') }}"><i class="fa fa-plus" aria-hidden="true"></i> Registrera en post</a></li>-->
+            {% if current_user.is_authenticated %}
+              <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i class="fa fa-plus" aria-hidden="true"></i> Registrera flera poster</a></li>
+              <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina anmälningar</a></li>
+            {% endif %}
           </ul>
         </li>
-        {% if current_user.is_admin %}
-            <li><a href="{{ url_for('list_seller') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa säljare</a></li>
-            <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
-            <li><a href="{{ url_for('auktion') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
-            <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
+        {% if current_user.is_authenticated %}
+            {% if current_user.is_admin %}
+                <li><a href="{{ url_for('list_seller') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa säljare</a></li>
+                <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
+                <li><a href="{{ url_for('auktion') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
+                <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
+    
+                <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Administration</a></li>
+                </ul>
+           
+                <li class="dropdown">
+                    <a class="dropdown-toggle"
+                        data-toggle="dropdown" 
+                        href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i>Administration<span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Skapa nytt event</a></li>
+                    </ul>
+                </li>
+            {% endif %}
         {% endif %}
-       <ul class="dropdown-menu">
-        <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>Administration</a></li>
+   </ul>
+   {% if current_user.is_authenticated %}   
+       <ul class="nav navbar-nav navbar-right">
+         <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
        </ul>
-       
-       <li class="dropdown">
-          <a class="dropdown-toggle"
-             data-toggle="dropdown" 
-             href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i>Administration<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>Skapa nytt event</a></li>
-          </ul>
-        </li>
-      {% endif %}
-   </ul>
-   <ul class="nav navbar-nav navbar-right">
-     <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-   </ul>
+   {% endif %}   
    </div>
   </div>
 </nav>
+ 
     <div align="right">
        {% if current_user.is_authenticated %}
          Inloggad som {{ current_user.name }}!

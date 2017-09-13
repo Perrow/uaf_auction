@@ -2,14 +2,6 @@
 {% block title %} Auktion {% endblock %}
 {% block head %}
     {{ super() }}
-<style>
-input[type=text] {
-    width: 25%;
-    padding: 12px 20px;
-    margin: 10px 30px 0px 10px;
-    box-sizing: border-box;
-}
-</style>
 
 {% endblock %}
 {% block body %}
@@ -18,30 +10,32 @@ input[type=text] {
 
     <form  action="/auktion" method="POST">
         {{ form.csrf_token }}
-
-        {{ form.post_id.label }}
-        {% for error in form.post_id.errors %}
-            <span class="error" >{{ error }}</span>
-        {% endfor %}
-        {{ form.post_id(autofocus="autofocus", class_="form-control") }}
-
-        {{ form.price.label }}
-        {% for error in form.price.errors %}
-            <span class="error" >{{ error }}</span>
-        {% endfor %}
-        {{ form.price(class_="form-control") }}
-
+        <div class="row">
+            <div class="col-sm-2">
+                {{ form.post_id.label }}
+                {% for error in form.post_id.errors %}
+                    <span class="error" >{{ error }}</span>
+                {% endfor %}
+                {{ form.post_id(autofocus="autofocus", class_="form-control") }}
+            </div>
+            
+            <div class="col-sm-2">
+                {{ form.price.label }}
+                {% for error in form.price.errors %}
+                    <span class="error" >{{ error }}</span>
+                {% endfor %}
+                {{ form.price(class_="form-control") }}
+            </div>
+        </div>
         {{ form.sale_type.label }}
         {% for error in form.sale_type.errors %}
             <span class="error" >{{ error }}</span>
         {% endfor %}
         {{ form.sale_type() }}
 
-        {{ form.submit() }}
+        {{ form.submit(class_="btn btn-default") }}
 
     </form>
-
-
 
 
     <div class="warning" id="type"></div>
@@ -50,20 +44,52 @@ input[type=text] {
 
     <div class="error" id="error"></div>
 
-    <p>Reservationspris</p>
-    <div class="warning" id="min_price"></div>
-
-    <p>Namn</p>
-    <div class="info" id="plain_name"></div>
-
-    <p>Vetenskapligt namn</p>
-    <div class="info" id="scientific_name"></div>
-
-    <p>Beskrivning</p>
-    <div class="info" id="description"></div>
-
-    <p>Säljare</p>
-    <div class="info" id="seller_name"></div>
-
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-2">
+                Reservationspris:
+            </div>
+            <div class="col-sm-10">
+                <div id="min_price"></div> 
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-sm-2">
+                Namn:
+            </div>
+            <div class="col-sm-10">
+                <div  id="plain_name"></div> 
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-sm-2">
+                Vetenskapligt namn:
+            </div>
+            <div class="col-sm-10">
+                <span id="scientific_name"></span> 
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-sm-2">
+                Beskrivning:
+            </div>
+            <div class="col-sm-10">
+                <span id="description"></span> 
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-sm-2">
+                Säljare:
+            </div>
+            <div class="col-sm-10">
+                <span id="seller_name"></span> 
+            </div>
+        </div>
+        
+    </div>
     <script src="{{ url_for('static', filename='js/auktion.js') }}"></script>
 {% endblock %}

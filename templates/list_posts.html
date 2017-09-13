@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %} Contact {% endblock %}
+{% block title %} Postlista {% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Förhandsanmälda poster </h1>
+<h1> {{ heading }}</h1>
 
 <h2>{{ nr_posts[0] }}</h2>
 <p>
@@ -27,8 +27,8 @@
        <td> {{ row[1] }} </td>
        <td> {{ row[2] }} </td>
        <td> {{ row[3] }} </td>
-       <!--<td> {{ row[4] }} </td>-->
-       <td> {{ row[5] }} </td>
+       <td> {{ row[4] }} </td>
+       <!--<td> {{ row[5] }} </td>-->
        {% if row[1] !="" %}
        <td> 
            <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[1] }}">

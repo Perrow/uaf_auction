@@ -10,6 +10,8 @@ from flask import render_template
 # from flask import redirect
 from flask import request
 from flask import make_response
+from flask import send_from_directory
+from flask import send_file
 from flask import session
 from flask import flash
 from flask_wtf import Form
@@ -365,12 +367,43 @@ def list_posts():
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
 
-        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, posts.quantity, types.description
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, types.description
         FROM posts
         INNER JOIN types
         ON posts.type=types.type_id""")
         result = cur.fetchall()
-        return render_template('list_posts.html', nr_posts=nr_posts, data=result)
+        return render_template('list_posts.html', heading="Anmälda poster", nr_posts=nr_posts, data=result)
+
+
+@app.route('/list_my_posts')
+def list_my_posts():
+    """
+    Page for listing current users posts in the database
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        cur_id = current_user.get_id()
+        nr_posts = []
+        cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", cur_id)
+        res = cur.fetchone()
+        nr_posts.append("Antal poster: {}".format(res[0]))
+        cur.execute("SELECT COUNT(posts.type), types.sale_type from posts LEFT JOIN types ON posts.type = types.type_id WHERE seller_id = 1 GROUP BY types.sale_type")
+        res = cur.fetchall()
+
+        for row in res:
+            if row[1] == "auction":
+                nr_posts.append("Auktion: {}".format(row[0]))
+            if row[1] == "fixed_price":
+                nr_posts.append("Fastpris: {}".format(row[0]))
+
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, types.description
+        FROM posts
+        INNER JOIN types
+        ON posts.type=types.type_id
+        WHERE seller_id = 1""")
+        result = cur.fetchall()
+        return render_template('list_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result)
 
 
 @app.route('/list_seller')
@@ -512,6 +545,16 @@ def create_event():
     else:
         print("GET")
         return render_template('create_event.html')
+
+@app.route('/get_database/')
+@admin_required
+def get_database():
+    try:
+        filename = os.path.join(app.root_path, "auktion.db3")
+        print(filename)
+        return send_file(filename, as_attachment=True)
+    except Exception as e:
+        return str(e)
 
 # *** JSON *** #
 

@@ -75,6 +75,7 @@ background-color:#7892c2;
 	padding:10px 30px;
 	text-decoration:none;
 }
+
 .error_border {
     border-color: red;
 }
@@ -153,4 +154,13 @@ right-align {
 
 .hidden {
     display: none;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 5px 0;
+}
+
+td {
+  padding: 10px 0;
 }
