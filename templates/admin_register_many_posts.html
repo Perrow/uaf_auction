@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %} Registrera poster för annan användare {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+<h1>Registrera poster för annan amnvändare</h1>
+
+<form id="register_form" action="/admin_register_many_posts" method="POST">
+
+    <div id="create_posts">
+
+        <div class="input-group">
+            <label for="seller_select">Antal poster att registrera:</label><br>
+            <select id="seller_select" name="seller_select" class="selectpicker form-control">
+                {% for seller in sellers %}
+                <option value="{{ seller[0] }}">{{ seller[1] }}</option>
+                {% endfor %}
+            </select>
+            <br>
+
+            <label for="numberofposts">Antal poster att registrera:</label><br>
+            <input class="form-control" id="numberofposts" name="numberofposts" type="text" value="">
+            <br>
+            <label for="master_type">Välj typ av post:</label><br>
+            {% autoescape false %}
+            {{ select }}
+            {% endautoescape %}
+        </div>
+        <br>
+        <br>
+        <button id="addbutton" type="button" class="btn btn-primary"> Skapa poster</button>
+    </div>
+    <br>
+    <br>
+    <div id="form_elements">
+
+
+    </div> <!--form_elements    -->
+    <div class="clearfix">
+        <br>
+        <input id="submit" name="submit" type="submit" value="Skicka" class="btn btn-primary">
+    </div>
+</form>
+
+<script src="{{ url_for('static', filename='js/register_many.js') }}"></script>
+{% endblock %}

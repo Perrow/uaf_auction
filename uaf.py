@@ -42,6 +42,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
+VERSION = 0.25
 
 # For flask-login
 lm = LoginManager()
@@ -65,31 +66,31 @@ class PersonForm(Form):
     submit = SubmitField('Skicka')
 
 
-class ObjectForm(Form):
-    """
-    wtf form class for the input form
-    """
-    # Fetch sale types from database
-    conn = sqlite3.connect(DATABASE)
-    choices = []
-    with conn:
-        cur = conn.cursor()
-        cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
-        result = cur.fetchall()
-        for row in result:
-            choices.append((str(row[0]), row[1]))
-
-    # seller_email = StringField('Säljarens email:', validators=[DataRequired(), Email()])
-    plain_name = StringField('Namn:', validators=[DataRequired()])
-    scientific_name = StringField('Vetenskapligt namn:', validators=[Optional()])
-    description = StringField('Beskrivning:', validators=[Optional()])
-    quantity = StringField('Antal:', validators=[DataRequired()])
-    type = SelectField('Godstyp', choices=choices)
-    min_price = StringField('Reserverat utropspris (frivilligt):', validators=[Optional()])
-    fixed_price = StringField('Fast pris:', validators=[Optional()])
-    # min_price = IntegerField('Reserverat utropspris (frivilligt):', validators=[Optional()])
-    # fixed_price = IntegerField('Fast pris:', validators=[Optional(), NumberRange(min=0, max=1000)])
-    submit = SubmitField('Skicka')
+# class ObjectForm(Form):
+#     """
+#     wtf form class for the input form
+#     """
+#     # Fetch sale types from database
+#     conn = sqlite3.connect(DATABASE)
+#     choices = []
+#     with conn:
+#         cur = conn.cursor()
+#         cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
+#         result = cur.fetchall()
+#         for row in result:
+#             choices.append((str(row[0]), row[1]))
+# 
+#     # seller_email = StringField('Säljarens email:', validators=[DataRequired(), Email()])
+#     plain_name = StringField('Namn:', validators=[DataRequired()])
+#     scientific_name = StringField('Vetenskapligt namn:', validators=[Optional()])
+#     description = StringField('Beskrivning:', validators=[Optional()])
+#     quantity = StringField('Antal:', validators=[DataRequired()])
+#     type = SelectField('Godstyp', choices=choices)
+#     min_price = StringField('Reserverat utropspris (frivilligt):', validators=[Optional()])
+#     fixed_price = StringField('Fast pris:', validators=[Optional()])
+#     # min_price = IntegerField('Reserverat utropspris (frivilligt):', validators=[Optional()])
+#     # fixed_price = IntegerField('Fast pris:', validators=[Optional(), NumberRange(min=0, max=1000)])
+#     submit = SubmitField('Skicka')
 
 
 class AuctionForm(Form):
@@ -207,7 +208,18 @@ def index():
         print("ÄR admin: {}".format(current_user.is_admin))
     else:
         print("No current user")
-    return render_template('index.html')
+    
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT hosting_association, event_name, date, description from auction_info")
+        auction_info = cur.fetchone()
+        club_name = auction_info[0]
+        event_name = auction_info[1]
+        event_date = auction_info[2]
+        event_description = auction_info[3]
+
+    return render_template('index.html', event_name=event_name, club_name=club_name, event_date=event_date, event_description=event_description)
 
 
 @app.route('/new_seller', methods=['GET', 'POST'])
@@ -249,6 +261,61 @@ def new_seller():
     else:
         return render_template('new_seller.html', form=form)
 
+@app.route("/admin_register_many_posts", methods=['GET', 'POST'])
+@admin_required
+def admin_register_many_posts():
+    """
+    Register many new post at the same time for another seller
+    :return:
+    """
+    if request.method == 'POST':
+        # seller_email = request.form['seller_email']
+        types = request.form.getlist('type')
+        scinames = request.form.getlist('sciname')
+        popnames = request.form.getlist('popname')
+        min_prices = request.form.getlist('min_price')
+        fixed_prices = request.form.getlist('fixed_price')
+        descriptions = request.form.getlist('description')
+        seller_id = request.form['seller_select']
+
+        print("seller_id: ", seller_id)
+        print(types)
+        print(scinames)
+        print(popnames)
+        print(min_prices)
+        print(fixed_prices)
+        print(descriptions)
+        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
+        # print(new_items)
+
+        # seller_id = current_user.get_id()
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
+
+            flash("Posterna registrerade.")
+
+    # Fetch sale types from database, generate a select for the default sale type
+    conn = sqlite3.connect(DATABASE)
+    sellers = []
+    select = '<select class="selectpicker form-control" id="master_type" name="master_type">'
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
+        result = cur.fetchall()
+        for row in result:
+            tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
+            select += tempstr
+        # Get list of sellers
+        cur.execute("SELECT seller_id, name FROM sellers")
+        sellers = cur.fetchall()
+
+    select += '</select>'
+
+    return render_template('admin_register_many_posts.html', select=select, sellers=sellers)
+
 
 @app.route("/register_many_posts", methods=['GET', 'POST'])
 @login_required
@@ -287,7 +354,7 @@ def register_many_posts():
 
     # Fetch sale types from database, generate a select for the default sale type
     conn = sqlite3.connect(DATABASE)
-    select = '<select id="master_type" name="master_type">'
+    select = '<select  class="selectpicker form-control" id="master_type" name="master_type">'
     with conn:
         cur = conn.cursor()
         cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
@@ -297,53 +364,6 @@ def register_many_posts():
             select += tempstr
     select += '</select>'
     return render_template('register_many_posts.html', select=select)
-
-
-@app.route("/register_post", methods=['GET', 'POST'])
-@login_required
-def register_post():
-    """
-    Page for adding new posts to the database
-    :return:
-    """
-    form = ObjectForm()
-    if form.validate_on_submit():
-        # seller_email = form.seller_email.data
-        description = form.description.data
-        scientific_name = form.scientific_name.data
-        plain_name = form.plain_name.data
-        quantity = form.quantity.data
-        post_type = form.type.data
-        min_price = form.min_price.data
-        fixed_price = form.fixed_price.data
-        # session["seller_email"] = seller_email
-        seller_id = current_user.get_id()
-        conn = sqlite3.connect(DATABASE)
-        with conn:
-            cur = conn.cursor()
-            # cur.execute("SELECT seller_id FROM sellers WHERE email=?", [seller_email])
-            # result = cur.fetchone()
-            # if result:
-            #     seller_id = result[0]
-            #     session["seller_id"] = seller_id
-            cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, quantity, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, quantity, post_type, min_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
-
-            form.description.data = None
-            form.scientific_name.data = None
-            form.plain_name.data = None
-            form.quantity.data = None
-            form.type.data = None
-            form.min_price.data = None
-            form.fixed_price.data = None
-            flash("Posten registrerad.")
-            # else:
-            #     flash("Email-adressen finns inte i databasen, kontrollera att du skrivit rätt eller registrera dig som säljare.")
-
-        return render_template('object.html', form=form)
-    else:
-        # form.seller_email.data = session.get("seller_email")
-        # print("session seller_email: {}".format(session.get("seller_email")))
-        return render_template('object.html', form=form)
 
 
 @app.route('/list')
@@ -496,6 +516,7 @@ def create_event():
         date = request.form['date']
         year = date[:4]
         commission = float(request.form['commission']) / 100
+        event_description = request.form['event_description']
 
         admin_name = request.form['admin_name']
         admin_address = request.form['admin_address']
@@ -517,13 +538,13 @@ def create_event():
             cur.execute("DROP TABLE IF EXISTS types")
             cur.execute("DROP TABLE IF EXISTS auction_info")
             
-            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT)')
+            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT)')
-            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, quantity TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
             cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
 
-            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission]
-            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission) VALUES(?, ?, ?, ?, ?, ?, ?)", auction_info)
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             types = (
                 (1, u"Fisk till auktionen", u"auction"),
@@ -545,6 +566,25 @@ def create_event():
     else:
         print("GET")
         return render_template('create_event.html')
+
+
+@app.route('/about')
+@admin_required
+def about():
+    """
+    About page
+    :return:
+    """
+    return render_template('about.html', version=VERSION)
+
+@app.route('/download_database')
+@admin_required
+def download_database():
+    """
+    Download database page
+    :return:
+    """
+    return render_template('download_database.html')
 
 @app.route('/get_database/')
 @admin_required
@@ -593,7 +633,7 @@ def get_json(post_id):
     with conn:
         cur = conn.cursor()
 
-        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.quantity, posts.sold_on, posts.fixed_price, posts.sold_price, types.sale_type as type, posts.minimum_price
+        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, types.sale_type as type, posts.minimum_price
         FROM sellers
         INNER JOIN posts
         ON sellers.seller_id=posts.seller_id
@@ -701,12 +741,12 @@ def get_labels_pdf(selected_id=None):
         for seller in sellers:
             seller_id = seller[0]
             print(seller_id)
-            cur.execute("SELECT obj_id, plain_name, scientific_name, quantity, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
+            cur.execute("SELECT obj_id, plain_name, scientific_name, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
             posts = cur.fetchall()
             seller_data = [seller[0], seller[1], seller[2], seller[3]]
             post_data = []
             for post in posts:
-                post_data.append([post[0], " ".join([post[1], post[2]]), post[3], post[4]])
+                post_data.append([post[0], " ".join([post[1], post[2]]), post[3]])
             seller_data.append(post_data)
             data.append(seller_data)
         print(data)

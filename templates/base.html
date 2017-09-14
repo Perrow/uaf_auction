@@ -1,12 +1,11 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {%block head %}
-        <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %}</title>
 
     {% endblock %}
     <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
@@ -14,86 +13,91 @@
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
     <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
 </head>
 
 <body>
- <nav class="navbar navbar-default">
-  <div class="container-fluid">
-   <div class="navbar-header">
-      <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
-   </div>
-   <ul class="nav navbar-nav">
-      {% if not current_user.is_authenticated %}
-        <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-      
-        <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
-      {% endif %}
-      
-        <li class="dropdown">
-          <a class="dropdown-toggle"
-             data-toggle="dropdown" 
-             href="{{ url_for('list_posts') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Poster<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa anmälda poster</a></li>
-            <!--<li><a href="{{ url_for('register_post') }}"><i class="fa fa-plus" aria-hidden="true"></i> Registrera en post</a></li>-->
-            {% if current_user.is_authenticated %}
-              <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i class="fa fa-plus" aria-hidden="true"></i> Registrera flera poster</a></li>
-              <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina anmälningar</a></li>
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
+        </div>
+        <ul class="nav navbar-nav">
+            {% if not current_user.is_authenticated %}
+            <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+
+            <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
             {% endif %}
-          </ul>
-        </li>
-        {% if current_user.is_authenticated %}
-            {% if current_user.is_admin %}
-                <li><a href="{{ url_for('list_seller') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa säljare</a></li>
-                <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
-                <li><a href="{{ url_for('auktion') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
-                <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
-    
+
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="{{ url_for('list_posts') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Poster<span class="caret"></span>
+                </a>
                 <ul class="dropdown-menu">
-                    <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Administration</a></li>
+                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa anmälda poster</a></li>
+                    {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i class="fa fa-plus" aria-hidden="true"></i> Registrera poster</a></li>
+                    <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina anmälningar</a></li>
+                    {% endif %}
+                    {% if current_user.is_admin %}
+                    <li><a href="{{ url_for('admin_register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i class="fa fa-plus" aria-hidden="true"></i> Registrera poster för annan användare</a></li>
+                    {% endif %}
                 </ul>
-           
-                <li class="dropdown">
-                    <a class="dropdown-toggle"
-                        data-toggle="dropdown" 
-                        href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i>Administration<span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ url_for('create_event') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Skapa nytt event</a></li>
-                    </ul>
-                </li>
+            </li>
+            {% if current_user.is_authenticated %}
+            {% if current_user.is_admin %}
+            <li><a href="{{ url_for('list_seller') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa säljare</a></li>
+            <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
+            <li><a href="{{ url_for('auktion') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
+            <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
+
+            <ul class="dropdown-menu">
+                <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Administration</a></li>
+            </ul>
+
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="{{ url_for('create_event') }}"><i class="fa fa-cog" aria-hidden="true"></i> Administration<span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('create_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Skapa nytt event</a></li>
+                    <li><a href="{{ url_for('download_database') }}"><i class="fa fa-download" aria-hidden="true"></i> Ladda ner databasen</a></li>
+
+                </ul>
+            </li>
             {% endif %}
+            {% endif %}
+            <li><a href="{{ url_for('about') }}"><span class="fa fa-info"></span> Om</a></li>
+        </ul>
+        {% if current_user.is_authenticated %}
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+        </ul>
         {% endif %}
-   </ul>
-   {% if current_user.is_authenticated %}   
-       <ul class="nav navbar-nav navbar-right">
-         <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-       </ul>
-   {% endif %}   
-   </div>
-  </div>
-</nav>
- 
-    <div align="right">
-       {% if current_user.is_authenticated %}
-         Inloggad som {{ current_user.name }}!
-       {% else %}
-         Inte inloggad
-       {% endif %}
     </div>
+    </div>
+</nav>
+
+<div align="right">
+    {% if current_user.is_authenticated %}
+    Inloggad som {{ current_user.name }}!
+    {% else %}
+    Inte inloggad
+    {% endif %}
+</div>
 <div id="main">
     {% block body%}
     {% endblock %}
     {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-            {% for message in messages %}
-                <li>{{ message }} </li>
-            {% endfor %}
-            </ul>
-        {% endif %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     {% endwith %}
 </div> <!--main-->
 

@@ -4,10 +4,13 @@
     {{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Välkommen </h1>
-<p>Det är här UAF's auktionsprogram.</p>
-<p>Här kan du som säljare registrera dig och sedan logga in för att anmäla auktions- eller loppisposter.</p>
 
-<p>Version 0.24</p>
+<div class="container">
+    <h1> Välkommen till registreringen inför {{ event_name }} som anordnas <br> {{ event_date }} av {{ club_name }}</h1>
 
+    <p>{{ event_description }}</p>
+
+    <p>Skapa en ny användare, logga in för att registera de poster du vill sälja. Du kan också se en lista på dina anmälda poster. Utan att logga in kan man se alla anmälda poster.</p>
+<!--<p>Version 0.24</p>-->
+</div>
 {% endblock %}

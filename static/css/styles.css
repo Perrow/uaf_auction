@@ -19,15 +19,9 @@ html {
     height: 100vh;
 }
 
-h1 {
-    color: black;
-    text-align: center;
-}
 
-p {
-    font-family: verdana;
-    font-size: 20px;
-}
+
+
 
 a:link {
     text-decoration: none;
@@ -45,36 +39,6 @@ a:active {
     text-decoration: none;
 }
 
-.loppis {
-    width: 40%;
-    padding: 10px 20px 10px 20px;
-    margin: 0px 30px 10px 0px;
-    box-sizing: border-box;
-}
-
-textarea {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
-    resize: none;
-}
-
-#submit, #addbutton, #sumbutton {
-background-color:#7892c2;
-	-moz-border-radius:5px;
-	-webkit-border-radius:5px;
-	border-radius:5px;
-	border:1px solid #4e6096;
-	margin: 10px 30px 10px 10px;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff;
-	font-family:Arial;
-	font-size:19px;
-	padding:10px 30px;
-	text-decoration:none;
-}
 
 .error_border {
     border-color: red;

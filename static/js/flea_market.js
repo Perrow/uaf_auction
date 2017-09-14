@@ -84,7 +84,8 @@ $(document).ready(function(){
         var post_id = "post" + rowNum;
         var price_id = "price" + rowNum;
 
-        $("#form_elements").append('<label for="' + post_id + '">Post nr:</label> <input class="loppis" id="' + post_id + '" name="post_id" type="text" value=""> <label for="' + price_id + '">Pris:</label>  <input class="loppis price" id="' + price_id + '" name="price" type="text" value=""><br>');
+        $("#form_elements").append('<div class="row"><div class="col-sm-2"><label for="' + post_id + '">Post nr:</label> <input class="loppis" id="' + post_id + '" name="post_id" type="text" value=""></div> <div class="col-sm-2"> <label for="' + price_id + '">Pris:</label>  <input class="loppis price" id="' + price_id + '" name="price" type="text" value=""></div></div><br>');
+        
         func(post_id, price_id);
     });
 

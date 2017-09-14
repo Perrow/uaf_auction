@@ -84,8 +84,7 @@ class ZLabels(object):
             for post in seller[4]:
                 post_id = post[0]
                 post_name = post[1]
-                post_nr_items = post[2]
-                post_fixed_price = post[3]
+                post_fixed_price = post[2]
 
                 # Caluclate current row and column, if row is larger than 7 start a new page
                 column = count % 3
@@ -129,7 +128,7 @@ class ZLabels(object):
                 #     post_name = post_name[:-1]
                 #     name_width = shapes.stringWidth(post_name, 'Helvetica', self.font_size)
 
-                canvas.drawString(x + left_margin, y - self.row_height * 8, "{} st {}".format(post_nr_items, self.truncate_str(post_name, 140)))
+                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_name, 150)))
                 count += 1
 
             canvas.showPage()
