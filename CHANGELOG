@@ -1,3 +1,52 @@
+ Version 0.27 2017-09-15
+    Added Bootstrap to post registration form.
+    Removed min price information from fleamarket as fleamarket post do not have that.
+
+Version 0.26 2017-09-15
+    Issue 14 - User must accept the useage of cookies and the storage of personal information in the database.
+    More Bootstrap.
+    Removed all use of wft-forms.
+    Deleted unused templates.
+    Code cleanup.
+    New javascript that checks the create_event and new_seller forms.
+
+Version 0.25 2017-09-14
+    Added discription of the event in the database and on the start page.
+    Added new about page.
+    More Bootstrap on many pages.
+    Issue 3 - Admin can add posts for other sellers.
+    Admin can download the database, for backup or transfer to other system.
+    Removed the register one post page.
+    Removed nr of objects in the post from the database and the labels.
+
+Version 0.24 2017-09-13
+    Added Bootstrap to auktion.html.
+    Fixed the nav-menu so items are shown depending on if the user is logged in or is admin.
+    Added a page to view the users own posts.
+    Started to make it possible to download the database.
+
+Version 0.23 2017-09-13
+    Issue 16 - Removed lines on labels.
+
+Version 0.22 2017-09-13
+    The rest of the work from the Monday meeting.
+    Merge branch 'jonalv-2' into 'master'
+
+Version 0.21 2017-09-12
+    Added a page for generating a new database for setting up a new event.
+    Removes the old database.
+    Fixed a bug in register_many that sent the form if enter was pressed.
+
+Version 0.20 2017-09-12
+    Result of the meeting 2017-09-11.
+    Merge branch 'jonalv-1' into 'master'
+    Monday evening work
+    removed button related css
+
+Version 0.19
+    'Merge branch 'bootstrap' into 'master'
+    Bootstrap
+
 Version 0.18 2017-06-30
     Added google image search to the list of posts.
 

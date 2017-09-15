@@ -1,7 +1,6 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #444;
 }
 
@@ -18,10 +17,6 @@ html {
     padding: 30px;
     height: 100vh;
 }
-
-
-
-
 
 a:link {
     text-decoration: none;
@@ -73,35 +68,6 @@ right-align {
 .visible {
     display: block;
     visibility: visible;
-}
-
-
-.left {
-    float: left;
-    margin-right: 2%;
-}
-
-
-.ten {
-    width: 10%;
-}
-.twenty {
-    width: 20%;
-}
-.forty {
-    width: 40%;
-}
-.fifty {
-    width: 50%;
-}
-.ninety {
-    width: 90%;
-}
-.ninetyfour {
-    width: 94%;
-}
-.hundred {
-    width: 100%;
 }
 
 .clearfix::after {

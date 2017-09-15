@@ -34,7 +34,7 @@ class ListShorter:
 
         if end:
             result.append("-")
-            result.append(end)
+        result.append(end)
 
         old = None
         in_dash = False
@@ -54,3 +54,10 @@ class ListShorter:
                 old = None
 
         return (", ".join(new_result))
+
+if __name__ == "__main__":
+    ls = ListShorter()
+    org_data = [1, 2, 3, 6, 7, 10, 11, 12, 13, 15, 18, 19, 20, 34]
+    short_data = ls.short(org_data)
+    print(org_data)
+    print(short_data)

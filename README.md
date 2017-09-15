@@ -83,7 +83,6 @@ sudo apt-get install python-pip
 Needed Python libraries:
 
 * flask
-* wtforms (flask-wtf)
 * flask_login
 * reportlab
 * bcrypt
@@ -91,7 +90,6 @@ Needed Python libraries:
 
 Recommended Python environment is anaconda then:
 ```
-conda install flask-wtf
 conda install flask-login
 conda install reportlab
 conda install bcrypt
@@ -99,7 +97,6 @@ conda install bcrypt
 
 Or use pip:
 ```
-sudo pip install flask-wtf
 sudo pip install flask_login
 sudo pip install reportlab
 sudo pip install bcrypt
