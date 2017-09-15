@@ -121,7 +121,9 @@ class ZLabels(object):
                 canvas.drawString(x + left_margin, y - self.row_height * 5, seller_society)
                 canvas.drawString(x + left_margin, y - self.row_height * 6, "Tel: {}".format(seller_phone))
                 if post_fixed_price is not None:
-                    canvas.drawString(x + left_margin, y - self.row_height * 7, "Pris på försäljningsbordet kr {}".format(post_fixed_price))
+                    print(len(str(post_fixed_price)) )
+                    if len(str(post_fixed_price)) > 0:
+                        canvas.drawString(x + left_margin, y - self.row_height * 7, "Pris på försäljningsbordet kr {}".format(post_fixed_price))
 
                 # name_width = shapes.stringWidth(post_name, self.font , self.font_size)
                 # while name_width > 140:
