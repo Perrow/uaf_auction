@@ -157,31 +157,40 @@ $(document).ready(function(){
 
             var new_post_html = '<br>' +
             '<div class="blackborder">' +
+            '<div class="row">' +
+            '<div class="col-sm-2">' +
             '<label for="' + type_id + '">Godstyp</label>' +
             '<select id="' + type_id + '" name="type">' + option_values +
             '</select>' +
+            '</div>' + 
+            '</div>' +
             '<br>' +
 
-            '<div class="left forty" >' +
-                '<label for="' + sciname_id + '">Vetenskapligt namn:</label><br>' +
-                '<input class="ninety" id="' + sciname_id + '" name="sciname" type="text" value=""> <br>' +
-            '</div>' +
-            '<div  class="left forty">' +
-                '<label for="' + popname_id + '">Populärnamn:</label><br>' +
-                '<input class="ninety" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
-            '</div>' +
-            '<div  id="' + min_price_div_id + '" class="left ten">' +
-                '<label for="' + min_price_id + '">Reservationspris:</label><span id="' + min_price_error_id + ' " class="error"></span><br>' +
-            '   <input class="ninety min_price_input" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
-            '</div>' +
-            '<div  id="' + fixed_price_div_id + '" class="left ten ">' +
-                '<label for="' + fixed_price_id + '">Fast pris:</label><span id="' + fixed_price_error_id + ' " class="error"></span><br>' +
-               '<input class="ninety fixed_price_input" id="' + fixed_price_id + '" name="fixed_price" type="text" value=""> <br>' +
-           '</div>' +
-
-            '<div  class="left ninetyfour">' +
-                '<label for="' + description_id + '">Beskrivning:</label><br>' +
-                '<input class="ninety" id="' + description_id + '" name="description" type="text" value=""> <br>' +
+            '<div class="row">' +
+                '<div class="col-sm-5">' +
+                    '<label class="control-label" for="' + sciname_id + '">Vetenskapligt namn:</label><br>' +
+                    '<input class="form-control" id="' + sciname_id + '" name="sciname" type="text" value=""> <br>' +
+                '</div>' +
+                '<div class="col-sm-5">' +
+                    '<label class="control-label" for="' + popname_id + '">Populärnamn:</label><br>' +
+                    '<input class="form-control" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
+                '</div>' +
+                '<div class="col-sm-2"  id="' + min_price_div_id + '">' +
+                    '<label class="control-label" for="' + min_price_id + '">Frivilligt reservationspris:</label> ' +
+                    '<div id="' + min_price_error_id + ' " class="error"></div>' +
+                '   <input class="form-control min_price_input" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
+                '</div>' +
+                '<div  class="col-sm-2" id="' + fixed_price_div_id + '" class="left ten ">' +
+                    '<label  class="control-label" for="' + fixed_price_id + '">Fast pris:</label>' + 
+                    '<div id="' + fixed_price_error_id + ' " class="error"></div>' +
+                    '<input class="form-control fixed_price_input" id="' + fixed_price_id + '" name="fixed_price" type="text" value=""> <br>' +
+                '</div>' +
+            '</div>' + // end row
+            '<div class="row">' +
+                '<div class="col-sm-12">' +
+                    '<label class="control-label" for="' + description_id + '">Beskrivning, ange gärna antal, färg eller annat intressant:</label><br>' +
+                    '<input class="form-control" id="' + description_id + '" name="description" type="text" value=""> <br>' +
+                '</div>' + // end row
             '</div>'
             if (i > 0) {  // Do not put copy button on the first subform
                 new_post_html += '<button id="' + copybutton_id + '" type="button">Kopiera ovanstående post</button>'
@@ -208,16 +217,17 @@ $(document).ready(function(){
 
   // Check if all flea_market objects has got a price, else show error text and cancel submit
   // Check that if auction objects have price it is numeric
-  $( "#register_form" ).submit(function( event ) {
+//  $( "#register_form" ).submit(function( event ) {
+  $( "#submit" ).click(function() {
      var all_ok = true;
      console.log("checking prices");
      $( ".fixed_price_input:visible" ).each(function( index ) {  // if visible its a flea market object
         if ($.isNumeric( $(this).val() )) {
             $(this).removeClass("error_border");
-            $(this).siblings('span').text("");
+            $(this).siblings('div').text("");
             $( "#msg" ).text("OK");
         } else {
-            $(this).siblings('span').text(" Du måste fylla i ett pris");
+            $(this).siblings('div').text(" Du måste fylla i ett pris");
             $(this).addClass("error_border");
             all_ok = false;
         }         
@@ -225,15 +235,17 @@ $(document).ready(function(){
      $( ".min_price_input:visible" ).each(function( index ) {  // if visible its a auction object
         if ($.isNumeric( $(this).val() )) {
             $(this).removeClass("error_border");
-            $(this).siblings('span').text("");
+            $(this).siblings('div').text("");
             $( "#msg" ).text("OK");
             console.log("price ok");
         } else {
             if ($(this).val() == "") {
                 // Empty min price which is ok
+                $(this).removeClass("error_border");
+                $(this).siblings('div').text("");                
                 console.log("Empty price");
             } else {
-                $(this).siblings('span').text(" Du måste fylla i en siffra");
+                $(this).siblings('div').text(" Du måste fylla i en siffra");
                 $(this).addClass("error_border");
                 all_ok = false;
                 console.log("Non numeric price");
