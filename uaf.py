@@ -1,25 +1,15 @@
 # coding=utf-8
+
 import os
 import sqlite3
 import time
-from flask import Flask
+# from flask import Flask
 from flask import jsonify
-# from flask import url_for
-from flask import render_template
-# from flask import render_template_string
-# from flask import redirect
-from flask import request
 from flask import make_response
-from flask import send_from_directory
 from flask import send_file
-from flask import session
-from flask import flash
-from flask_wtf import Form
-from wtforms import StringField, SubmitField, SelectField, IntegerField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email, Optional, NumberRange
 import bcrypt
-from flask_login import LoginManager, login_required, UserMixin, login_user, logout_user, current_user
-from flask import Flask, request, abort, redirect, Response, url_for, render_template, flash
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user  # , UserMixin
+from flask import Flask, request, abort, redirect, url_for, render_template, flash  #, Response
 from functools import wraps
 ###
 import user_model
@@ -42,65 +32,13 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = 0.25
+VERSION = 0.26
 
 # For flask-login
 lm = LoginManager()
 lm.init_app(app)
 lm.login_view = "login"
 # lm.anonymous_user = anonymous_user.Anonymous
-
-# *** WTF Form classes *** #
-
-
-class PersonForm(Form):
-    """
-    wtf form class for the input form
-    """
-    name = StringField('Namn:', validators=[DataRequired()])
-    address = StringField('Adress:', validators=[DataRequired()])
-    email = StringField('Email:', validators=[DataRequired(), Email()])
-    phone = StringField('Telefonnummer:', validators=[DataRequired()])
-    aquarium_club = StringField('Akvarieförening:', validators=[DataRequired()])
-    password = PasswordField('Lösenord:', validators=[DataRequired()])
-    submit = SubmitField('Skicka')
-
-
-# class ObjectForm(Form):
-#     """
-#     wtf form class for the input form
-#     """
-#     # Fetch sale types from database
-#     conn = sqlite3.connect(DATABASE)
-#     choices = []
-#     with conn:
-#         cur = conn.cursor()
-#         cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
-#         result = cur.fetchall()
-#         for row in result:
-#             choices.append((str(row[0]), row[1]))
-# 
-#     # seller_email = StringField('Säljarens email:', validators=[DataRequired(), Email()])
-#     plain_name = StringField('Namn:', validators=[DataRequired()])
-#     scientific_name = StringField('Vetenskapligt namn:', validators=[Optional()])
-#     description = StringField('Beskrivning:', validators=[Optional()])
-#     quantity = StringField('Antal:', validators=[DataRequired()])
-#     type = SelectField('Godstyp', choices=choices)
-#     min_price = StringField('Reserverat utropspris (frivilligt):', validators=[Optional()])
-#     fixed_price = StringField('Fast pris:', validators=[Optional()])
-#     # min_price = IntegerField('Reserverat utropspris (frivilligt):', validators=[Optional()])
-#     # fixed_price = IntegerField('Fast pris:', validators=[Optional(), NumberRange(min=0, max=1000)])
-#     submit = SubmitField('Skicka')
-
-
-class AuctionForm(Form):
-    """
-    Form for auction
-    """
-    post_id = IntegerField('Postens nummer:', validators=[DataRequired()])
-    price = IntegerField('Pris:', validators=[DataRequired()])
-    sale_type = HiddenField("", default="auktion")
-    submit = SubmitField('Skicka')
 
 # *** Login and Authentication *** #
 
@@ -118,8 +56,8 @@ def admin_required(func):
             print(current_user.name, current_user.is_admin)
             return func(*args, **kwargs)
         else:
-            flash("This page need admin priviliges.")
-            return render_template('index.html')
+            flash("Du måste vara administratör för att komma åt sidan.")
+            return redirect(url_for('index'))
 
     return func_wrapper
 
@@ -208,7 +146,7 @@ def index():
         print("ÄR admin: {}".format(current_user.is_admin))
     else:
         print("No current user")
-    
+
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
@@ -228,15 +166,19 @@ def new_seller():
    Page for adding new sellers to the database
     :return:
     """
-    form = PersonForm()
-    if form.validate_on_submit():
-        name = form.name.data
-        # surname = form.surname.data
-        email = form.email.data
-        address = form.address.data
-        phone = form.phone.data
-        aquarium_club = form.aquarium_club.data
-        password = form.password.data.encode('utf-8')
+    if request.method == 'POST':
+        name = request.form['name']
+        address = request.form['address']
+        email = request.form['email']
+        phone = request.form['phone']
+        aquarium_club = request.form['aquarium_club']
+        password = request.form['password'].encode('utf-8')
+        accept_cookies = "no"
+        if request.form.get('cookies'):
+            accept_cookies = "yes"
+        accept_database = "no"
+        if request.form.get('database'):
+            accept_database = "yes"
 
         conn = sqlite3.connect(DATABASE)
         with conn:
@@ -248,18 +190,18 @@ def new_seller():
             else:
                 salt = bcrypt.gensalt()
                 encrypted_password = bcrypt.hashpw(password, salt)
-                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (name, address, email, phone, aquarium_club, encrypted_password, "no", time.strftime("%Y-%m-%d %H:%M:%S")))
+                seller_data = [name, address, email, phone, aquarium_club, encrypted_password, "no", time.strftime("%Y-%m-%d %H:%M:%S"), accept_cookies, accept_database]
+                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
 
                 flash("Användare {} skapad.".format(name))
             authed_user = auth(name, password)
             if authed_user:
-                # print("new user logged in {} {}".format(user_model, username))
                 login_user(authed_user)
 
             return redirect(url_for('index'))
-                # return render_template('done.html', name=name, address=address, email=email, phone=phone, aquarium_club=aquarium_club, cur_seller_id=cur_seller_id)
     else:
-        return render_template('new_seller.html', form=form)
+        return render_template('new_seller.html')
+
 
 @app.route("/admin_register_many_posts", methods=['GET', 'POST'])
 @admin_required
@@ -278,17 +220,7 @@ def admin_register_many_posts():
         descriptions = request.form.getlist('description')
         seller_id = request.form['seller_select']
 
-        print("seller_id: ", seller_id)
-        print(types)
-        print(scinames)
-        print(popnames)
-        print(min_prices)
-        print(fixed_prices)
-        print(descriptions)
         new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
-        # print(new_items)
-
-        # seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
@@ -299,7 +231,6 @@ def admin_register_many_posts():
 
     # Fetch sale types from database, generate a select for the default sale type
     conn = sqlite3.connect(DATABASE)
-    sellers = []
     select = '<select class="selectpicker form-control" id="master_type" name="master_type">'
     with conn:
         cur = conn.cursor()
@@ -457,26 +388,17 @@ def auktion():
     Shows the auction form and updates the database with the price it sold for and the sale type
     :return:
     """
-    form = AuctionForm()
-    if form.validate_on_submit():
-
-        post_id = form.post_id.data
-        price = form.price.data
-        sale_type = form.sale_type.data
-        print(sale_type)
-
+    if request.method == 'POST':
+        post_id = request.form['post_id']
+        price = request.form['price']
+        sale_type = request.form['sale_type']
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
             cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
             flash("Post {} registrerad som såld.".format(post_id))
-
-        form.post_id.raw_data = [""]
-        form.price.raw_data = [""]
-        # form.sale_type.data = ""
-        return render_template('auktion.html', form=form)
-
-    return render_template('auktion.html', form=form)
+        return render_template('auktion.html')
+    return render_template('auktion.html')
 
 
 @app.route("/loppis", methods=['GET', 'POST'])
@@ -505,9 +427,11 @@ def flea_market():
 
 @app.route("/create_event", methods=['GET', 'POST'])
 def create_event():
-    print("WTF")
+    """
+    Empties the database and inserts the information for the new event and an admin user.
+    :return:
+    """
     if request.method == 'POST':
-        print("POST")
 
         hosting_association = request.form['hosting_association']
         hosting_association_abrv = request.form['hosting_association_abrv']
@@ -524,10 +448,16 @@ def create_event():
         admin_phone = request.form['admin_phone']
         admin_aquarium_club = request.form['admin_aquarium_club']
         admin_password = request.form['admin_password']
+        admin_accept_cookies = "no"
+        if request.form.get('cookies'):
+            admin_accept_cookies = "yes"
+        admin_accept_database = "no"
+        if request.form.get('database'):
+            admin_accept_database = "yes"
 
         salt = bcrypt.gensalt()
         encrypted_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
-        admin_data = [admin_name, admin_address, admin_email, admin_phone, admin_aquarium_club, "yes", encrypted_password, time.strftime("%Y-%m-%d %H:%M:%S")]
+        admin_data = [admin_name, admin_address, admin_email, admin_phone, admin_aquarium_club, "yes", encrypted_password, time.strftime("%Y-%m-%d %H:%M:%S"), admin_accept_cookies, admin_accept_database]
 
         conn = sqlite3.connect("auktion.db3")
         with conn:
@@ -537,14 +467,14 @@ def create_event():
             cur.execute("DROP TABLE IF EXISTS posts")
             cur.execute("DROP TABLE IF EXISTS types")
             cur.execute("DROP TABLE IF EXISTS auction_info")
-            
+
             cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
-            cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT)')
+            cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
             cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
             cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
 
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
-            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             types = (
                 (1, u"Fisk till auktionen", u"auction"),
@@ -558,24 +488,23 @@ def create_event():
                 (9, u"Övrigt till fasta bordet", u"fixed_price"))
             cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
 
-            cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
+            cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
             conn.commit()
 
             flash("Ny databas skapad.")
         return render_template('create_event.html')
     else:
-        print("GET")
         return render_template('create_event.html')
 
 
 @app.route('/about')
-@admin_required
 def about():
     """
     About page
     :return:
     """
     return render_template('about.html', version=VERSION)
+
 
 @app.route('/download_database')
 @admin_required
@@ -585,6 +514,7 @@ def download_database():
     :return:
     """
     return render_template('download_database.html')
+
 
 @app.route('/get_database/')
 @admin_required
@@ -710,12 +640,9 @@ def labels_server_print(selected_id=None):
     # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
-    return ('', 204)  # empty response
+    return '', 204  # empty response
 
 
-# @app.route('/labels')
-# @app.route('/labels/<selected_id>')
-# @admin_required
 def get_labels_pdf(selected_id=None):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
@@ -788,10 +715,9 @@ def economic_report_server_print(selected_id=None):
     # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
-    return ('', 204)  # empty response
+    return '', 204  # empty response
 
-# @app.route('/economic_report')
-# @admin_required
+
 def get_economic_report_pdf():
     """
     Generates a pdf of the economic report
@@ -886,7 +812,6 @@ def get_economic_report_pdf():
 
             print("key {}".format(stat[key]))
             print([row[2], stat[key], row[1], row[0]])
-            # tot_data_type.append([row[3], row[1], row[2], row[0]])
             tot_data_type.append([row[2], stat[row[2]], row[1], int(row[0])])
 
         tot_sold_sum = int(tot_sold_sum)
@@ -931,10 +856,14 @@ def wall_list_server_print():
     # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
-    return ('', 204)  # empty response
+    return '', 204  # empty response
 
 
 def get_auction_wall_list():
+    """
+    Creates a pdf with all the auction objects for printing
+    :return: a pdf
+    """
     conn = sqlite3.connect(DATABASE)
 
     with conn:
@@ -948,13 +877,10 @@ def get_auction_wall_list():
         my_headings = [("Post", "Vetenskapligt namn", "Populärnamn", "Min pris")]
         my_data = cur.fetchall()
         cur.execute(sql)
-        # my_data2 = cur.fetchall()
-        # my_data.extend(my_data2)
-        # my_data.extend(my_data2)
         my_headings.extend(my_data)  # Add headings to list of auction objects
 
-        MWL = make_wall_list_pdf.MakeWallList(club_name, event_name, event_date, event_city)
-        pdf = MWL.make_pdf(my_headings)
+        m_w_l = make_wall_list_pdf.MakeWallList(club_name, event_name, event_date, event_city)
+        pdf = m_w_l.make_pdf(my_headings)
         return pdf
 
 
@@ -974,6 +900,7 @@ def compilation_view(selected_id=None):
     response.mimetype = 'application/pdf'
     return response
 
+
 @app.route('/compilation_print')
 @app.route('/compilation_print/<selected_id>')
 @admin_required
@@ -992,12 +919,9 @@ def compilation_server_print(selected_id=None):
     # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
-    return ('', 204)  # empty response
+    return '', 204  # empty response
 
 
-# @app.route('/compilation')
-# @app.route('/compilation/<selected_id>')
-# @admin_required
 def get_compilation_pdf(selected_id=None):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
@@ -1009,14 +933,6 @@ def get_compilation_pdf(selected_id=None):
     with conn:
         cur = conn.cursor()
         club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
-        # cur.execute("SELECT hosting_association, event_name, date, city, commission from auction_info")
-        # auction_info = cur.fetchone()
-        # hosting_association = auction_info[0]
-        # auction_name = auction_info[1]
-        # auction_date = auction_info[2]
-        # event_city = auction_info[3]
-        # commision = auction_info[4]
-        print(event_name, event_date, selected_id)
         comp_pdf = make_compilation_pdf.Compilation(club_name, event_name, event_date, event_city, commision)
 
         cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
@@ -1031,7 +947,6 @@ def get_compilation_pdf(selected_id=None):
             cur.execute("SELECT sum(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold_for = cur.fetchone()[0]
 
-            # cur.execute("SELECT obj_id, type, plain_name, sold_price, sold_on FROM posts WHERE seller_id = ? and sold_price>0", [seller_id])
             cur.execute("SELECT posts.obj_id, types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN types on posts.type=types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
             res = cur.fetchall()
             data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld']]
@@ -1061,6 +976,7 @@ def receipt_view(selected_id=None):
     response.mimetype = 'application/pdf'
     return response
 
+
 @app.route('/receipt_print')
 @app.route('/receipt_print/<selected_id>')
 @admin_required
@@ -1079,7 +995,7 @@ def receipt_server_print(selected_id=None):
     # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
     os.system('lp {}'.format(pdf_temp))
     os.unlink(pdf_temp)
-    return ('', 204)  # empty response
+    return '', 204  # empty response
 
 
 def get_receipt_pdf(selected_id=None):
@@ -1149,16 +1065,8 @@ def login():
         authed_user = auth(username, password)
         if authed_user:
             login_user(authed_user)
-            flash('Logged in successfully.')
-            next_page = request.args.get('next')
-
-            # is_safe_url should check if the url is safe for redirects.
-            # See http://flask.pocoo.org/snippets/62/ for an example.
-            # if not is_safe_url(next):
-            #     return abort(400)
-
-            return redirect(next_page or url_for('index'))
-
+            flash('Inloggad.')
+            return redirect(url_for('index'))
         else:
             return abort(401)
     else:
@@ -1173,38 +1081,7 @@ def logout():
     :return:
     """
     logout_user()
-    return render_template('index.html')
-
-
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     """
-#     Register a new user
-#     :return:
-#     """
-#     if request.method == 'POST':
-#         logout_user()
-#         name = request.form['name']
-#         username = request.form['username']
-#         password = request.form['password']
-#         # encrypt password
-#         salt = bcrypt.gensalt()
-#         password = bcrypt.hashpw(password.encode('utf8'), salt)
-# 
-#         conn = sqlite3.connect(DATABASE)
-#         with conn:
-#             cur = conn.cursor()
-#             cur.execute("INSERT INTO sellers (name, email, password, isAdmin) VALUES (?,?, ?, 'false')",
-#                         (name, username, password))
-#             flash("Användare {} skapad.".format(username))
-#         authed_user = auth(username, password)
-#         if authed_user:
-#             # print("new user logged in {} {}".format(user_model, username))
-#             login_user(authed_user)
-# 
-#         return redirect(url_for('index'))
-#     else:
-#         return render_template('register.html')
+    return redirect(url_for('index'))
 
 # *** ERROR handling *** #
 

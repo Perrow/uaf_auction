@@ -77,7 +77,7 @@
         </ul>
         {% endif %}
     </div>
-    </div>
+
 </nav>
 
 <div align="right">
@@ -90,15 +90,17 @@
 <div id="main">
     {% block body%}
     {% endblock %}
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+    <div class="containter">
+        {% with messages=get_flashed_messages() %}
+        {% if messages %}
+        <ul class="list-group">
+            {% for message in messages %}
+                <li class="list-group-item">{{ message }} </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    </div>
 </div> <!--main-->
 
 </body>

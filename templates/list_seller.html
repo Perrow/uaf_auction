@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %} Säljare {% endblock %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% block body %}
 <h1> Säljare </h1>
@@ -18,39 +18,38 @@
         <th>Kvitto pdf</th>
         <th>Kvitto print</th>
 
-  </tr>
-  {% for row in data %}
-   <tr>
-       <td> {{ row[0] }} </td>
-       <td> {{ row[1] }} </td>
-       <td> {{ row[2] }} </td>
-       <td> {{ row[3] }} </td>
-       <td> {{ row[4] }} </td>
-       <td>
-         <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[5] }} " >
-           <i class="fa fa-file-pdf-o"></i>
-         </a>
-       </td>
-       <td>
-         <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[5] }} " >
-           <span class="glyphicon glyphicon-print"></span>
-         </a>
-       </td>
-       <td>
-         <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[5] }} " >
-           <i class="fa fa-file-pdf-o"></i>
-         </a>
-       </td>
-       <td>
-         <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[5] }} " >
-           <span class="glyphicon glyphicon-print"></span>
-         </a>
-       </td>
-   </tr>
-  {% endfor %}
+    </tr>
+    {% for row in data %}
+    <tr>
+        <td> {{ row[0] }}</td>
+        <td> {{ row[1] }}</td>
+        <td> {{ row[2] }}</td>
+        <td> {{ row[3] }}</td>
+        <td> {{ row[4] }}</td>
+        <td>
+            <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[5] }} ">
+                <i class="fa fa-file-pdf-o"></i>
+            </a>
+        </td>
+        <td>
+            <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[5] }} ">
+                <span class="glyphicon glyphicon-print"></span>
+            </a>
+        </td>
+        <td>
+            <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[5] }} ">
+                <i class="fa fa-file-pdf-o"></i>
+            </a>
+        </td>
+        <td>
+            <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[5] }} ">
+                <span class="glyphicon glyphicon-print"></span>
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
 
 </table>
-
 
 
 {% endblock %}

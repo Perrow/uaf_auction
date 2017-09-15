@@ -5,86 +5,84 @@
 
 {% endblock %}
 {% block body %}
-<h1>Loppis</h1>
-<p> Fyll i postens nummer, tryck TAB. </p>
-<div class="row">
-    <div class="col-sm-1"></div>
-    <div id="sum" class="well well-sm col-sm-2">Att betala:</div>
-    <div class="col-sm-9"></div>
-</div>
+<div class="container">
+    <h1>Loppis</h1>
+    <p> Fyll i postens nummer, tryck TAB. </p>
 
+    <div id="sum" class="well">Att betala:</div>
 
-<form action="/loppis" method="POST">
-    <div id="form_elements">
-        <div class="row">
-            <div class="col-sm-2">
-                <label for="post1">Post nr:</label>
-                <input class="loppis post_id" id="post1" name="post_id" type="text" value="">
+    <form action="/loppis" method="POST">
+        <div id="form_elements">
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="post1">Post nr:</label>
+                    <input class="loppis post_id" id="post1" name="post_id" type="text" value="">
+                </div>
+                <div class="col-sm-2">
+                    <label for="price1">Pris:</label>
+                    <input class="loppis price" id="price1" name="price" type="text" value="">
+                </div>
             </div>
-            <div class="col-sm-2">
-                <label for="price1">Pris:</label>
-                <input class="loppis price" id="price1" name="price" type="text" value="">
-            </div>
+            <br>
         </div>
         <br>
-    </div>
+        <button id="addbutton" type="button" class="btn btn-primary">Extra säljrad</button>
+        <button id="sumbutton" type="button" class="btn btn-primary">Beräkna summa</button>
+        <input id="submit" name="submit" type="submit" class="btn btn-primary" value="Skicka">
+    </form>
     <br>
-    <button id="addbutton" type="button" class="btn btn-primary">Extra säljrad</button>
-    <button id="sumbutton" type="button" class="btn btn-primary">Beräkna summa</button>
-    <input id="submit" name="submit" type="submit" class="btn btn-primary" value="Skicka">
-</form>
-<br>
 
-<div class="warning" id="type"></div>
+    <div class="warning" id="type"></div>
 
-<div class="warning" id="sold"></div>
+    <div class="warning" id="sold"></div>
 
-<div class="error" id="error"></div>
-<br>
+    <div class="error" id="error"></div>
+    <br>
 
-<div class="container well well-sm ">
-    <div class="row">
-        <div class="col-sm-2">
-            Reservationspris:
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-2">
+                Reservationspris:
+            </div>
+            <div class="col-sm-10">
+                <div id="min_price"></div>
+            </div>
         </div>
-        <div class="col-sm-10">
-            <div id="min_price"></div>
+
+        <div class="row">
+            <div class="col-sm-2">
+                Namn:
+            </div>
+            <div class="col-sm-10">
+                <div id="plain_name"></div>
+            </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-sm-2">
-            Namn:
+
+        <div class="row">
+            <div class="col-sm-2">
+                Vetenskapligt namn:
+            </div>
+            <div class="col-sm-10">
+                <span id="scientific_name"></span>
+            </div>
         </div>
-        <div class="col-sm-10">
-            <div id="plain_name"></div>
+
+        <div class="row">
+            <div class="col-sm-2">
+                Beskrivning:
+            </div>
+            <div class="col-sm-10">
+                <span id="description"></span>
+            </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-sm-2">
-            Vetenskapligt namn:
-        </div>
-        <div class="col-sm-10">
-            <span id="scientific_name"></span>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-sm-2">
-            Beskrivning:
-        </div>
-        <div class="col-sm-10">
-            <span id="description"></span>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-sm-2">
-            Säljare:
-        </div>
-        <div class="col-sm-10">
-            <span id="seller_name"></span>
+
+        <div class="row">
+            <div class="col-sm-2">
+                Säljare:
+            </div>
+            <div class="col-sm-10">
+                <span id="seller_name"></span>
+            </div>
         </div>
     </div>
 </div>

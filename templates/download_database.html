@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% block title %} Ladda ner databasen {% endblock %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Ladda ner databasen </h1>
-
-
-
-    <a class="btn btn-default" href=" {{ url_for('get_database') }} " >  <span class="glyphicon glyphicon-download-alt"></span> Ladda ner </a>
-   
+<div class="container">
+    <h1> Ladda ner databasen </h1>
+    <a class="btn btn-default" href=" {{ url_for('get_database') }} "> <span class="glyphicon glyphicon-download-alt"></span> Ladda ner </a>
+</div>
 {% endblock %}

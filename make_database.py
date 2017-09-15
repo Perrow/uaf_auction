@@ -17,10 +17,10 @@ auction_info = (
 )
 
 sellers = (
-    ("Kalle Persson", "Tallmon 1, 54878 Näppeby", "kalle.persson@mail.com", "051-25468", "UAF", "yes", "password", time.strftime("%Y-%m-%d %H:%M:%S")),
-    ("Olle Karlsson", "Vägen 5, 84520 Frippo", "olle.karlsson@mail.com", "0730-421587", "UAF", "yes", "123456", time.strftime("%Y-%m-%d %H:%M:%S")),
-    ("Lena Svensson", "Skogen 65, 51242 Skogsbyn", "Lena.svensson@mail.com", "0733-954321", "Haninge AF", "no", "lösenord", time.strftime("%Y-%m-%d %H:%M:%S")),
-    ("Pia Larsson", "Fälgtvägen 54, 85241 Byn", "Pia.Larsson@mail.com", "0733-987632", "Malmö AF", "no", "secret", time.strftime("%Y-%m-%d %H:%M:%S"))
+    ("Kalle Persson", "Tallmon 1, 54878 Näppeby", "kalle.persson@mail.com", "051-25468", "UAF", "yes", "password", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
+    ("Olle Karlsson", "Vägen 5, 84520 Frippo", "olle.karlsson@mail.com", "0730-421587", "UAF", "yes", "123456", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
+    ("Lena Svensson", "Skogen 65, 51242 Skogsbyn", "Lena.svensson@mail.com", "0733-954321", "Haninge AF", "no", "lösenord", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
+    ("Pia Larsson", "Fälgtvägen 54, 85241 Byn", "Pia.Larsson@mail.com", "0733-987632", "Malmö AF", "no", "secret", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes")
 )
 
 posts = (
@@ -54,7 +54,7 @@ with conn:
     cur.execute("DROP TABLE IF EXISTS auction_info")
 
 
-    cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT)')
+    cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
     cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
     # cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
@@ -70,7 +70,7 @@ with conn:
         seller_data = list(seller)
         seller_data[6] = password
         print(seller_data)
-        cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
+        cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
 
     # cur.executemany("INSERT INTO sellers (firstname, lastname, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?, ?)", sellers)
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?)", posts)

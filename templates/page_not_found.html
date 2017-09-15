@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %} Error, page not found {% endblock %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Page not found, 404 </h1>
-<p>The page you requested was not found on the server.</p>
+<div class="container">
+    <h1> Page not found, 404 </h1>
+    <p>The page you requested was not found on the server.</p>
+</div>
 {% endblock %}

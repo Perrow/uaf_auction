@@ -1,53 +1,48 @@
 {% extends "base.html" %}
 {% block title %} Rapporter {% endblock %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% block body %}
-<h1> Rapporter </h1>
+<div class="container">
+    <h1> Rapporter </h1>
 
-<!--<p> Etiketter för alla säljare: <a class="button" href=" {{ url_for('labels_view') }} " > PDF </a> - <a class="button" href=" {{ url_for('labels_server_print') }} " > skriv ut </a> </p>-->
-<!--<p> Sammanställning för alla säljare: <a class="button" href=" {{ url_for('compilation_view') }} " > PDF </a> - <a class="button" href=" {{ url_for('compilation_server_print') }} " > skriv ut </a> </p>-->
-<!--<p> Inlämningskvitton för alla säljare: <a class="button" href=" {{ url_for('receipt_view') }} " > PDF </a> - <a class="button" href=" {{ url_for('receipt_server_print') }} " >skriv ut </a></p>-->
-<!--<p> Ekonomisk rapport: <a class="button" href=" {{ url_for('economic_report_view') }} " > PDF </a> - <a class="button" href=" {{ url_for('economic_report_server_print') }} " > skriv ut </a>   </p>-->
-
-
- <!--<table style="width:100%">-->
-<table class="table-hover">
-  <tr>
-    <td>Etiketter för alla säljare:</td>
-    <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} " > PDF </a></td>
-    <td><a class="btn btn-default" href=" {{ url_for('labels_server_print') }} " >
-        <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-    </td>
-  </tr>
-  <tr>
-    <td>Sammanställning för alla säljare:</td>
-    <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} " > PDF </a></td>
-    <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} " >
-        <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-    </td>
-  </tr>
-  <tr>
-    <td>Inlämningskvitton för alla säljare: </td>
-    <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} " > PDF </a></td>
-    <td><a class="btn btn-default" href=" {{ url_for('receipt_server_print') }} " >
-        <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-    </td>
-  </tr>
-  <tr>
-    <td>Ekonomisk rapport: </td>
-    <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} " > PDF </a></td>
-    <td><a class="btn btn-default" href=" {{ url_for('economic_report_server_print') }} " >
-        <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-    </td>
-  </tr>     
-  <tr>
-    <td>Auktionslista: </td>
-    <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} " > PDF </a></td>
-    <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} " >
-        <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-    </td>
-  </tr>       
-</table> 
+    <table class="table-hover">
+        <tr>
+            <td>Etiketter för alla säljare:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('labels_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Sammanställning för alla säljare:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Inlämningskvitton för alla säljare:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('receipt_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Ekonomisk rapport:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('economic_report_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Auktionslista:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>
+    </table>
+</div>
 {% endblock %}
