@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = 0.29
+VERSION = 0.30
 
 # For flask-login
 lm = LoginManager()
@@ -99,7 +99,7 @@ def auth(username, password):
     with conn:
         cur = conn.cursor()
         # cur.execute("SELECT id FROM users WHERE email=? and password=?", (username, password))
-        cur.execute("SELECT seller_id, password FROM sellers WHERE email=? ", (username, ))
+        cur.execute("SELECT seller_id, password FROM sellers WHERE email=?  COLLATE NOCASE", (username, ))
         result = cur.fetchone()
         if result:  # email is in database, check that password is correct
             if bcrypt.checkpw(password.encode('utf8'), result[1].encode('utf8')):
@@ -169,10 +169,10 @@ def new_seller():
     if request.method == 'POST':
         name = request.form['name']
         address = request.form['address']
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
         phone = request.form['phone']
         aquarium_club = request.form['aquarium_club']
-        password = request.form['password'].encode('utf-8')
+        password = request.form['password'].strip().encode('utf-8')
         accept_cookies = "no"
         if request.form.get('cookies'):
             accept_cookies = "yes"
@@ -194,7 +194,7 @@ def new_seller():
                 cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
 
                 flash("Användare {} skapad.".format(name))
-            authed_user = auth(name, password)
+            authed_user = auth(email, password)
             if authed_user:
                 login_user(authed_user)
 
@@ -1059,8 +1059,8 @@ def login():
     """
     if request.method == 'POST':
         logout_user()
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form['username'].strip().lower()
+        password = request.form['password'].strip()
 
         authed_user = auth(username, password)
         if authed_user:
