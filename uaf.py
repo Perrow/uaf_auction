@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.31"
+VERSION = "0.32"
 
 # For flask-login
 lm = LoginManager()
@@ -657,11 +657,11 @@ def get_labels_pdf(selected_id=None):
         auction_info = cur.fetchone()
         auction_name = auction_info[0]
         auction_date = auction_info[1]
-        print(auction_name, auction_date, selected_id)
+        # print(auction_name, auction_date, int(selected_id))
         labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
-        print("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", selected_id)
+        print("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         if selected_id:
-            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", selected_id)
+            cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         else:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers")
         sellers = cur.fetchall()

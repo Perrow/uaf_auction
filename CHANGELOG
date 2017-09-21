@@ -1,3 +1,12 @@
+Version 0.32 2017-09-21
+    Fixed a bug that prevented printing of labels for seller with id 10 or higher.
+
+Version 0.31 2017-09-16
+    Fixed a bug that showed post for seller no 1 instead of current seller.
+
+Version 0.30 2017-09-16
+    Username (email) is no longer case sensitive when logging in, also strips trailing spaces.
+
 Version 0.29 2017-09-15
     Fixed a bug in the labels that printed fixed price label on auction items if the fixed_price column is not NULL in
     the posts table in the database.
