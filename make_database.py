@@ -13,37 +13,39 @@ conn = sqlite3.connect("auktion.db3")
 conn.text_factory = str
 
 auction_info = (
-    ("Uppsala Akvarieförening", "UAF", "Uppsala", "Uppsala storauktion", "2017", "2017-11-19", 0.15, "Uppsala akvarieförening anordnar en storauktion bla bla..."),
+    (u"Uppsala Akvarieförening", u"UAF", u"Uppsala", u"Uppsala storauktion", u"2017", u"2017-11-19", 0.20, u"Uppsala akvarieförening anordnar en storauktion bla bla..."),
 )
 
 sellers = (
-    ("Kalle Persson", "Tallmon 1, 54878 Näppeby", "kalle.persson@mail.com", "051-25468", "UAF", "yes", "password", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
-    ("Olle Karlsson", "Vägen 5, 84520 Frippo", "olle.karlsson@mail.com", "0730-421587", "UAF", "yes", "123456", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
-    ("Lena Svensson", "Skogen 65, 51242 Skogsbyn", "Lena.svensson@mail.com", "0733-954321", "Haninge AF", "no", "lösenord", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"),
-    ("Pia Larsson", "Fälgtvägen 54, 85241 Byn", "Pia.Larsson@mail.com", "0733-987632", "Malmö AF", "no", "secret", time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes")
+    (u"Kalle Persson", u"Tallmon 1, 54878 Näppeby", u"kalle.persson@mail.com".lower(), u"051-25468", u"UAF", u"yes", u"password", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"),
+    (u"Olle Karlsson", u"Vägen 5, 84520 Frippo", u"olle.karlsson@mail.com".lower(), u"0730-421587", u"UAF", u"yes", u"123456", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"),
+    (u"Lena Svensson", u"Skogen 65, 51242 Skogsbyn", u"Lena.svensson@mail.com".lower(), u"0733-954321", u"Haninge AF", u"no", u"lösenord", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"),
+    (u"Pia Larsson", u"Fälgtvägen 54, 85241 Byn", u"Pia.Larsson@mail.com".lower(), u"0733-987632", u"Malmö AF", u"no", u"secret", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"),
+    (u"Sören Ås", u"Tvärgatan 1, 46578 Småstad", u"SÖREN.Ås@mail.com".lower(), u"0733-987632", u"SAF", u"no", u"secret", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"),
+    (u"Test", u"Tvärgatan 1, 46578 Småstad", u"åäöÅÄÖéÉèÈ.üÜ@mail.com".lower(), u"0733-987632", u"SAF", u"no", u"secret", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes")
 )
 
 posts = (
-    (1, "Barbus fasciolatus", "Afrikansk bandbarb", "Temperatur: 20 - 26 °C  Längd: 6 cm  Ursprunglig världsdel: Afrika  pH: 6-7  Minsta akvarie storlek: 80 cm & 100 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (2, "Pangio kuhlii", "Kuhlii-ål", "", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (1, "Paracheirodon innesi", "Neontetra", "", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (2, "Pethia padamya", "Odessabarb", "", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (1, "Thayeria boehlkei", "Vinkeltetra", "Temperatur: 23 - 28 °C  Längd: 6 cm  Ursprunglig världsdel: Sydamerika  pH: 6-7.5  Minsta akvarie storlek: 80 cm & 90 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (4, "Trigonostigma heteromorpha", "Kilfläcksrasbora", "", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (2, "Pterophyllum scalare", "Skalar", "Temperatur: 24 - 26 °C  Längd: 16 cm  Ursprunglig världsdel: Sydamerika  pH: 6-7.5  Minsta akvarie storlek: 90 cm & 200 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
-    (3, "Trigonostigma heteromorpha", "Kilfläcksrasbora", "", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (1, u"Barbus fasciolatus", u"Afrikansk bandbarb", u"Temperatur: 20 - 26 °C  Längd: 6 cm  Ursprunglig världsdel: Afrika  pH: 6-7  Minsta akvarie storlek: 80 cm & 100 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (2, u"Pangio kuhlii", u"Kuhlii-ål", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (1, u"Paracheirodon innesi", u"Neontetra", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (2, u"Pethia padamya", u"Odessabarb", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (1, u"Thayeria boehlkei", u"Vinkeltetra", u"Temperatur: 23 - 28 °C  Längd: 6 cm  Ursprunglig världsdel: Sydamerika  pH: 6-7.5  Minsta akvarie storlek: 80 cm & 90 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (4, u"Trigonostigma heteromorpha", u"Kilfläcksrasbora", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (2, u"Pterophyllum scalare", u"Skalar", u"Temperatur: 24 - 26 °C  Längd: 16 cm  Ursprunglig världsdel: Sydamerika  pH: 6-7.5  Minsta akvarie storlek: 90 cm & 200 liter", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
+    (3, u"Trigonostigma heteromorpha", u"Kilfläcksrasbora", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
 )
 
 types = (
-    (1, "Fisk till auktionen", "auction"),
-    (2, "Fisk till fasta bordet", "fixed_price"),
-    (3, "Räkor till auktionen", "auction"),
-    (4, "Räkor till fasta bordet", "fixed_price"),
-    (5, "Övriga djur till fasta bordet", "fixed_price"),
-    (6, "Växter till auktionen", "auction"),
-    (7, "Växter till fasta bordet", "fixed_price"),
-    (8, "Tillbehör till fasta bordet", "fixed_price"),
-    (9, "Övrigt till fasta bordet", "fixed_price"))
+    (1, u"Fisk till auktionen", u"auction"),
+    (2, u"Fisk till fasta bordet", u"fixed_price"),
+    (3, u"Räkor till auktionen", u"auction"),
+    (4, u"Räkor till fasta bordet", u"fixed_price"),
+    (5, u"Övriga djur till fasta bordet", u"fixed_price"),
+    (6, u"Växter till auktionen", u"auction"),
+    (7, u"Växter till fasta bordet", u"fixed_price"),
+    (8, u"Tillbehör till fasta bordet", u"fixed_price"),
+    (9, u"Övrigt till fasta bordet", u"fixed_price"))
 
 with conn:
     cur = conn.cursor()
@@ -64,7 +66,7 @@ with conn:
 
     for seller in sellers:
         salt = bcrypt.gensalt()
-        password = bcrypt.hashpw(seller[6], salt)
+        password = bcrypt.hashpw(seller[6].encode("utf-8"), salt)
         print(seller[6], salt, password)
         # seller_data = seller[:-1] + (password,)
         seller_data = list(seller)

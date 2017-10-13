@@ -13,6 +13,9 @@ class ListShorter:
         :param data: list of integers
         :return: string with following elemets replaced with a dash
         """
+        if len(data) == 0:  # if no posts return enpty string
+            return ""
+
         start = data[0]
         result = []
         count = 0
@@ -53,7 +56,7 @@ class ListShorter:
                 in_dash = False
                 old = None
 
-        return (", ".join(new_result))
+        return ", ".join(new_result)
 
 if __name__ == "__main__":
     ls = ListShorter()

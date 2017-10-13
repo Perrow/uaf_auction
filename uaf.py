@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.34"
+VERSION = "0.35"
 
 # For flask-login
 lm = LoginManager()
@@ -91,15 +91,15 @@ def load_user(user_id):
 def auth(username, password):
     """
     Authenticates a user against the database
-    :param username:
-    :param password:
+    :param username: username same as email
+    :param password: users password
     :return:
     """
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
         # cur.execute("SELECT id FROM users WHERE email=? and password=?", (username, password))
-        cur.execute("SELECT seller_id, password FROM sellers WHERE email=?  COLLATE NOCASE", (username, ))
+        cur.execute("SELECT seller_id, password FROM sellers WHERE email=? ", (username.lower(), ))
         result = cur.fetchone()
         if result:  # email is in database, check that password is correct
             if bcrypt.checkpw(password.encode('utf8'), result[1].encode('utf8')):

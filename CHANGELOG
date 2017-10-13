@@ -1,3 +1,7 @@
+Version 0.35 2017-10-13
+    Changed all saved email addresses to lower case in the database.
+    Fixed a bug that crashed the writing of receipts if the seller had no registered posts.
+
 Version 0.34 2017-10-01
     Added hidden password on register new seller page. The user can toggle the visbility of the password on the register page and the login page.
 
