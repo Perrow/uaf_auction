@@ -36,29 +36,41 @@ posts = (
     (3, u"Trigonostigma heteromorpha", u"Kilfläcksrasbora", u"", 1, time.strftime("%Y-%m-%d %H:%M:%S")),
 )
 
-types = (
+all_types = (
     (1, u"Fisk till auktionen", u"auction"),
     (2, u"Fisk till fasta bordet", u"fixed_price"),
     (3, u"Räkor till auktionen", u"auction"),
     (4, u"Räkor till fasta bordet", u"fixed_price"),
-    (5, u"Övriga djur till fasta bordet", u"fixed_price"),
-    (6, u"Växter till auktionen", u"auction"),
-    (7, u"Växter till fasta bordet", u"fixed_price"),
-    (8, u"Tillbehör till fasta bordet", u"fixed_price"),
-    (9, u"Övrigt till fasta bordet", u"fixed_price"))
+    (5, u"Övriga djur till auktionen", u"auction"),
+    (6, u"Övriga djur till fasta bordet", u"fixed_price"),
+    (7, u"Växter till auktionen", u"auction"),
+    (8, u"Växter till fasta bordet", u"fixed_price"),
+    (9, u"Tillbehör till auktionen", u"auction"),
+    (10, u"Tillbehör till fasta bordet", u"fixed_price"),
+    (11, u"Övrigt till auktionen", u"auction"),
+    (12, u"Övrigt till fasta bordet", u"fixed_price"))
+
+used_types = (
+    (1, u"Fisk till auktionen", u"auction"),
+    (4, u"Räkor till fasta bordet", u"fixed_price"),
+    (6, u"Övriga djur till fasta bordet", u"fixed_price"),
+    (8, u"Växter till fasta bordet", u"fixed_price"),
+    (10, u"Tillbehör till fasta bordet", u"fixed_price"),
+    (12, u"Övrigt till fasta bordet", u"fixed_price"))
 
 with conn:
     cur = conn.cursor()
 
     cur.execute("DROP TABLE IF EXISTS sellers")
     cur.execute("DROP TABLE IF EXISTS posts")
-    cur.execute("DROP TABLE IF EXISTS types")
+    cur.execute("DROP TABLE IF EXISTS used_types")
+    cur.execute("DROP TABLE IF EXISTS all_types")
     cur.execute("DROP TABLE IF EXISTS auction_info")
-
 
     cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
-    cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+    cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+    cur.execute('CREATE TABLE all_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
     # cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, name TEXT, year TEXT, date TEXT, commission INT)')
     cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
 
@@ -76,7 +88,8 @@ with conn:
 
     # cur.executemany("INSERT INTO sellers (firstname, lastname, address, email, phone, aquarium_club) VALUES(?, ?, ?, ?, ?, ?)", sellers)
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?)", posts)
-    cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
+    cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", used_types)
+    cur.executemany("INSERT INTO all_types (type_id, description, sale_type) VALUES(?, ?, ?)", all_types)
     cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
 

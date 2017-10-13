@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.35"
+VERSION = "0.36"
 
 # For flask-login
 lm = LoginManager()
@@ -234,7 +234,7 @@ def admin_register_many_posts():
     select = '<select class="selectpicker form-control" id="master_type" name="master_type">'
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
+        cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
         result = cur.fetchall()
         for row in result:
             tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
@@ -288,7 +288,7 @@ def register_many_posts():
     select = '<select  class="selectpicker form-control" id="master_type" name="master_type">'
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT type_id, description FROM types ORDER BY type_id")
+        cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
         result = cur.fetchall()
         for row in result:
             tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
@@ -309,7 +309,7 @@ def list_posts():
         cur.execute("select count(*) from posts")
         res = cur.fetchone()
         nr_posts.append("Antal poster: {}".format(res[0]))
-        cur.execute("SELECT count(posts.type), types.sale_type from posts LEFT JOIN types ON posts.type = types.type_id group by types.sale_type")
+        cur.execute("SELECT count(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id group by used_types.sale_type")
         res = cur.fetchall()
 
         for row in res:
@@ -318,10 +318,10 @@ def list_posts():
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
 
-        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, types.description
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, used_types.description
         FROM posts
-        INNER JOIN types
-        ON posts.type=types.type_id""")
+        INNER JOIN used_types
+        ON posts.type=used_types.type_id""")
         result = cur.fetchall()
         return render_template('list_posts.html', heading="Anmälda poster", nr_posts=nr_posts, data=result)
 
@@ -340,7 +340,7 @@ def list_my_posts():
         cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", cur_id)
         res = cur.fetchone()
         nr_posts.append("Antal poster: {}".format(res[0]))
-        cur.execute("SELECT COUNT(posts.type), types.sale_type from posts LEFT JOIN types ON posts.type = types.type_id WHERE seller_id = ? GROUP BY types.sale_type", cur_id)
+        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY types.sale_type", cur_id)
         res = cur.fetchall()
 
         for row in res:
@@ -349,10 +349,10 @@ def list_my_posts():
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
 
-        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, types.description
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, used_types.description
         FROM posts
-        INNER JOIN types
-        ON posts.type=types.type_id
+        INNER JOIN used_types
+        ON posts.type=used_types.type_id
         WHERE seller_id = ?""", cur_id)
         result = cur.fetchall()
         return render_template('list_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result)
@@ -455,6 +455,8 @@ def create_event():
         admin_accept_database = "no"
         if request.form.get('database'):
             admin_accept_database = "yes"
+        selected_types = request.form.getlist('type')
+        print(request.form.getlist('type'))
 
         salt = bcrypt.gensalt()
         encrypted_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
@@ -466,36 +468,38 @@ def create_event():
 
             cur.execute("DROP TABLE IF EXISTS sellers")
             cur.execute("DROP TABLE IF EXISTS posts")
-            cur.execute("DROP TABLE IF EXISTS types")
+            cur.execute("DROP TABLE IF EXISTS used_types")
             cur.execute("DROP TABLE IF EXISTS auction_info")
 
             cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
             cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
-            cur.execute('CREATE TABLE types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+            cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
 
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
             cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
-            types = (
-                (1, u"Fisk till auktionen", u"auction"),
-                (2, u"Fisk till fasta bordet", u"fixed_price"),
-                (3, u"Räkor till auktionen", u"auction"),
-                (4, u"Räkor till fasta bordet", u"fixed_price"),
-                (5, u"Övriga djur till fasta bordet", u"fixed_price"),
-                (6, u"Växter till auktionen", u"auction"),
-                (7, u"Växter till fasta bordet", u"fixed_price"),
-                (8, u"Tillbehör till fasta bordet", u"fixed_price"),
-                (9, u"Övrigt till fasta bordet", u"fixed_price"))
-            cur.executemany("INSERT INTO types (type_id, description, sale_type) VALUES(?, ?, ?)", types)
+            # cur.execute("SELECT type_id, description, sale_type FROM all_types WHERE type_id=?", selected_types)
+            print([",".join(selected_types)])
+            sql = "SELECT type_id, description, sale_type FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
+            print(sql)
+            cur.execute(sql, selected_types)
+            selected_types_data = cur.fetchall()
+            print(selected_types_data)
+            cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", selected_types_data)
 
             cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
             conn.commit()
 
             flash("Ny databas skapad.")
-        return render_template('create_event.html')
+        return render_template('index.html')
     else:
-        return render_template('create_event.html')
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute(""" SELECT type_id, description FROM all_types""")
+            all_types = cur.fetchall()
+        return render_template('create_event.html', all_types=all_types)
 
 
 @app.route('/about')
@@ -540,7 +544,7 @@ def json_get_type(type_nr):
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute(""" SELECT sale_type FROM types WHERE type_id=?""", (type_nr,))
+        cur.execute(""" SELECT sale_type FROM used_types WHERE type_id=?""", (type_nr,))
 
         columns = [d[0] for d in cur.description]
         sql_result = cur.fetchall()
@@ -564,12 +568,12 @@ def get_json(post_id):
     with conn:
         cur = conn.cursor()
 
-        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, types.sale_type as type, posts.minimum_price
+        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, used_types.sale_type as type, posts.minimum_price
         FROM sellers
         INNER JOIN posts
         ON sellers.seller_id=posts.seller_id
-            INNER JOIN types
-            ON posts.type=types.type_id
+            INNER JOIN used_types
+            ON posts.type=used_types.type_id
         WHERE posts.obj_id=? """, (post_id,))
 
         columns = [d[0] for d in cur.description]
@@ -592,7 +596,7 @@ def json_get_sell_types():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute(""" SELECT type_id, description, sale_type FROM types""")
+        cur.execute(""" SELECT type_id, description, sale_type FROM used_types""")
 
         columns = [d[0] for d in cur.description]
         sql_result = cur.fetchall()
@@ -763,8 +767,8 @@ def get_economic_report_pdf():
             cur.execute("SELECT  count(*) FROM posts WHERE seller_id=?", [seller_id])
             tot_nr_posts = cur.fetchone()[0]
 
-            cur.execute(""" Select posts.seller_id, posts.type, sum(posts.sold_price), posts.sold_on, types.description FROM posts
-                            LEFT JOIN types on types.type_id=posts.type
+            cur.execute(""" Select posts.seller_id, posts.type, sum(posts.sold_price), posts.sold_on, used_types.description FROM posts
+                            LEFT JOIN used_types on used_types.type_id=posts.type
                             WHERE posts.seller_id=?  and sold_price>0
                             GROUP BY type, sold_on
                             ORDER BY posts.sold_on ASC""", [seller_id])
@@ -782,10 +786,10 @@ def get_economic_report_pdf():
 
         # Summation for the whole auction and flea market
         # GEt the total number of registered posts and for auction and fleamarket
-        cur.execute(""" SELECT types.sale_type, count(posts.obj_id) as antal FROM posts
-                        LEFT JOIN types
-                        ON posts.type=types.type_id
-                        GROUP BY types.sale_type
+        cur.execute(""" SELECT used_types.sale_type, count(posts.obj_id) as antal FROM posts
+                        LEFT JOIN used_types
+                        ON posts.type=used_types.type_id
+                        GROUP BY used_types.sale_type
                     """)
         res = cur.fetchall()
         tot_nr_posts = 0
@@ -872,8 +876,8 @@ def get_auction_wall_list():
 
         cur = conn.cursor()
         sql = """Select posts.obj_id, posts.scientific_name, posts.plain_name, posts.minimum_price from posts
-                 join types on types.type_id=posts.type
-                 where types.sale_type='auction' """
+                 join used_types on used_types.type_id=posts.type
+                 where used_types.sale_type='auction' """
         cur.execute(sql)
         my_headings = [("Post", "Vetenskapligt namn", "Populärnamn", "Min pris")]
         my_data = cur.fetchall()
@@ -948,7 +952,7 @@ def get_compilation_pdf(selected_id=None):
             cur.execute("SELECT sum(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold_for = cur.fetchone()[0]
 
-            cur.execute("SELECT posts.obj_id, types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN types on posts.type=types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
+            cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
             res = cur.fetchall()
             data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld']]
             for posts in res:
