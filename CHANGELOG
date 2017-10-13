@@ -1,3 +1,6 @@
+Version 0.37 2017-10-13
+    Fixed a bug in show my own posts that was caused by the new name of the types table.
+
 Version 0.36 2017-10-13
     Added user selectable post types in the create event page.
 

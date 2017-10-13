@@ -30,9 +30,9 @@ __author__ = 'Kristian'
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "HK(9045hjfd204hHFD345d"
+app.config['SECRET_KEY'] = "HK(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.36"
+VERSION = "0.37"
 
 # For flask-login
 lm = LoginManager()
@@ -340,7 +340,7 @@ def list_my_posts():
         cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", cur_id)
         res = cur.fetchone()
         nr_posts.append("Antal poster: {}".format(res[0]))
-        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY types.sale_type", cur_id)
+        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY used_types.sale_type", cur_id)
         res = cur.fetchall()
 
         for row in res:
