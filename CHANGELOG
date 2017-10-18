@@ -1,3 +1,8 @@
+Version 0.38 2017-10-18
+    Fixed a bug in the validation of the new seller form that prevented the form from submitting.
+    Now also validating email and password fields.
+    "Register seller" is shown on the menu if the current user is an admin, to be able to register new user and add their posts without having to log out and in.
+
 Version 0.37 2017-10-13
     Fixed a bug in show my own posts that was caused by the new name of the types table.
 

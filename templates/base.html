@@ -26,7 +26,9 @@
         <ul class="nav navbar-nav">
             {% if not current_user.is_authenticated %}
             <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-
+            <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
+            {% endif %}
+            {% if current_user.is_admin %}
             <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
             {% endif %}
 

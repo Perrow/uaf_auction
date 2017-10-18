@@ -17,15 +17,48 @@ $('form').submit(function() {
     }
     
     var status = true;
-    
+    // Check text inputs
     $('input[type=text]').each(function(){
         var text_value=$(this).val();
         if(text_value!='') {
-            console.log('Value exist', text_value);
+            console.log('Value exist: ', $(this).attr('name'), " - ", text_value);
         } else {
-            status = false;
+            console.log('Value do not exist: ', $(this).attr('name'), " - ", text_value);
+            if (typeof($(this).attr('name')) == 'undefined') {
+                console.log('This is the undefined name');
+            } else {
+                status = false;
+            }
         }
     })
+    // Check password inputs
+    $('input[type=password]').each(function(){
+        var text_value=$(this).val();
+        if(text_value!='') {
+            console.log('Value exist: ', $(this).attr('name'), " - ", text_value);
+        } else {
+            console.log('Value do not exist: ', $(this).attr('name'), " - ", text_value);
+            if (typeof($(this).attr('name')) == 'undefined') {
+                console.log('This is the undefined name');
+            } else {
+                status = false;
+            }
+        }
+    })    
+    // Check email inputs
+    $('input[type=email]').each(function(){
+        var text_value=$(this).val();
+        if(text_value!='') {
+            console.log('Value exist: ', $(this).attr('name'), " - ", text_value);
+        } else {
+            console.log('Value do not exist: ', $(this).attr('name'), " - ", text_value);
+            if (typeof($(this).attr('name')) == 'undefined') {
+                console.log('This is the undefined name');
+            } else {
+                status = false;
+            }
+        }
+    })       
     
     if (status === false) {
         $("#message").text("Du måste fylla i alla fält.")
