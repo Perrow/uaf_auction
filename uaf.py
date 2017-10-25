@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.38"
+VERSION = "0.39"
 
 # For flask-login
 lm = LoginManager()
@@ -323,10 +323,11 @@ def list_posts():
         INNER JOIN used_types
         ON posts.type=used_types.type_id""")
         result = cur.fetchall()
-        return render_template('list_posts.html', heading="Anmälda poster", nr_posts=nr_posts, data=result)
+        return render_template('list_all_posts.html', heading="Anmälda poster", nr_posts=nr_posts, data=result)
 
 
 @app.route('/list_my_posts')
+@login_required
 def list_my_posts():
     """
     Page for listing current users posts in the database
@@ -337,7 +338,7 @@ def list_my_posts():
         cur_id = current_user.get_id()
         print(cur_id)
         nr_posts = []
-        cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", cur_id)
+        cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", [cur_id])
         res = cur.fetchone()
         nr_posts.append("Antal poster: {}".format(res[0]))
         cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY used_types.sale_type", cur_id)
@@ -353,10 +354,113 @@ def list_my_posts():
         FROM posts
         INNER JOIN used_types
         ON posts.type=used_types.type_id
-        WHERE seller_id = ?""", cur_id)
+        WHERE seller_id = ?""", [cur_id])
         result = cur.fetchall()
-        return render_template('list_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result)
+        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result)
 
+
+@app.route('/delete_post')
+@app.route('/delete_post/<post_id>')
+@login_required
+def delete_post(post_id=None):
+    """
+    Deletes a post from the database
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if post_id:
+            # Check that the current user owns the post
+            cur_id = current_user.get_id()
+            check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
+            cur.execute(check_user_sql, [post_id])
+            owner_id = str(cur.fetchone()[0])
+            if cur_id == owner_id:
+                delete_posts_sql = "DELETE FROM posts WHERE obj_id=?"
+                cur.execute(delete_posts_sql, [post_id])
+            else:
+                flash("Du har inte rättigheter att radera den posten")
+    return redirect(url_for('list_my_posts'))
+
+
+@app.route('/edit_post', methods=['GET', 'POST'])
+@app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id=None):
+    """
+    Edits a post from the database
+    """
+    conn = sqlite3.connect(DATABASE)
+    # post_id=94&master_type=1&sciname=Ceratophyllum+demersum&popname=Hornsärv&min_price=&fixed_price=90.0&description=hj&submit=Skicka
+
+    if request.method == 'POST':
+        post_id = request.form['post_id']
+        post_type = request.form['master_type']
+        sciname = request.form['sciname']
+        popname = request.form['popname']
+        min_price = request.form['min_price']
+        fixed_price = request.form['fixed_price']
+        description = request.form['description']
+        print(post_type)
+        print(sciname)
+        print(popname)
+        print(min_price)
+        print(fixed_price)
+        print(description)
+        with conn:
+            cur = conn.cursor()
+            # Check that the current user owns the post
+            cur_id = current_user.get_id()
+            check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
+            cur.execute(check_user_sql, [post_id])
+            owner_id = str(cur.fetchone()[0])
+            if cur_id == owner_id:
+                # update 
+                edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, description=?, type=?, minimum_price=?, fixed_price=? WHERE obj_id=?; "
+                cur.execute(edit_posts_sql, [sciname, popname, description, post_type, min_price, fixed_price, post_id])
+                flash("Posten uppdaterad")
+                return redirect(url_for('list_my_posts'))
+            else:
+                flash("Du har inte rättigheter att ändra på den posten.")
+                return redirect(url_for('list_my_posts'))
+    else:
+        if post_id:
+    
+            with conn:
+                cur = conn.cursor()
+                # Check that the current user owns the post
+                cur_id = current_user.get_id()
+                check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
+                cur.execute(check_user_sql, [post_id])
+                owner_id = str(cur.fetchone()[0])
+                if cur_id == owner_id:
+                    # Get the postdata
+                    edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
+                    cur.execute(edit_posts_sql, [post_id])
+                    data = cur.fetchone()
+                    
+                    # make the selectinput
+                    cur_type = int(data[4])
+                    cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
+                    result = cur.fetchall()
+                    select = '<select  class="selectpicker form-control" id="master_type" name="master_type">'
+                    for row in result:
+                        if row[0] == cur_type:
+                            selected = "selected"
+                        else:
+                            selected = ""
+                        tempstr = '<option value="{}" {}>{}</option>'.format(row[0], selected, row[1])
+                        select += tempstr
+                    select += '</select>'
+    
+                    return render_template('edit_post.html', data=data, select=select)
+                else:
+                    flash("Du har inte rättigheter att ändra på den posten.")
+                    return redirect(url_for('list_my_posts'))
+        else:
+            return redirect(url_for('list_my_posts'))
+    
+   
 
 @app.route('/list_seller')
 @admin_required
@@ -365,11 +469,64 @@ def list_seller():
     Page for listing all sellers in the database
     """
     conn = sqlite3.connect(DATABASE)
+
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT name, address, email, phone, aquarium_club, seller_id FROM sellers")
+        sql = """SELECT sellers.name, sellers.address, sellers.email, sellers.phone, sellers.aquarium_club, count(posts.obj_id) as num_posts, cast(sellers.seller_id as text), isAdmin FROM sellers
+                 LEFT JOIN posts ON sellers.seller_id=posts.seller_id GROUP BY sellers.seller_id;"""
+        cur.execute(sql)
         result = cur.fetchall()
-        return render_template('list_seller.html', data=result)
+    return render_template('list_seller.html', data=result)
+
+
+@app.route('/delete_seller')
+@app.route('/delete_seller/<seller_id>')
+@admin_required
+def delete_seller(seller_id=None):
+    """
+    Deletes a seller from the database
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            delete_seller_sql = "DELETE FROM sellers WHERE seller_id=?"
+            cur.execute(delete_seller_sql, [seller_id])
+            delete_posts_sql = "DELETE FROM posts WHERE seller_id=?"
+            cur.execute(delete_posts_sql, [seller_id])
+    return redirect(url_for('list_seller'))
+
+
+@app.route('/make_admin')
+@app.route('/make_admin/<seller_id>')
+@admin_required
+def make_admin(seller_id=None):
+    """
+    Makes a seller admin
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            make_admin_sql = "UPDATE sellers SET isAdmin = 'yes'  WHERE seller_id=?"
+            cur.execute(make_admin_sql, [seller_id])
+    return redirect(url_for('list_seller'))
+
+
+@app.route('/demote_admin')
+@app.route('/demote_admin/<seller_id>')
+@admin_required
+def demote_admin(seller_id=None):
+    """
+    Makes a admin basic seller
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            make_admin_sql = "UPDATE sellers SET isAdmin = 'no'  WHERE seller_id=?"
+            cur.execute(make_admin_sql, seller_id)
+    return redirect(url_for('list_seller'))
 
 
 @app.route('/reports')
@@ -1031,7 +1188,7 @@ def get_receipt_pdf(selected_id=None):
             seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:
-            seller_id = seller_id[0]
+
             cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", [seller_id])
             result = cur.fetchone()
             seller_name = result[0]

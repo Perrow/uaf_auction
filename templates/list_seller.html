@@ -13,11 +13,13 @@
         <th>Email</th>
         <th>Telefon</th>
         <th>Förening</th>
+        <th>Nr poster</th>
         <th>Etiketter pdf</th>
         <th>Etiketter print</th>
         <th>Kvitto pdf</th>
         <th>Kvitto print</th>
-
+        <th>Ta bort</th>
+        <th>Admin</th>
     </tr>
     {% for row in data %}
     <tr>
@@ -26,26 +28,55 @@
         <td> {{ row[2] }}</td>
         <td> {{ row[3] }}</td>
         <td> {{ row[4] }}</td>
+        <td> {{ row[5] }}</td>
         <td>
-            <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[5] }} ">
+            <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[6] }} ">
                 <i class="fa fa-file-pdf-o"></i>
             </a>
         </td>
         <td>
-            <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[5] }} ">
+            <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[6] }} ">
                 <span class="glyphicon glyphicon-print"></span>
             </a>
         </td>
         <td>
-            <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[5] }} ">
+            <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[6] }} ">
                 <i class="fa fa-file-pdf-o"></i>
             </a>
         </td>
         <td>
-            <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[5] }} ">
+            <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[6] }} ">
                 <span class="glyphicon glyphicon-print"></span>
             </a>
         </td>
+        <!--Delete current user-->
+        {% if current_user.get_id() == row[6] %}
+        <td></td>
+        {% else %}
+        <td>
+            <a class="btn btn-danger" href=" {{ url_for('delete_seller') }}/{{ row[6] }} "> Ta bort
+                <span class="glyphicon glyphicon-remove"></span>
+            </a>
+        </td>
+        {% endif %}
+        <!--Make or demote admin-->
+        {% if row[7] == "yes" %}
+            {% if current_user.get_id() == row[6] %}
+            <td></td>
+            {% else %}
+            <td>
+                <a class="btn btn-warning" href=" {{ url_for('demote_admin') }}/{{ row[6] }} "> Gör vanlig
+                    <span class="glyphicon glyphicon-arrow-down"></span>
+                </a>
+            </td>
+            {% endif %}
+        {% else %}
+        <td>
+            <a class="btn btn-success" href=" {{ url_for('make_admin') }}/{{ row[6] }} "> Gör admin
+                <span class="glyphicon glyphicon-arrow-up"></span>
+            </a>
+        </td>
+        {% endif %}        
     </tr>
     {% endfor %}
 
