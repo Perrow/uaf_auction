@@ -59,6 +59,28 @@ $(document).ready(function(){
     });
   });
 
+    // Check that all posts has a price before submitting
+    $( "#submit" ).click(function() {
+        var all_ok = true;
+        console.log("checking prices");
+        var price_id = "#price" 
+        var post_id = "#post_id" 
+
+            if ($(post_id).val() != "") {
+                if ($.isNumeric( $(price_id).val() )) {
+                    $('#error').html("").fadeIn();
+                } else {
+                    $('#error').html("Pris måste ges").fadeIn();
+                   all_ok = false;
+               }         
+           }
+
+        if (all_ok) {
+            return true;
+        } else {
+            return false;
+        }        
+    });
 
   console.log('Everything is ready.');
 });

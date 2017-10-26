@@ -70,12 +70,11 @@ class ZLabels(object):
         left_margin2 = 140
 
         saved = False
-
+        count = 0
         # Loop over sellers in data
         for seller in data:
-            count = 0
+
             saved = False
-            print(seller)
             seller_id = seller[0]
             seller_name = seller[1]
             seller_phone = seller[2]
@@ -86,13 +85,12 @@ class ZLabels(object):
                 post_name = post[1]
                 post_fixed_price = post[2]
 
-                # Caluclate current row and column, if row is larger than 7 start a new page
+                # 24 labels on a sheet, if more start a new sheet
+                if count >= 24:
+                    canvas.showPage()
+                    count = 0
                 column = count % 3
                 row = math.floor(count / 3)
-                if row > self.label_rows - 1:
-                    if row % self.label_rows == 0 and column == 0:
-                        canvas.showPage()
-                    row %= 8
 
                 x = column * self.label_width
                 y = start_y - row * self.label_height
@@ -121,19 +119,20 @@ class ZLabels(object):
                 canvas.drawString(x + left_margin, y - self.row_height * 5, seller_society)
                 canvas.drawString(x + left_margin, y - self.row_height * 6, "Tel: {}".format(seller_phone))
                 if post_fixed_price is not None:
-                    print(len(str(post_fixed_price)) )
                     if len(str(post_fixed_price)) > 0:
                         canvas.drawString(x + left_margin, y - self.row_height * 7, "Pris på försäljningsbordet kr {}".format(post_fixed_price))
-
-                # name_width = shapes.stringWidth(post_name, self.font , self.font_size)
-                # while name_width > 140:
-                #     post_name = post_name[:-1]
-                #     name_width = shapes.stringWidth(post_name, 'Helvetica', self.font_size)
 
                 canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_name, 150)))
                 count += 1
 
-            canvas.showPage()
+            # if new seller add an empty row and empty labels on current row
+            tot_row = math.floor(count / 3)
+            column = count % 3
+            if column > 0:  # one or two labels on current row add to rows to make an empty row
+                tot_row += 2
+            else:
+                tot_row += 1 # three labels on current row only add one empty row
+            count = tot_row * 3
 
         if not saved:
             canvas.save()

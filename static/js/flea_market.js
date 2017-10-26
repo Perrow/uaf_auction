@@ -27,8 +27,12 @@ $(document).ready(function(){
         
         // Leave price input
          $('#' + price_id).blur(function() {
+            if ($.isNumeric( $('#' + price_id).val() )) {
+                $('#error').html("").fadeIn();
+            } else {
+                $('#error').html("Pris måste ges").fadeIn();
+            } 
             calculate_sum();
-            
          });
         
          $('#' + price_id).change(function() {
@@ -46,9 +50,18 @@ $(document).ready(function(){
 
         // Fetches info about the post and displays
         $('#' + post_id).blur(function() {
-            add_row();
             var cur_post_id = $('#' + post_id).val();
             var price_id = "price" + id;
+
+            $(this).removeClass('newRow');
+            if ($("input").hasClass("newRow")) {
+                console.log("Found a newRow");  
+            } else {
+                console.log("postid: " + cur_post_id)
+                if (cur_post_id != "") { 
+                    add_row();
+                } 
+            }
 
             $.ajax({
                 url: 'json/' + cur_post_id,
@@ -126,7 +139,7 @@ $(document).ready(function(){
         var html_str = '<div id="' + row_id + '">' + 
                             '<div class="row" >' + 
                                 '<div class="col-sm-2">' + 
-                                    '<input class="loppis form-control" id="' + post_id + '" name="post_id" type="text" value="">' +
+                                    '<input class="loppis form-control newRow" id="' + post_id + '" name="post_id" type="text" value="">' +
                                 '</div>' +
                                 '<div class="col-sm-2">' +
                                     '<input class="loppis price form-control" id="' + price_id + '" name="price" type="text" value="">' +
@@ -163,6 +176,28 @@ $(document).ready(function(){
         });   
     }
 
+    // Check that all posts has a price before submitting
+    $( "#submit" ).click(function() {
+        var all_ok = true;
+        console.log("checking prices");
+        $( ".price" ).each(function( ) { 
+            var price_id = $(this).attr('id'); //get the id of current price input
+            var post_id = "#post" + price_id.substring(5); // construct a id tag for matching post_id input
+            if ($(post_id).val() != "") { // Only check prices for rows with post nr 
+                if ($.isNumeric( $(this).val() )) {
+                    $('#error').html("").fadeIn();
+                } else {
+                    $('#error').html("Pris måste ges").fadeIn();
+                   all_ok = false;
+               }         
+           }
+        });
+        if (all_ok) {
+            return true;
+        } else {
+            return false;
+        }        
+    });
 
     // Set handler for first post
     func(1);

@@ -7,6 +7,12 @@
 {% block body %}
 <div class="container">
     <h1>Loppis</h1>
+    <div class="progress">
+        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ data[2] }}"
+             aria-valuemin="0" aria-valuemax="100" style="width:{{data[2]}}%">
+            {{ data[0] }} sålda av {{ data[1] }}
+        </div>
+    </div>
     <p> Fyll i postens nummer, tryck TAB. </p>
 
     <div id="sum" class="well">Att betala:</div>
@@ -40,7 +46,7 @@
                         </div>
                     </div>
                     <div class="col-sm-1">
-                        <button type="button" id="remove1" class="btn btn-danger"  tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>
+                        <button type="button" id="remove1" class="btn btn-danger" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>
                     </div>
                 </div>
                 <br>

@@ -1,3 +1,12 @@
+Version 0.40 2017-10-26
+    Fixed a bug in make_database.py that generated posts for a non existing seller.
+    Added a check that a numeric price is given to auction.js.
+    Added the same check to flea_market.js.
+    Added a check that so a new row empty row should only be added if no empty row exists.
+    Issue 29. Added a progress bar with sold items of all items on acution and fleamarket pages.
+    Issue 30. Labels are printed with one row of empty labels between selles.
+    Issue 28. Auction type is printed on labels instead of scientific and popular name if these are missing.
+
 Version 0.39 2017-10-24
     Issue 33 and 26. Number of post for each seller is displayed on the list seller page.
     Issue 20. Delete seller and their posts. The admin that removes sellers can not remove him/herself.

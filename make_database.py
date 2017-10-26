@@ -22,7 +22,7 @@ for n in range(15):
 print(sellers)
 
 posts = []
-for seller_id in range(0, len(sellers) + 1):
+for seller_id in range(1, len(sellers) + 1):
     for i in range(0, random.randint(0, 20)):
         posts.append(F.generate_fish_auction_post(seller_id))
  

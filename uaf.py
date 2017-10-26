@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HK(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.39"
+VERSION = "0.40"
 
 # For flask-login
 lm = LoginManager()
@@ -546,24 +546,30 @@ def auktion():
     Shows the auction form and updates the database with the price it sold for and the sale type
     :return:
     """
+    conn = sqlite3.connect(DATABASE)
     if request.method == 'POST':
         post_id = request.form['post_id']
         price = request.form['price']
         sale_type = request.form['sale_type']
-        conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
-            flash("Post {} registrerad som såld.".format(post_id))
-        return render_template('auktion.html')
-    return render_template('auktion.html')
+            if post_id != "":
+                cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
+                flash("Post {} registrerad som såld.".format(post_id))
+
+    with conn:
+        cur = conn.cursor()
+        sql = "SELECT count(sold_price) as nr_sold, count(obj_id) as nr_tot, CAST(count(sold_price) as float) / cast(count(obj_id) as float) * 100 FROM posts"
+        cur.execute(sql)
+        data = cur.fetchone()
+    return render_template('auktion.html', data=data)
 
 
 @app.route("/loppis", methods=['GET', 'POST'])
 @admin_required
 def flea_market():
     """
-    Handels the sale of posts at the fixed price table / fleamarket. Updates the sold post with the price and the sale type
+    Handles the sale of posts at the fixed price table / fleamarket. Updates the sold post with the price and the sale type
     :return:
     """
     post_ids = request.form.getlist('post_id')
@@ -577,10 +583,16 @@ def flea_market():
     with conn:
         cur = conn.cursor()
         for post_id, price in sold_items:
-            cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
-            flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
+            if post_id != "":
+                cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
+                flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
 
-    return render_template('flea_market.html')
+    with conn:
+        cur = conn.cursor()
+        sql = "SELECT count(sold_price) as nr_sold, count(obj_id) as nr_tot, CAST(count(sold_price) as float) / cast(count(obj_id) as float) * 100 FROM posts"
+        cur.execute(sql)
+        data = cur.fetchone()
+    return render_template('flea_market.html', data=data)
 
 
 @app.route("/create_event", methods=['GET', 'POST'])
@@ -830,12 +842,20 @@ def get_labels_pdf(selected_id=None):
         for seller in sellers:
             seller_id = seller[0]
             print(seller_id)
-            cur.execute("SELECT obj_id, plain_name, scientific_name, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
+            # cur.execute("SELECT obj_id, plain_name, scientific_name, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
+            cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
+                        INNER JOIN all_types ON posts.type = all_types.type_id
+                        WHERE seller_id=?""", (seller_id,))
+            
             posts = cur.fetchall()
             seller_data = [seller[0], seller[1], seller[2], seller[3]]
             post_data = []
             for post in posts:
-                post_data.append([post[0], " ".join([post[1], post[2]]), post[3]])
+                if post[1] == "" and post[2] == "":
+                    post_name = post[4]
+                else:
+                    post_name = " ".join([post[1], post[2]])
+                post_data.append([post[0], post_name, post[3]])
             seller_data.append(post_data)
             data.append(seller_data)
         print(data)
