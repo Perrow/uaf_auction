@@ -16,6 +16,20 @@
             </td>
         </tr>
         <tr>
+            <td>Outskrivna etiketter för alla säljare:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('unprinted_lables') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('unprinted_labels_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>       
+        <tr>
+            <td>Markera etiketter för alla säljare som ej utskrivna:</td>
+            <td></td>
+            <td><a class="btn btn-default" href=" {{ url_for('reset_printed_labels') }} ">
+                <span class="glyphicon glyphicon-refresh"></span> Reset </a>
+            </td>
+        </tr>           
+        <tr>
             <td>Sammanställning för alla säljare:</td>
             <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> PDF </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} ">

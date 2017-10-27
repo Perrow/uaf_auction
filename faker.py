@@ -206,19 +206,19 @@ class Faker:
         type = 1
         comment = ""
         pop_name, sci_name = self.get_fish_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), None
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), None, "no"
 
     def generate_plant_fleamarket_post(self, seller_id):
         type = 8
         comment = ""
         pop_name, sci_name = self.get_plant_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10, "no"
 
     def generate_shrimp_fleamarket_post(self, seller_id):
         type = 4
         comment = ""
         pop_name, sci_name = self.get_shrimp_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10, "no"
 
 if __name__ == "__main__":
     

@@ -779,8 +779,32 @@ def json_get_sell_types():
 # *** PDF Generation *** #
 
 
-@app.route('/lables')
-@app.route('/lables/<selected_id>')
+@app.route('/reset_printed_labels')
+@app.route('/reset_printed_labels/<selected_id>')
+@admin_required
+def reset_printed_labels(selected_id=None):
+    """
+    Writes the receipt pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if selected_id:
+            reset_sql = "UPDATE posts SET label_printed = 'no' WHERE seller_id = ?"
+            cur.execute(reset_sql, [selected_id])
+            flash("Etiketter för säljare {} markerade som ej utskrivna".format(selected_id))
+        else:
+            reset_sql = "UPDATE posts SET label_printed = 'no'"
+            cur.execute(reset_sql)
+            flash("Alla etiketter markerade som ej utskrivna")
+        
+    # return '', 204  # empty response
+    return redirect(request.referrer)
+
+@app.route('/all_lables')
+@app.route('/all_lables/<selected_id>')
 @admin_required
 def labels_view(selected_id=None):
     """
@@ -795,9 +819,24 @@ def labels_view(selected_id=None):
     response.mimetype = 'application/pdf'
     return response
 
+@app.route('/unprinted_lables')
+@app.route('/unprinted_lables/<selected_id>')
+@admin_required
+def unprinted_lables(selected_id=None):
+    """
+    Generates a downloadable pdf of lables
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_labels_pdf(selected_id, only_printed = True)
 
-@app.route('/labels_print')
-@app.route('/labels_print/<selected_id>')
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+@app.route('/all_labels_print')
+@app.route('/all_labels_print/<selected_id>')
 @admin_required
 def labels_server_print(selected_id=None):
     """
@@ -816,11 +855,31 @@ def labels_server_print(selected_id=None):
     os.unlink(pdf_temp)
     return '', 204  # empty response
 
+@app.route('/unprinted_labels_print')
+@app.route('/unprinted_labels_print/<selected_id>')
+@admin_required
+def unprinted_labels_server_print(selected_id=None):
+    """
+    Writes the receipt pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_labels_pdf(selected_id, only_printed = True)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "w")
+    f.write(pdf)
+    f.close()
+    # cups_printer = "Samsung_ML-331x_Series"
+    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.system('lp {}'.format(pdf_temp))
+    os.unlink(pdf_temp)
+    return '', 204  # empty response
 
-def get_labels_pdf(selected_id=None):
+def get_labels_pdf(selected_id=None, only_printed = False):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
-    :param selected_id:
+    :param selected_id: seller_id to print labels for
+    :param only_printed: If true only print labels that is mot marked as printed in database
     :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
@@ -832,25 +891,28 @@ def get_labels_pdf(selected_id=None):
         auction_date = auction_info[1]
         # print(auction_name, auction_date, int(selected_id))
         labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
-        print("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         if selected_id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         else:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers")
         sellers = cur.fetchall()
         data = []
+        printed_labels = []
         for seller in sellers:
             seller_id = seller[0]
-            print(seller_id)
-            # cur.execute("SELECT obj_id, plain_name, scientific_name, fixed_price FROM posts WHERE seller_id=?", (seller_id,))
-            cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
+            if only_printed:
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
                         INNER JOIN all_types ON posts.type = all_types.type_id
-                        WHERE seller_id=?""", (seller_id,))
-            
+                        WHERE posts.seller_id=? and posts.label_printed='no'""", (seller_id,))
+            else:
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
+                        INNER JOIN all_types ON posts.type = all_types.type_id
+                        WHERE posts.seller_id=?""", (seller_id,))
             posts = cur.fetchall()
             seller_data = [seller[0], seller[1], seller[2], seller[3]]
             post_data = []
             for post in posts:
+                printed_labels.append(str(post[0]))
                 if post[1] == "" and post[2] == "":
                     post_name = post[4]
                 else:
@@ -858,7 +920,12 @@ def get_labels_pdf(selected_id=None):
                 post_data.append([post[0], post_name, post[3]])
             seller_data.append(post_data)
             data.append(seller_data)
-        print(data)
+        # print(data)
+        # Mark printed labels as printed in database
+        update_sql = "UPDATE posts SET label_printed = 'yes'  WHERE obj_id IN({})".format(", ".join(printed_labels))
+        print(update_sql)
+        cur.execute(update_sql)
+        conn.commit()
 
     pdf = labels.make_pdf(data, border=False)
     return pdf
