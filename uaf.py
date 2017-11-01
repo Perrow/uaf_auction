@@ -30,9 +30,9 @@ __author__ = 'Kristian'
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "HK(9045hjffdd204hHFD345d"
+app.config['SECRET_KEY'] = "HKd(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.40"
+VERSION = "0.42"
 
 # For flask-login
 lm = LoginManager()
@@ -415,7 +415,6 @@ def edit_post(post_id=None):
             cur.execute(check_user_sql, [post_id])
             owner_id = str(cur.fetchone()[0])
             if cur_id == owner_id:
-                # update 
                 edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, description=?, type=?, minimum_price=?, fixed_price=? WHERE obj_id=?; "
                 cur.execute(edit_posts_sql, [sciname, popname, description, post_type, min_price, fixed_price, post_id])
                 flash("Posten uppdaterad")
@@ -425,7 +424,7 @@ def edit_post(post_id=None):
                 return redirect(url_for('list_my_posts'))
     else:
         if post_id:
-    
+
             with conn:
                 cur = conn.cursor()
                 # Check that the current user owns the post
@@ -438,7 +437,7 @@ def edit_post(post_id=None):
                     edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
                     cur.execute(edit_posts_sql, [post_id])
                     data = cur.fetchone()
-                    
+
                     # make the selectinput
                     cur_type = int(data[4])
                     cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
@@ -452,15 +451,14 @@ def edit_post(post_id=None):
                         tempstr = '<option value="{}" {}>{}</option>'.format(row[0], selected, row[1])
                         select += tempstr
                     select += '</select>'
-    
+
                     return render_template('edit_post.html', data=data, select=select)
                 else:
                     flash("Du har inte rättigheter att ändra på den posten.")
                     return redirect(url_for('list_my_posts'))
         else:
             return redirect(url_for('list_my_posts'))
-    
-   
+
 
 @app.route('/list_seller')
 @admin_required
@@ -538,6 +536,14 @@ def reports():
     """
     return render_template('reports.html')
 
+
+@app.route("/display_current", methods=['GET'])
+@admin_required
+def display_current():
+    """
+    A page for displaying current and next post on an projector or something
+    """
+    return render_template('display.html')
 
 @app.route("/auktion", methods=['GET', 'POST'])
 @admin_required
@@ -642,7 +648,7 @@ def create_event():
 
             cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
-            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
             cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
 
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
@@ -713,7 +719,7 @@ def json_get_type(type_nr):
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute(""" SELECT sale_type FROM used_types WHERE type_id=?""", (type_nr,))
+        cur.execute("SELECT sale_type FROM used_types WHERE type_id=?", (type_nr,))
 
         columns = [d[0] for d in cur.description]
         sql_result = cur.fetchall()
@@ -776,6 +782,53 @@ def json_get_sell_types():
         else:
             return jsonify({"error": "id not found"})
 
+
+@app.route('/json_sold')
+def json_sold():
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        # cur.execute("""SELECT 'total' as category, count(*) AS total_sold FROM posts 
+        #                UNION ALL
+        #                SELECT sold_on, count(sold_price) AS nr_sold FROM posts GROUP BY sold_on""")
+
+        cur.execute("""SELECT "total_" || all_types.sale_type, count(posts.type) FROM posts
+	                  INNER JOIN all_types
+	                  ON posts.type=all_types.type_id
+                      GROUP BY all_types.sale_type
+  
+                      UNION ALL
+
+                      SELECT "sold_on_" || sold_on, count(sold_price) AS nr_sold FROM posts GROUP BY sold_on""")
+        
+        sql_result = cur.fetchall()
+        total = 0
+        total_auction = 0
+        total_fleamarket = 0
+        sold_auction = 0
+        sold_fleamarket = 0
+        for row in sql_result:
+            if row[0] == "total_auction":
+                total_auction = row[1]
+            if row[0] == "sold_on_auktion":
+                sold_auction = row[1]
+            if row[0] == "total_fixed_price":
+                total_fleamarket = row[1]
+            if row[0] == "sold_on_fasta bordet":
+                sold_fleamarket = row[1]
+        total = total_auction + total_fleamarket
+        if total_auction > 0:
+            sold_auction_percent = sold_auction / float(total_auction) * 100
+        else:
+            sold_auction_percent = 0
+        if total_fleamarket > 0:
+            sold_fleamarket_percent = sold_fleamarket / float(total_fleamarket) * 100
+        else:
+            sold_fleamarket_percent = 0
+        result = {"total": total, "total_auction": total_auction, "sold_auction": sold_auction, "sold_auction_percent": sold_auction_percent, "total_fleamarket": total_fleamarket, "sold_fleamarket": sold_fleamarket, "sold_fleamarket_percent": sold_fleamarket_percent}
+        return jsonify(result)
+
+
 # *** PDF Generation *** #
 
 
@@ -792,16 +845,16 @@ def reset_printed_labels(selected_id=None):
     with conn:
         cur = conn.cursor()
         if selected_id:
-            reset_sql = "UPDATE posts SET label_printed = 'no' WHERE seller_id = ?"
+            reset_sql = 'UPDATE posts SET label_printed = "no" WHERE seller_id = ?'
             cur.execute(reset_sql, [selected_id])
             flash("Etiketter för säljare {} markerade som ej utskrivna".format(selected_id))
         else:
-            reset_sql = "UPDATE posts SET label_printed = 'no'"
+            reset_sql = 'UPDATE posts SET label_printed = "no"'
             cur.execute(reset_sql)
-            flash("Alla etiketter markerade som ej utskrivna")
-        
+            flash('Alla etiketter markerade som ej utskrivna')
     # return '', 204  # empty response
     return redirect(request.referrer)
+
 
 @app.route('/all_lables')
 @app.route('/all_lables/<selected_id>')
@@ -819,6 +872,7 @@ def labels_view(selected_id=None):
     response.mimetype = 'application/pdf'
     return response
 
+
 @app.route('/unprinted_lables')
 @app.route('/unprinted_lables/<selected_id>')
 @admin_required
@@ -828,12 +882,13 @@ def unprinted_lables(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: pdf response
     """
-    pdf = get_labels_pdf(selected_id, only_printed = True)
+    pdf = get_labels_pdf(selected_id, only_printed=True)
 
     response = make_response(pdf)
     response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
     response.mimetype = 'application/pdf'
     return response
+
 
 @app.route('/all_labels_print')
 @app.route('/all_labels_print/<selected_id>')
@@ -855,6 +910,7 @@ def labels_server_print(selected_id=None):
     os.unlink(pdf_temp)
     return '', 204  # empty response
 
+
 @app.route('/unprinted_labels_print')
 @app.route('/unprinted_labels_print/<selected_id>')
 @admin_required
@@ -864,7 +920,7 @@ def unprinted_labels_server_print(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: Nothing
     """
-    pdf = get_labels_pdf(selected_id, only_printed = True)
+    pdf = get_labels_pdf(selected_id, only_printed=True)
     pdf_temp = "temp_pdf.pdf"
     f = open(pdf_temp, "w")
     f.write(pdf)
@@ -875,7 +931,8 @@ def unprinted_labels_server_print(selected_id=None):
     os.unlink(pdf_temp)
     return '', 204  # empty response
 
-def get_labels_pdf(selected_id=None, only_printed = False):
+
+def get_labels_pdf(selected_id=None, only_printed=False):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
     :param selected_id: seller_id to print labels for
@@ -1353,6 +1410,7 @@ def page_not_found(error):
     """
     print(error)
     return render_template('login_failed.html'), 401
+
 
 if __name__ == '__main__':
     app.run(debug=True)

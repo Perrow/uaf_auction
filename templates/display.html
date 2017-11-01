@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %} Auktion {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <div class="container">
+    <div class=row>
+        <div class="col-sm-6">
+            <h3>Antal sålda auktionsposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:10%">
+                    <div id="sold_auction_text"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <h3>Antal sålda fastabordetposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:20%">
+                    <div id="sold_fleamarket_text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h1> Aktuell auktionspost </h1>
+    <div id="current">
+        <div class="well">
+            <div class="row">
+                <div class="container">
+                    <div class="col-sm-6">
+                        <h4>
+                            <div class="col-sm-3">
+                                Postnummer:
+                            </div>
+                            <div class="col-sm-9">
+                                <div id="current_post_id"></div>
+                            </div>
+                        </h4>
+                    </div>
+                    <div class="col-sm-6">
+                        <h4>
+                            <div class="col-sm-4">
+                                Reservationspris:
+                            </div>
+                            <div class="col-sm-8">
+                                <div id="current_min_price"></div>
+                            </div>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="container">
+                    <div class="col-sm-6">
+                        <h3>
+                            <div class="col-sm-12">
+                                Namn:
+                            </div>
+                            <div class="col-sm-12">
+                                <div id="current_plain_name"></div>
+                            </div>
+                        </h3>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <h3>
+                            <div class="col-sm-12">
+                                Vetenskapligt namn:
+                            </div>
+                            <div class="col-sm-12">
+                                <span id="current_scientific_name"></span>
+                            </div>
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="container">
+                    <div class="col-sm-6">
+                        <h4>
+                            <div class="col-sm-3">
+                                Beskrivning:
+                            </div>
+                            <div class="col-sm-9">
+                                <span id="current_description"></span>
+                            </div>
+                        </h4>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="col-sm-6">
+                        <h4>
+                            <div class="col-sm-3">
+                                Säljare:
+                            </div>
+                            <div class="col-sm-9">
+                                <span id="current_seller_name"></span>
+                            </div>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h1> Nästa auktionspost </h1>
+        <div id="next">
+            <div class="well">
+                <div class="row">
+                    <div class="col-sm-2">
+                        Postnummer:
+                    </div>
+                    <div class="col-sm-10">
+                        <div id="next_post_id"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        Reservationspris:
+                    </div>
+                    <div class="col-sm-10">
+                        <div id="next_min_price"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-2">
+                        Namn:
+                    </div>
+                    <div class="col-sm-10">
+                        <div id="next_plain_name"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-2">
+                        Vetenskapligt namn:
+                    </div>
+                    <div class="col-sm-10">
+                        <span id="next_scientific_name"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-2">
+                        Beskrivning:
+                    </div>
+                    <div class="col-sm-10">
+                        <span id="next_description"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-2">
+                        Säljare:
+                    </div>
+                    <div class="col-sm-10">
+                        <span id="next_seller_name"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form action="">
+            <label for="postid">Nästa id: </label>
+            <input type="text" name="post_id" id="post_id" class="form-control"> <br>
+            <input type="submit" id="submit" name="submit" value="Skicka" class="btn btn-primary">
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/display.js') }}"></script>
+{% endblock %}

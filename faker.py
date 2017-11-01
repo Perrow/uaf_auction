@@ -17,22 +17,22 @@ class Faker:
             [u"Betta splendens", u"Kampfisk"],
             [u"Poecilia reticulata", u"Guppy"],
             [u"Xiphophorus maculatus", u"Platy"],
-            [u"Kardinaltetra", u"Kardinaltetra"],
-            [u"Guldfisk", u"Carassius auratus auratus"],
-            [u"Siamesisk algätare, algätare", u"Crossocheilus oblongus"],
-            [u"Neontetra", u"Paracheirodon innesi"],
-            [u"Segelfenspleco", u"Glyptoperichthys gibbiceps"],
-            [u"Kakadua ciklid", u"Apistogramma cacatuoides"],
-            [u"Golden labidochromis", u"Labidochromis caeruleus"],
-            [u"Palettciklid", u"Pelvicachromis pulcher"],
-            [u"Praktbotia", u"Chromobotia macracanthus"],
-            [u"Blackmolly", u"Poecilia sphenops"],
-            [u"Dvärggurami", u"Trichogaster lalius"],
-            [u"Randig otocinclus", u"Otocinclus vittatus"],
-            [u"Rödzebra", u"Metriaclima estherae"],
-            [u"Koppartetra", u"Hasemania nana"],
-            [u"Silverhaj", u"Balantiocheilus melanopterus"],
-            [u"Svärdbärare", u"Xiphophorus helleri"],
+            [u"Paracheirodon axelrodi", u"Kardinaltetra"],
+            [u"Carassius auratus auratus", u"Guldfisk"],
+            [u"Crossocheilus oblongus", u"Siamesisk algätare, algätare"],
+            [u"Paracheirodon innesi", u"Neontetra"],
+            [u"Glyptoperichthys gibbiceps", u"Segelfenspleco"],
+            [u"Apistogramma cacatuoides", u"Kakadua ciklid"],
+            [u"Labidochromis caeruleus", u"Golden labidochromis"],
+            [u"Pelvicachromis pulcher", u"Palettciklid"],
+            [u"Chromobotia macracanthus", u"Praktbotia"],
+            [u"Poecilia sphenops", u"Blackmolly"],
+            [u"Trichogaster lalius", u"Dvärggurami"],
+            [u"Otocinclus vittatus", u"Randig otocinclus"],
+            [u"Metriaclima estherae", u"Rödzebra"],
+            [u"Hasemania nana", u"Koppartetra"],
+            [u"Balantiocheilus melanopterus", u"Silverhaj"],
+            [u"Xiphophorus helleri", u"Svärdbärare"],
             [u"", u""]
         ]
 
@@ -205,7 +205,7 @@ class Faker:
     def generate_fish_auction_post(self, seller_id):
         type = 1
         comment = ""
-        pop_name, sci_name = self.get_fish_name()
+        sci_name, pop_name = self.get_fish_name()
         return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), None, "no"
 
     def generate_plant_fleamarket_post(self, seller_id):

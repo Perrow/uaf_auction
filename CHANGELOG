@@ -1,3 +1,7 @@
+Version 0.42 2017-11-01
+    Fixed a bug in faker.py where some of the popular and scientific names of fishes were switched.
+    Issue 24. New page for showing information about current and next post on over head display.
+
 Version 0.41 2017-10-27
     Issue 9. Printed labels are marked in the database. Admin can select to print all labels or just unprinted labels.
     Admin can mark printed labels as unprinted. New column in table posts for keeping track of printed labels.
