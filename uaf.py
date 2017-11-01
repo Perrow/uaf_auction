@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.43"
+VERSION = "0.44"
 
 # For flask-login
 lm = LoginManager()
@@ -102,7 +102,7 @@ def auth(username, password):
         cur.execute("SELECT seller_id, password FROM sellers WHERE email=? ", (username.lower(), ))
         result = cur.fetchone()
         if result:  # email is in database, check that password is correct
-            if bcrypt.checkpw(password.encode('utf8'), result[1].encode('utf8')):
+            if bcrypt.checkpw(password.encode('utf8'), result[1]):
                 user_id = result[0]
                 return load_user(user_id)
             else:

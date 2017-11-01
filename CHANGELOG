@@ -1,3 +1,6 @@
+Version 0.44 2017-11-01
+    Fixed a bug preventing login.
+
 Version 0.43 2017-11-01
     Moved to python 3 (3.5).
     Issue 32. Fixed receipts for all sellers, that had stopped working.
