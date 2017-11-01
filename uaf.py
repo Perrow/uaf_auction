@@ -21,9 +21,9 @@ import make_economic_report_pdf
 import make_wall_list_pdf
 
 # set default encoding on the server to utf-8 pyhton 2.7
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+#import sys
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
 
 
 __author__ = 'Kristian'
@@ -225,7 +225,7 @@ def admin_register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
 
             flash("Posterna registrerade.")
 
@@ -279,7 +279,7 @@ def register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S")))
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
 
             flash("Posterna registrerade.")
 
@@ -1324,23 +1324,23 @@ def get_receipt_pdf(selected_id=None):
         auction_date = auction_info[5]
 
         receipt_pdf = make_receipt_pdf.Receipt(event_name, hosting_association, hosting_association_abrv, auction_date, city)
-
+        seller_ids = []
         if selected_id:
-            seller_ids = [selected_id]
+            seller_ids = [[selected_id]]
         else:
             cur.execute("SELECT DISTINCT seller_id FROM posts ORDER BY seller_id")
             seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:
-
-            cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", [seller_id])
+            print("Seller_id: {}".format(seller_id))
+            cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", seller_id)
             result = cur.fetchone()
             seller_name = result[0]
             # seller_address = result[1]
             # seller_email = result[2]
             seller_phone = result[3]
             seller_club = result[4]
-            cur.execute("SELECT obj_id  FROM posts WHERE seller_id = ? ORDER BY obj_id", [seller_id])
+            cur.execute("SELECT obj_id  FROM posts WHERE seller_id = ? ORDER BY obj_id", seller_id)
             res = cur.fetchall()
             post_ids = []
             for posts in res:
@@ -1413,4 +1413,4 @@ def page_not_found(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

@@ -56,8 +56,10 @@ class ZLabels(object):
         :param border: Draw border around labels or not
         """
 
-        import cStringIO
-        output = cStringIO.StringIO()
+        #import cStringIO
+        #output = cStringIO.StringIO()
+        from io import BytesIO
+        output = BytesIO()
         # pdf_name = "{}.pdf".format(self.pdf_name)
         # canvas = Canvas("static/pdf/{}".format(pdf_name))
         canvas = Canvas(output)
@@ -112,7 +114,7 @@ class ZLabels(object):
                 canvas.drawString(x + left_margin + 25, y - self.row_height * 3, "Säljare nr: {}".format(seller_id))
 
                 canvas.setFont(self.font, 25)
-                canvas.drawString(x + left_margin2, y - self.row_height * 4, unicode(post_id))
+                canvas.drawString(x + left_margin2, y - self.row_height * 4, str(post_id))
 
                 canvas.setFont(self.font, self.font_size)
                 canvas.drawString(x + left_margin, y - self.row_height * 4, seller_name)

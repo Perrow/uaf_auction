@@ -1,3 +1,8 @@
+Version 0.43 2017-11-01
+    Moved to python 3 (3.5).
+    Issue 32. Fixed receipts for all sellers, that had stopped working.
+    Fixed bug. New posts did not get labels marked as not printed.
+
 Version 0.42 2017-11-01
     Fixed a bug in faker.py where some of the popular and scientific names of fishes were switched.
     Issue 24. New page for showing information about current and next post on over head display.

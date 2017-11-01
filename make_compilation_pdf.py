@@ -29,8 +29,10 @@ class Compilation(object):
 
 
     def make_pdf(self, compilation_data):
-        import cStringIO
-        output = cStringIO.StringIO()
+        #import cStringIO
+        #output = cStringIO.StringIO()
+        from io import BytesIO
+        output = BytesIO()
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(output)
         story = [Spacer(1, 25 * mm)]

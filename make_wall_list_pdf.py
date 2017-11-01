@@ -38,8 +38,10 @@ class MakeWallList(object):
         [objid, scientific name, popular name, reserved price]]
         :return: a pdf
         """
-        import cStringIO
-        output = cStringIO.StringIO()
+        #import cStringIO
+        #output = cStringIO.StringIO()
+        from io import BytesIO
+        output = BytesIO()
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(output, pagesize=A4, topMargin=15 * mm, bottomMargin=20 * mm)
         # doc = BaseDocTemplate("pdf_file", showBoundary=1, leftMargin=0, rightMargin=0, topMargin=0, bottomMargin=0, pagesize=A4)

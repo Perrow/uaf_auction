@@ -44,8 +44,10 @@ class EconomicReport(object):
         :param data: data for each individual seller
         :return: a pdf document
         """
-        import cStringIO
-        output = cStringIO.StringIO()
+        #import cStringIO
+        #output = cStringIO.StringIO()
+        from io import BytesIO
+        output = BytesIO()
         doc = SimpleDocTemplate(output)
 
         # Set up styles

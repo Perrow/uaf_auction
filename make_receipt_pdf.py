@@ -36,8 +36,10 @@ class Receipt(object):
         :param data: data to render in the pdf
         :return: a pdf document
         """
-        import cStringIO
-        output = cStringIO.StringIO()
+        #import cStringIO
+        #output = cStringIO.StringIO()
+        from io import BytesIO
+        output = BytesIO()
         doc = SimpleDocTemplate(output)
 
         # Set up styles
@@ -66,12 +68,12 @@ class Receipt(object):
             nr_posts = seller[4]
             # posts = ", ".join(map(str, seller[5]))
             posts = seller[5]
-            data2 = [[u'Inlämningsnummer:', seller_id],
+            data2 = [[u'Inlämningsnummer:', str(seller_id[0])],
                      [u'Namn:', seller_name],
                      [u'Förening:', seller_association],
                      [u'Telefon:', seller_phone],
-                     [u'Antal poster:', nr_posts],
-                     [u'Nummer', posts]
+                     [u'Antal poster:', str(nr_posts)],
+                     [u'Nummer', str(posts)]
                      ]
 
             # Start page 1 sellers receipt
