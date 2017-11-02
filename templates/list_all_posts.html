@@ -4,51 +4,52 @@
 {{ super() }}
 {% endblock %}
 {% block body %}
+<div class="container">
+    <h1> {{ heading }}</h1>
 
-<h1> {{ heading }}</h1>
+    <h2>{{ nr_posts[0] }}</h2>
 
-<h2>{{ nr_posts[0] }}</h2>
-<p>
-    {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
-</p>
+    <p>
+        {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
+    </p>
 
-<table style="width:100%" class="table-hover">
-    <tr>
-        <th>Nr</th>
-        <th>Vetenskapligt namn</th>
-        <th>Namn</th>
-        <th>Beskrivning av posten</th>
+    <table style="width:100%" class="table-hover">
+        <tr>
+            <th>Nr</th>
+            <th>Vetenskapligt namn</th>
+            <th>Namn</th>
+            <th>Beskrivning av posten</th>
 
-        <th>Godstyp</th>
-        <th>Google bildsök</th>
-    </tr>
-    {% for row in data %}
-    <tr>
-        <td> {{ row[0] }}</td>
-        <td> {{ row[1] }}</td>
-        <td> {{ row[2] }}</td>
-        <td> {{ row[3] }}</td>
-        <td> {{ row[4] }}</td>
-        <!--<td> {{ row[5] }} </td>-->
-        {% if row[1] !="" %}
-        <td>
-            <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[1] }}">
-                <span class="glyphicon glyphicon-picture"></span> länk
-            </a>
-        </td>
-        {% else %}
-        <td>
-            <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[2] }}">
-                <span class="glyphicon glyphicon-picture"></span> länk
-            </a>
-        </td>
-        {% endif %}
+            <th>Godstyp</th>
+            <th>Google bildsök</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td> {{ row[0] }}</td>
+            <td> {{ row[1] }}</td>
+            <td> {{ row[2] }}</td>
+            <td> {{ row[3] }}</td>
+            <td> {{ row[4] }}</td>
+            <!--<td> {{ row[5] }} </td>-->
+            {% if row[1] !="" %}
+            <td>
+                <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[1] }}">
+                    <span class="glyphicon glyphicon-picture"></span> länk
+                </a>
+            </td>
+            {% else %}
+            <td>
+                <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[2] }}">
+                    <span class="glyphicon glyphicon-picture"></span> länk
+                </a>
+            </td>
+            {% endif %}
 
 
-    </tr>
-    {% endfor %}
+        </tr>
+        {% endfor %}
 
-</table>
-
+    </table>
+</div>
 
 {% endblock %}

@@ -1,3 +1,8 @@
+Version 0.45 2017-11-02
+    Fixed Python 3.5 for make_database.py
+    Issue 33. CSS fixes. Removed most of styles.css and added containers on the pages that didn't have it.
+    Remade the progress bars for sold objects on auction and fleamarket pages like it was on the display page.
+
 Version 0.44 2017-11-01
     Fixed a bug preventing login.
 

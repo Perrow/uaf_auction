@@ -7,10 +7,23 @@
 {% block body %}
 <div class="container">
     <h1>Loppis</h1>
-    <div class="progress">
-        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ data[2] }}"
-             aria-valuemin="0" aria-valuemax="100" style="width:{{data[2]}}%">
-            {{ data[0] }} sålda av {{ data[1] }}
+    <div class=row>
+        <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
+        <div class="col-sm-6">
+            <h3>Antal sålda auktionsposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{sold_statistic[3]}}%">
+                    <div id="sold_auction_text">{{sold_statistic[2]}} av {{sold_statistic[1]}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <h3>Antal sålda fastabordetposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{sold_statistic[6]}}%">
+                    <div id="sold_fleamarket_text">{{sold_statistic[5]}} av {{sold_statistic[4]}}</div>
+                </div>
+            </div>
         </div>
     </div>
     <p> Fyll i postens nummer, tryck TAB. </p>

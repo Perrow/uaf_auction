@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045hjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.44"
+VERSION = "0.45"
 
 # For flask-login
 lm = LoginManager()
@@ -547,11 +547,12 @@ def display_current():
 
 @app.route("/auktion", methods=['GET', 'POST'])
 @admin_required
-def auktion():
+def auction():
     """
     Shows the auction form and updates the database with the price it sold for and the sale type
     :return:
     """
+    sold_statistic = get_sold_statistic()
     conn = sqlite3.connect(DATABASE)
     if request.method == 'POST':
         post_id = request.form['post_id']
@@ -563,12 +564,9 @@ def auktion():
                 cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
                 flash("Post {} registrerad som såld.".format(post_id))
 
-    with conn:
-        cur = conn.cursor()
-        sql = "SELECT count(sold_price) as nr_sold, count(obj_id) as nr_tot, CAST(count(sold_price) as float) / cast(count(obj_id) as float) * 100 FROM posts"
-        cur.execute(sql)
-        data = cur.fetchone()
-    return render_template('auktion.html', data=data)
+    conn.close()
+    sold_statistic = get_sold_statistic()
+    return render_template('auktion.html', sold_statistic=sold_statistic)
 
 
 @app.route("/loppis", methods=['GET', 'POST'])
@@ -593,12 +591,9 @@ def flea_market():
                 cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
                 flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
 
-    with conn:
-        cur = conn.cursor()
-        sql = "SELECT count(sold_price) as nr_sold, count(obj_id) as nr_tot, CAST(count(sold_price) as float) / cast(count(obj_id) as float) * 100 FROM posts"
-        cur.execute(sql)
-        data = cur.fetchone()
-    return render_template('flea_market.html', data=data)
+    conn.close()
+    sold_statistic = get_sold_statistic()
+    return render_template('flea_market.html', sold_statistic=sold_statistic)
 
 
 @app.route("/create_event", methods=['GET', 'POST'])
@@ -785,13 +780,18 @@ def json_get_sell_types():
 
 @app.route('/json_sold')
 def json_sold():
+    """
+    Json generation of nr of sold post at auction and fleamarket and total nr of posts, total auction and total fleamarket.
+    """
+    sold_stat = get_sold_statistic()
+    sold_stat_dict = {"total": sold_stat[0], "total_auction": sold_stat[1], "sold_auction": sold_stat[2], "sold_auction_percent": sold_stat[3], "total_fleamarket": sold_stat[4], "sold_fleamarket": sold_stat[5], "sold_fleamarket_percent": sold_stat[6]}
+
+    return jsonify(sold_stat_dict)
+
+def get_sold_statistic():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        # cur.execute("""SELECT 'total' as category, count(*) AS total_sold FROM posts 
-        #                UNION ALL
-        #                SELECT sold_on, count(sold_price) AS nr_sold FROM posts GROUP BY sold_on""")
-
         cur.execute("""SELECT "total_" || all_types.sale_type, count(posts.type) FROM posts
 	                  INNER JOIN all_types
 	                  ON posts.type=all_types.type_id
@@ -825,8 +825,9 @@ def json_sold():
             sold_fleamarket_percent = sold_fleamarket / float(total_fleamarket) * 100
         else:
             sold_fleamarket_percent = 0
-        result = {"total": total, "total_auction": total_auction, "sold_auction": sold_auction, "sold_auction_percent": sold_auction_percent, "total_fleamarket": total_fleamarket, "sold_fleamarket": sold_fleamarket, "sold_fleamarket_percent": sold_fleamarket_percent}
-        return jsonify(result)
+        # result = {"total": total, "total_auction": total_auction, "sold_auction": sold_auction, "sold_auction_percent": sold_auction_percent, "total_fleamarket": total_fleamarket, "sold_fleamarket": sold_fleamarket, "sold_fleamarket_percent": sold_fleamarket_percent}
+        result = [total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent]
+        return result
 
 
 # *** PDF Generation *** #

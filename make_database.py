@@ -7,11 +7,11 @@ import sqlite3
 import bcrypt
 import time
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 conn = sqlite3.connect("auktion.db3")
-conn.text_factory = str
+# conn.text_factory = str
 
 F = faker.Faker()
 
