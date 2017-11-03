@@ -30,9 +30,9 @@ __author__ = 'Kristian'
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "HKd(9045fdhjffdd204hHFD345d"
+app.config['SECRET_KEY'] = "HKd(9045fdfdfhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.47"
+VERSION = "0.48"
 
 # For flask-login
 lm = LoginManager()
@@ -646,8 +646,8 @@ def create_event():
             cur.execute("DROP TABLE IF EXISTS auction_info")
 
             cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
-            cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
-            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
+            cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
             cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
 
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]

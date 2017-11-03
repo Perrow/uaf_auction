@@ -1,3 +1,6 @@
+Vedrsion 0.48 2017-11-03
+    Added autoincrement to posts and sellers tables to avoid reusing ids.
+
 Version 0.47 2017-11-03
     Issue 35. Even more spartan. Removed navbar from the display page. This page is displayed on screen all time and a navbar is just distracting.
 
