@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045fdhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.46"
+VERSION = "0.47"
 
 # For flask-login
 lm = LoginManager()

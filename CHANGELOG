@@ -1,3 +1,6 @@
+Version 0.47 2017-11-03
+    Issue 35. Even more spartan. Removed navbar from the display page. This page is displayed on screen all time and a navbar is just distracting.
+
 Version 0.46 2017-11-03
     It is possible to use html tags in the auction description.
     Issue 34. Logged in seller can generate a pdf with labels for own posts.

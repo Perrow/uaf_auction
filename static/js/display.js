@@ -22,10 +22,19 @@ $(document).ready(function () {
         console.log("Display current");
         $('#current_post_id').html(current_data.obj_id).fadeIn();
         $('#current_scientific_name').html(current_data.scientific_name).fadeIn();
-        $('#current_min_price').html(current_data.minimum_price).fadeIn();
+        if (current_data.minimum_price == null || current_data.minimum_price == "") {
+            $('#current_min_price').html("").fadeIn();
+        } else {
+            $('#current_min_price').html("Reservationspris: " + current_data.minimum_price).fadeIn();
+        }
         $('#current_plain_name').html(current_data.plain_name).fadeIn();
         $('#current_description').html(current_data.description).fadeIn();
-        $('#current_seller_name').html(current_data.name).fadeIn();
+        if (current_data.name == null || current_data.name == "") {
+            $('#current_seller_name').html("").fadeIn();
+        } else {
+            $('#current_seller_name').html("Säljare: " + current_data.name).fadeIn();
+        }
+
     };
 
     var display_next = function () {
