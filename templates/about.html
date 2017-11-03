@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block title %} Om {% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
 {% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Om </h1>
+    <div class="container">
+        <h1> Om </h1>
+        <p>Det här är version {{ version }} av auktions- och loppisprogrammet utvecklat av Uppsala Akvarieförening. <br>
+            Det är släppt under den öppna licensen GPL 3. </p>
 
-    <p>Det här är version {{ version }} av auktions- och loppisprogrammet utvecklat av Uppsala Akvarieförening. <br>
-        Det är släppt under den öppna licensen GPL 3. </p>
-
-</div>
+    </div>
 {% endblock %}

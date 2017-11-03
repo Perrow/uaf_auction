@@ -42,13 +42,13 @@
                         class="caret"></span>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa anmälda
+                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa alla anmälda
                         poster</a></li>
                     {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i
                             class="fa fa-plus" aria-hidden="true"></i> Registrera poster</a></li>
                     <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina
-                        anmälningar</a></li>
+                        anmälda poster</a></li>
                     {% endif %}
                     {% if current_user.is_admin %}
                     <li><a href="{{ url_for('admin_register_many_posts') }}"><i class="fa fa-plus"

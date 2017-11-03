@@ -1,3 +1,11 @@
+Version 0.46 2017-11-03
+    It is possible to use html tags in the auction description.
+    Issue 34. Logged in seller can generate a pdf with labels for own posts.
+    Issue 35. Removed some text from the display page to make it less cluttered.
+    Issue 36. Lables are marked as printed only when directly printed not on pdf generation.
+    Fixed bug in direct print due to python 2.7 -> 3.5 transition.
+    Issue 21. Empty posts (no popular name and no scientific name are not saved in the database.)
+
 Version 0.45 2017-11-02
     Fixed Python 3.5 for make_database.py
     Issue 33. CSS fixes. Removed most of styles.css and added containers on the pages that didn't have it.

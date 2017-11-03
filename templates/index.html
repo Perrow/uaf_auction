@@ -8,7 +8,7 @@
 <div class="container">
     <h1> Välkommen till registreringen inför {{ event_name }} som anordnas <br> {{ event_date }} av {{ club_name }}</h1>
 
-    <p>{{ event_description }}</p>
+    {{ event_description|safe }}
 
     <p>Skapa en ny användare, logga in för att registera de poster du vill sälja. Du kan också se en lista på dina anmälda poster. Utan att logga in kan man se alla anmälda poster.</p>
 

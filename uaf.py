@@ -30,9 +30,9 @@ __author__ = 'Kristian'
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "HKd(9045hjffdd204hHFD345d"
+app.config['SECRET_KEY'] = "HKd(9045fdhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.45"
+VERSION = "0.46"
 
 # For flask-login
 lm = LoginManager()
@@ -279,7 +279,10 @@ def register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
+                if scientific_name == "" and plain_name=="":
+                    pass
+                else:
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
 
             flash("Posterna registrerade.")
 
@@ -341,7 +344,7 @@ def list_my_posts():
         cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", [cur_id])
         res = cur.fetchone()
         nr_posts.append("Antal poster: {}".format(res[0]))
-        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY used_types.sale_type", cur_id)
+        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY used_types.sale_type", [cur_id])
         res = cur.fetchall()
 
         for row in res:
@@ -356,7 +359,7 @@ def list_my_posts():
         ON posts.type=used_types.type_id
         WHERE seller_id = ?""", [cur_id])
         result = cur.fetchall()
-        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result)
+        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id)
 
 
 @app.route('/delete_post')
@@ -597,6 +600,7 @@ def flea_market():
 
 
 @app.route("/create_event", methods=['GET', 'POST'])
+@admin_required
 def create_event():
     """
     Empties the database and inserts the information for the new event and an admin user.
@@ -857,6 +861,28 @@ def reset_printed_labels(selected_id=None):
     return redirect(request.referrer)
 
 
+@app.route('/my_lables')
+@app.route('/my_lables/<selected_id>')
+@login_required
+def my_lables(selected_id=None):
+    """
+    Generates a downloadable pdf of lables for the selected seller must be the current seller
+    :param selected_id: user to produce labels for
+    :return: pdf response
+    """
+    cur_id = current_user.get_id()
+    if cur_id == selected_id:
+        pdf = get_labels_pdf(selected_id)
+
+        response = make_response(pdf)
+        response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
+        response.mimetype = 'application/pdf'
+        return response
+    else:
+        flash("Du kan inte skriva ut andras etiketter")
+        return redirect(url_for('list_my_posts'))
+
+
 @app.route('/all_lables')
 @app.route('/all_lables/<selected_id>')
 @admin_required
@@ -900,9 +926,9 @@ def labels_server_print(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: Nothing
     """
-    pdf = get_labels_pdf(selected_id)
+    pdf = get_labels_pdf(selected_id, mark_printed=True)
     pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
+    f = open(pdf_temp, "wb")
     f.write(pdf)
     f.close()
     # cups_printer = "Samsung_ML-331x_Series"
@@ -921,9 +947,9 @@ def unprinted_labels_server_print(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: Nothing
     """
-    pdf = get_labels_pdf(selected_id, only_printed=True)
+    pdf = get_labels_pdf(selected_id, only_printed=True, mark_printed=True)
     pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
+    f = open(pdf_temp, "wb")
     f.write(pdf)
     f.close()
     # cups_printer = "Samsung_ML-331x_Series"
@@ -933,7 +959,7 @@ def unprinted_labels_server_print(selected_id=None):
     return '', 204  # empty response
 
 
-def get_labels_pdf(selected_id=None, only_printed=False):
+def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
     """
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
     :param selected_id: seller_id to print labels for
@@ -979,11 +1005,12 @@ def get_labels_pdf(selected_id=None, only_printed=False):
             seller_data.append(post_data)
             data.append(seller_data)
         # print(data)
-        # Mark printed labels as printed in database
-        update_sql = "UPDATE posts SET label_printed = 'yes'  WHERE obj_id IN({})".format(", ".join(printed_labels))
-        print(update_sql)
-        cur.execute(update_sql)
-        conn.commit()
+        if mark_printed:
+            # Mark printed labels as printed in database
+            update_sql = "UPDATE posts SET label_printed = 'yes'  WHERE obj_id IN({})".format(", ".join(printed_labels))
+            print(update_sql)
+            cur.execute(update_sql)
+            conn.commit()
 
     pdf = labels.make_pdf(data, border=False)
     return pdf

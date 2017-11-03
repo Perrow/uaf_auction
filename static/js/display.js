@@ -94,7 +94,7 @@ $(document).ready(function () {
                         console.log("Found");
                         current_data = next_data;
                         next_data = data;
-                        console.log(data)
+                        console.log(data);
                         display_current();
                         display_next();
 

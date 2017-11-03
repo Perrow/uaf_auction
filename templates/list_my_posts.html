@@ -13,6 +13,12 @@
         {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
     </p>
 
+    <p>
+        <a class="btn btn-link" href=" {{ url_for('my_lables') }}/{{ user }} ">
+            <i class="fa fa-file-pdf-o"></i> Skapa en pdf med etiketter för utskrift.
+        </a>
+    </p>
+
     <table style="width:100%" class="table-hover">
         <tr>
             <th>Nr</th>

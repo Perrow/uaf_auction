@@ -222,15 +222,23 @@ $(document).ready(function(){
      var all_ok = true;
      console.log("checking prices");
      $( ".fixed_price_input:visible" ).each(function( index ) {  // if visible its a flea market object
-        if ($.isNumeric( $(this).val() )) {
-            $(this).removeClass("error_border");
-            $(this).siblings('div').text("");
-            $( "#msg" ).text("OK");
+        var nr = $(this).attr("id").substring(11);
+        var sci_name_id = "#sciname" + nr;
+        var pop_name_id = "#popname" + nr;
+        console.log($(sci_name_id).val());
+        if ($(sci_name_id).val() == "" && $(pop_name_id).val() == "") {
+            //
         } else {
-            $(this).siblings('div').text(" Du måste fylla i ett pris");
-            $(this).addClass("error_border");
-            all_ok = false;
-        }         
+            if ($.isNumeric( $(this).val() )) {
+                $(this).removeClass("error_border");
+                $(this).siblings('div').text("");
+                $( "#msg" ).text("OK");
+            } else {
+                $(this).siblings('div').text(" Du måste fylla i ett pris");
+                $(this).addClass("error_border");
+                all_ok = false;
+            }
+        }
      });
      $( ".min_price_input:visible" ).each(function( index ) {  // if visible its a auction object
         if ($.isNumeric( $(this).val() )) {
