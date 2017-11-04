@@ -1,12 +1,18 @@
 # coding=utf-8
 
-
 import os
 
-default_printer = os.popen('lpstat -d').read().split()[0]
-all_printers = os.popen('lpstat -a').read()
-print("Default: {}".format(default_printer))
-print("All installed printers:")
+# lpstat -d gives the deafult printer as the last word on the row
+default_printer = os.popen('lpstat -d').read().split()[-1]
+# lpstat -a gives one printer per line, starting with the printer name followed by status message
+all_printers_str = os.popen('lpstat -a').read().strip()
+# Split lines
+all_printers_lst = all_printers_str.split("\n")
+printer_names = []
+# Split words in each row and save the printer name
+for row in all_printers_lst:
+    words = row.split()
+    printer_names.append(words[0].strip())
 
-for printer in all_printers:
-    print("{}".format(printer))
+print(default_printer)
+print(printer_names)

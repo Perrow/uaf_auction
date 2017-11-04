@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045fdfdfhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.48"
+VERSION = "0.49"
 
 # For flask-login
 lm = LoginManager()
@@ -684,6 +684,42 @@ def about():
     """
     return render_template('about.html', version=VERSION)
 
+@app.route('/setup_printer', methods=['GET', 'POST'])
+@admin_required
+def setup_printer():
+    """
+    Setup printers
+    :return:
+    """
+    if request.method == 'POST':
+        # ?label_printer=Samsung_ML-331x_Series&paper_printer=HL1110
+        label_printer = request.form['label_printer']
+        paper_printer = request.form['paper_printer']
+        printers = (
+            ("label", label_printer),
+            ("paper", paper_printer)
+        )
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM printers")
+            cur.executemany("INSERT INTO printers (purpose, cups_name) VALUES (?, ?)", printers)
+
+        flash("Etikettskrivare: {}".format(label_printer))
+        flash("Pappersskrivare: {}".format(paper_printer))
+
+        return redirect(url_for('setup_printer'))
+    else:
+        all_printers_str = os.popen('lpstat -a').read().strip()
+        # Split lines
+        all_printers_lst = all_printers_str.split('\n')
+        printers = []
+        # Split words in each row and save the printer name
+        for row in all_printers_lst:
+            words = row.split()
+            printers.append(words[0].strip())
+        return render_template('setup_printer.html', printers=printers)
+
 
 @app.route('/download_database')
 @admin_required
@@ -861,12 +897,12 @@ def reset_printed_labels(selected_id=None):
     return redirect(request.referrer)
 
 
-@app.route('/my_lables')
-@app.route('/my_lables/<selected_id>')
+@app.route('/my_labels')
+@app.route('/my_labels/<selected_id>')
 @login_required
-def my_lables(selected_id=None):
+def my_labels(selected_id=None):
     """
-    Generates a downloadable pdf of lables for the selected seller must be the current seller
+    Generates a downloadable pdf of labels for the selected seller must be the current seller
     :param selected_id: user to produce labels for
     :return: pdf response
     """
@@ -883,12 +919,12 @@ def my_lables(selected_id=None):
         return redirect(url_for('list_my_posts'))
 
 
-@app.route('/all_lables')
-@app.route('/all_lables/<selected_id>')
+@app.route('/all_labels')
+@app.route('/all_labels/<selected_id>')
 @admin_required
 def labels_view(selected_id=None):
     """
-    Generates a downloadable pdf of lables
+    Generates a downloadable pdf of labels
     :param selected_id: selected seller id or None for all sellers
     :return: pdf response
     """
@@ -900,12 +936,12 @@ def labels_view(selected_id=None):
     return response
 
 
-@app.route('/unprinted_lables')
-@app.route('/unprinted_lables/<selected_id>')
+@app.route('/unprinted_labels')
+@app.route('/unprinted_labels/<selected_id>')
 @admin_required
-def unprinted_lables(selected_id=None):
+def unprinted_labels(selected_id=None):
     """
-    Generates a downloadable pdf of lables
+    Generates a downloadable pdf of labels
     :param selected_id: selected seller id or None for all sellers
     :return: pdf response
     """
@@ -915,6 +951,32 @@ def unprinted_lables(selected_id=None):
     response.headers['Content-Disposition'] = "attachment; filename=labels.pdf"
     response.mimetype = 'application/pdf'
     return response
+
+
+def server_print(pdf, printer="paper"):
+    """
+    Prints a pdf to the label printer
+    :param pdf: pdf data to print
+    :param printer: The printer to print on, can be paper of label
+    :return:
+    """
+    # temporary save the pdf
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "wb")
+    f.write(pdf)
+    f.close()
+    # get printer
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        sql = 'SELECT cups_name FROM printers WHERE purpose=? '
+        cur = conn.cursor()
+        cur.execute(sql, [printer])
+        cups_printer = cur.fetchone()[0]
+        if cups_printer == "":  # No printer set
+            os.system('lp {}'.format(pdf_temp))
+        else:  # Name found
+            os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
+    os.unlink(pdf_temp)
 
 
 @app.route('/all_labels_print')
@@ -927,14 +989,7 @@ def labels_server_print(selected_id=None):
     :return: Nothing
     """
     pdf = get_labels_pdf(selected_id, mark_printed=True)
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "wb")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="label")
     return '', 204  # empty response
 
 
@@ -948,14 +1003,7 @@ def unprinted_labels_server_print(selected_id=None):
     :return: Nothing
     """
     pdf = get_labels_pdf(selected_id, only_printed=True, mark_printed=True)
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "wb")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="label")
     return '', 204  # empty response
 
 
@@ -1041,14 +1089,7 @@ def economic_report_server_print(selected_id=None):
     :return: Nothing
     """
     pdf = get_economic_report_pdf()
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="paper")
     return '', 204  # empty response
 
 
@@ -1182,14 +1223,7 @@ def wall_list_server_print():
     :return: Nothing
     """
     pdf = get_auction_wall_list()
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="paper")
     return '', 204  # empty response
 
 
@@ -1245,14 +1279,7 @@ def compilation_server_print(selected_id=None):
     :return: Nothing
     """
     pdf = get_compilation_pdf(selected_id)
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="paper")
     return '', 204  # empty response
 
 
@@ -1321,14 +1348,7 @@ def receipt_server_print(selected_id=None):
     :return: Nothing
     """
     pdf = get_receipt_pdf(selected_id)
-    pdf_temp = "temp_pdf.pdf"
-    f = open(pdf_temp, "w")
-    f.write(pdf)
-    f.close()
-    # cups_printer = "Samsung_ML-331x_Series"
-    # os.system('lp -d {} {}'.format(cups_printer, pdf_temp))
-    os.system('lp {}'.format(pdf_temp))
-    os.unlink(pdf_temp)
+    server_print(pdf, printer="paper")
     return '', 204  # empty response
 
 

@@ -80,6 +80,11 @@ used_types = (
     (10, u"Tillbehör till fasta bordet", u"fixed_price"),
     (12, u"Övrigt till fasta bordet", u"fixed_price"))
 
+printers = (
+    ("label", ""),
+    ("paper", "")
+)
+
 with conn:
     cur = conn.cursor()
 
@@ -88,12 +93,14 @@ with conn:
     cur.execute("DROP TABLE IF EXISTS used_types")
     cur.execute("DROP TABLE IF EXISTS all_types")
     cur.execute("DROP TABLE IF EXISTS auction_info")
+    cur.execute("DROP TABLE IF EXISTS printers")
 
     cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
     cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
     cur.execute('CREATE TABLE all_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
     cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
+    cur.execute('CREATE TABLE printers (purpose TEXT, cups_name TEXT)')
 
     password_file = open("sellers.txt", "w")  # Textfile to be able to log in with the passwords.
     for seller in sellers:
@@ -111,7 +118,7 @@ with conn:
     cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", used_types)
     cur.executemany("INSERT INTO all_types (type_id, description, sale_type) VALUES(?, ?, ?)", all_types)
     cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
-
+    cur.executemany("INSERT INTO printers (purpose, cups_name) VALUES (?, ?)", printers)
 
 
 
