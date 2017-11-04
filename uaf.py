@@ -20,7 +20,7 @@ import list_shorter
 import make_economic_report_pdf
 import make_wall_list_pdf
 
-# set default encoding on the server to utf-8 pyhton 2.7
+# set default encoding on the server to utf-8 python 2.7
 #import sys
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045fdfdfhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.49"
+VERSION = "0.50"
 
 # For flask-login
 lm = LoginManager()
@@ -674,6 +674,63 @@ def create_event():
             cur.execute(""" SELECT type_id, description FROM all_types""")
             all_types = cur.fetchall()
         return render_template('create_event.html', all_types=all_types)
+
+
+@app.route("/edit_event", methods=['GET', 'POST'])
+@admin_required
+def edit_event():
+    """
+    Shows an prefilled form with the current info for the event
+    :return:
+    """
+    if request.method == 'POST':
+
+        hosting_association = request.form['hosting_association']
+        hosting_association_abrv = request.form['hosting_association_abrv']
+        city = request.form['city']
+        event_name = request.form['event_name']
+        date = request.form['date']
+        year = date[:4]
+        commission = float(request.form['commission']) / 100
+        event_description = request.form['event_description']
+
+        selected_types = request.form.getlist('type')
+        print(request.form.getlist('type'))
+
+        conn = sqlite3.connect("auktion.db3")
+        with conn:
+            cur = conn.cursor()
+            cur.execute('DELETE FROM auction_info')
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+
+            # cur.execute("SELECT type_id, description, sale_type FROM all_types WHERE type_id=?", selected_types)
+            print([",".join(selected_types)])
+            cur.execute('DELETE FROM used_types')
+            sql = "SELECT type_id, description, sale_type FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
+            print(sql)
+            cur.execute(sql, selected_types)
+            selected_types_data = cur.fetchall()
+            print(selected_types_data)
+            cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", selected_types_data)
+
+            conn.commit()
+
+            flash("Databasen uppdaterad.")
+        return render_template('index.html')
+    else:
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute('SELECT type_id, description FROM all_types')
+            all_types = cur.fetchall()
+            cur.execute('SELECT type_id FROM used_types')
+            used_types_tuples = cur.fetchall()
+            used_types = [ x[0] for x in used_types_tuples]
+            print(used_types)
+            cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description FROM auction_info')
+            auction_info = cur.fetchone()
+        return render_template('edit_event.html', all_types=all_types, auction_info=auction_info, used_types=used_types)
 
 
 @app.route('/about')

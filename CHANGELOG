@@ -1,3 +1,7 @@
+Version 0.5 2017-11-04
+    Issue 27. Hide register many posts for admins as they have register for all users.
+    Issue 37. Admin can edit the information about the event.
+
 Version 0.49 2017-11-04
     Issue 31. Support for two printers. One for labels and one for normal paper. Which printer is which is set in the admin pages.
 

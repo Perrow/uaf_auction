@@ -42,11 +42,14 @@
                         class="caret"></span>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa alla anmälda
+                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa alla
+                        anmälda
                         poster</a></li>
                     {% if current_user.is_authenticated %}
+                    {% if not current_user.is_admin %}
                     <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i
                             class="fa fa-plus" aria-hidden="true"></i> Registrera poster</a></li>
+                    {% endif %}
                     <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina
                         anmälda poster</a></li>
                     {% endif %}
@@ -81,6 +84,9 @@
                 <ul class="dropdown-menu">
                     <li><a href="{{ url_for('create_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Skapa nytt
                         event</a></li>
+                    <li><a href="{{ url_for('edit_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Ändra på
+                        eventet</a></li>
+
                     <li><a href="{{ url_for('download_database') }}"><i class="fa fa-download" aria-hidden="true"></i>
                         Ladda ner databasen</a></li>
                     <li><a href="{{ url_for('setup_printer') }}"><i class="fa fa-print" aria-hidden="true"></i>
