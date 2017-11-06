@@ -114,7 +114,7 @@ with conn:
         cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
     password_file.close()
 
-    cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, time_stamp_registration, fixed_price, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", posts)
+    cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, time_stamp_registration, minimum_price, fixed_price, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", posts)
     cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", used_types)
     cur.executemany("INSERT INTO all_types (type_id, description, sale_type) VALUES(?, ?, ?)", all_types)
     cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)

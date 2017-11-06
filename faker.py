@@ -154,6 +154,21 @@ class Faker:
             u"Örebro Akvarieklubb",
             u"Umeå Akvarieförening"
         ]
+        
+        self.comments_animals = [
+            u"2 st",
+            u"6 st",
+            u"10 st",
+            u"Ungdjur",
+            u"Lekpar",
+            u"Mycket fina vildfångade"
+        ]
+        
+        self.comments_plants = [
+            u"Snabbväxande",
+            u"Ljuskrävande",
+            u"En rejäl bunt"
+        ]
 
     def get_seller_name_and_email(self):
         first_name = random.choice(self.first_names)
@@ -184,6 +199,18 @@ class Faker:
 
     def get_aquarium_club(self):
         return random.choice(self.aquarium_clubs)
+    
+    def get_animal_comment(self):
+        comment = ""
+        if random.randint(0, 100) < 25:
+            comment =random.choice(self.comments_animals)
+        return comment
+
+    def get_plant_comment(self):
+        comment = ""
+        if random.randint(0, 100) < 25:
+            comment = random.choice(self.comments_plants)
+            return comment
 
     def generate_seller(self, admin="no"):
         name, email = self.get_seller_name_and_email()
@@ -204,21 +231,29 @@ class Faker:
 
     def generate_fish_auction_post(self, seller_id):
         type = 1
-        comment = ""
         sci_name, pop_name = self.get_fish_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), None, "no"
+        comment = self.get_animal_comment()
+        mimimum_price = None
+        fixed_price = None
+        if random.randint(0, 100) < 20:
+            fixed_price = random.randint(1, 10) * 10
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
     def generate_plant_fleamarket_post(self, seller_id):
         type = 8
-        comment = ""
+        comment = self.get_plant_comment()
         pop_name, sci_name = self.get_plant_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10, "no"
+        mimimum_price = random.randint(1, 10) * 10
+        fixed_price = None
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
     def generate_shrimp_fleamarket_post(self, seller_id):
         type = 4
-        comment = ""
+        comment = self.get_animal_comment()
         pop_name, sci_name = self.get_shrimp_name()
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), random.randint(1, 10) * 10, "no"
+        mimimum_price = random.randint(1, 10) * 10
+        fixed_price = None
+        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
 if __name__ == "__main__":
     

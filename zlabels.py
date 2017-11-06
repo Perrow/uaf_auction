@@ -85,7 +85,10 @@ class ZLabels(object):
             for post in seller[4]:
                 post_id = post[0]
                 post_name = post[1]
-                post_fixed_price = post[2]
+                post_min_price = post[2]
+                post_fixed_price = post[3]
+                post_type = post[4]
+                print("post_type: {}, post_name: {}, post_fixed_price: {}, post_minprice: {}".format(post_type, post_name, post_fixed_price,post_min_price))
 
                 # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
@@ -120,9 +123,18 @@ class ZLabels(object):
                 canvas.drawString(x + left_margin, y - self.row_height * 4, seller_name)
                 canvas.drawString(x + left_margin, y - self.row_height * 5, seller_society)
                 canvas.drawString(x + left_margin, y - self.row_height * 6, "Tel: {}".format(seller_phone))
-                if post_fixed_price is not None:
-                    if len(str(post_fixed_price)) > 0:
-                        canvas.drawString(x + left_margin, y - self.row_height * 7, "Pris på försäljningsbordet kr {}".format(post_fixed_price))
+                if post_type == "fixed_price":
+                    msg = u"Fasta bordet: "
+                    if post_fixed_price is not None:
+                        if len(str(post_fixed_price)) > 0:
+                            msg += "{} kr".format(post_fixed_price)
+                    canvas.drawString(x + left_margin, y - self.row_height * 7, msg)
+                if post_type == "auction":
+                    msg = u"Auktion"
+                    if post_min_price is not None:
+                        if len(str(post_min_price)) > 0:
+                            msg += ": Reservationspris {} kr".format(post_min_price)
+                    canvas.drawString(x + left_margin, y - self.row_height * 7, msg)
 
                 canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_name, 150)))
                 count += 1

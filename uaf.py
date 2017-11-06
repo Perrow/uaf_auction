@@ -32,7 +32,7 @@ __author__ = 'Kristian'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "HKd(9045fdfdfhjffdd204hHFD345d"
 DATABASE = "auktion.db3"
-VERSION = "0.51"
+VERSION = "0.52"
 
 # For flask-login
 lm = LoginManager()
@@ -768,6 +768,7 @@ def setup_printer():
         return redirect(url_for('setup_printer'))
     else:
         all_printers_str = os.popen('lpstat -a').read().strip()
+        print(all_printers_str)
         # Split lines
         all_printers_lst = all_printers_str.split('\n')
         printers = []
@@ -776,6 +777,14 @@ def setup_printer():
             words = row.split()
             printers.append(words[0].strip())
         return render_template('setup_printer.html', printers=printers)
+        
+        # import subprocess
+        # 
+        # command = "gcc -E myHeader.h"  # the shell command
+        # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        # 
+        # #Launch the shell command:
+        # output, error = process.communicate()
 
 
 @app.route('/download_database')
@@ -1090,11 +1099,11 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         for seller in sellers:
             seller_id = seller[0]
             if only_printed:
-                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description FROM posts
                         INNER JOIN all_types ON posts.type = all_types.type_id
                         WHERE posts.seller_id=? and posts.label_printed='no'""", (seller_id,))
             else:
-                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, all_types.description FROM posts
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description FROM posts
                         INNER JOIN all_types ON posts.type = all_types.type_id
                         WHERE posts.seller_id=?""", (seller_id,))
             posts = cur.fetchall()
@@ -1103,10 +1112,10 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             for post in posts:
                 printed_labels.append(str(post[0]))
                 if post[1] == "" and post[2] == "":
-                    post_name = post[4]
+                    post_name = post[6]
                 else:
                     post_name = " ".join([post[1], post[2]])
-                post_data.append([post[0], post_name, post[3]])
+                post_data.append([post[0], post_name, post[3], post[4], post[5]])
             seller_data.append(post_data)
             data.append(seller_data)
         # print(data)
