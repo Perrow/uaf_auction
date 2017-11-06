@@ -3,7 +3,7 @@
 import os
 import sqlite3
 import time
-# from flask import Flask
+
 from flask import jsonify
 from flask import make_response
 from flask import send_file
@@ -20,19 +20,13 @@ import list_shorter
 import make_economic_report_pdf
 import make_wall_list_pdf
 
-# set default encoding on the server to utf-8 python 2.7
-#import sys
-#reload(sys)
-#sys.setdefaultencoding('utf-8')
 
-
-__author__ = 'Kristian'
-
+__author__ = 'Kristian Persson'
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "HKd(9045fdfdfhjffdd204hHFD345d"
-DATABASE = "auktion.db3"
-VERSION = "0.52"
+app.config.from_pyfile('config.cfg')
+DATABASE = app.config['DATABASE']
+VERSION = "0.53"
 
 # For flask-login
 lm = LoginManager()
@@ -279,7 +273,7 @@ def register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                if scientific_name == "" and plain_name=="":
+                if scientific_name == "" and plain_name == "":
                     pass
                 else:
                     cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
@@ -548,6 +542,7 @@ def display_current():
     """
     return render_template('display.html')
 
+
 @app.route("/auktion", methods=['GET', 'POST'])
 @admin_required
 def auction():
@@ -555,7 +550,6 @@ def auction():
     Shows the auction form and updates the database with the price it sold for and the sale type
     :return:
     """
-    sold_statistic = get_sold_statistic()
     conn = sqlite3.connect(DATABASE)
     if request.method == 'POST':
         post_id = request.form['post_id']
@@ -726,7 +720,7 @@ def edit_event():
             all_types = cur.fetchall()
             cur.execute('SELECT type_id FROM used_types')
             used_types_tuples = cur.fetchall()
-            used_types = [ x[0] for x in used_types_tuples]
+            used_types = [x[0] for x in used_types_tuples]
             print(used_types)
             cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description FROM auction_info')
             auction_info = cur.fetchone()
@@ -740,6 +734,7 @@ def about():
     :return:
     """
     return render_template('about.html', version=VERSION)
+
 
 @app.route('/setup_printer', methods=['GET', 'POST'])
 @admin_required
@@ -777,12 +772,12 @@ def setup_printer():
             words = row.split()
             printers.append(words[0].strip())
         return render_template('setup_printer.html', printers=printers)
-        
+
         # import subprocess
-        # 
+        #
         # command = "gcc -E myHeader.h"  # the shell command
         # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        # 
+        #
         # #Launch the shell command:
         # output, error = process.communicate()
 
@@ -902,11 +897,11 @@ def get_sold_statistic():
 	                  INNER JOIN all_types
 	                  ON posts.type=all_types.type_id
                       GROUP BY all_types.sale_type
-  
+
                       UNION ALL
 
                       SELECT "sold_on_" || sold_on, count(sold_price) AS nr_sold FROM posts GROUP BY sold_on""")
-        
+
         sql_result = cur.fetchall()
         total = 0
         total_auction = 0
@@ -1078,6 +1073,7 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
     Generates a pdf with all the sellers labels or the labels for one seller identified by the seller id
     :param selected_id: seller_id to print labels for
     :param only_printed: If true only print labels that is mot marked as printed in database
+    :param mark_printed: If True then labels that are printed are marked as printed in the database
     :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
@@ -1527,4 +1523,4 @@ def page_not_found(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True)
