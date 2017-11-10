@@ -1,3 +1,6 @@
+Version 0.54 2017-11-10
+    The scientific name for fishes is now required when registering posts. This is due to rules from Swedish Board of Agriculture.
+
 Version 0.53 2017-11-06
     Moved the secret-key and database name out to a configuration file called config.cfg. This file is not in git but an example file called config.cfg.example is included in git.
 
