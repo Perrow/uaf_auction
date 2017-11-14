@@ -26,7 +26,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.54"
+VERSION = "0.55"
 
 # For flask-login
 lm = LoginManager()
@@ -1107,11 +1107,6 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             post_data = []
             for post in posts:
                 printed_labels.append(str(post[0]))
-                if post[1] == "" and post[2] == "":
-                    post_name = post[6]
-                else:
-                    post_name = " ".join([post[1], post[2]])
-                post_data.append([post[0], post_name, post[3], post[4], post[5]])
             seller_data.append(post_data)
             data.append(seller_data)
         # print(data)
@@ -1358,7 +1353,9 @@ def get_compilation_pdf(selected_id=None):
         club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
         comp_pdf = make_compilation_pdf.Compilation(club_name, event_name, event_date, event_city, commision)
 
-        cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
+        # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
+        # seller_ids = cur.fetchall()
+        cur.execute("SELECT DISTINCT seller_id FROM sellers")
         seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:

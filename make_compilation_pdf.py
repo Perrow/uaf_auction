@@ -80,6 +80,8 @@ class Compilation(object):
             story.append(t)
 
             tot_sum = seller[2]
+            if tot_sum == None:
+                tot_sum = 0
             to_society = tot_sum * self.commision
             to_society = int(to_society + 0.5)
             to_seller = int(tot_sum - to_society)

@@ -1,5 +1,6 @@
 # coding=utf-8
 from reportlab.platypus import PageBreak
+from reportlab.graphics import shapes
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
@@ -29,13 +30,27 @@ class EconomicReport(object):
         self.event_city = event_city
 
         self.paper_width, self.paper_height = A4
+        self.font_size = 12  # Reprotlab default
+        self.font = 'Helvetica'  # Reprotlab default
+        self.debug = False  # Turns on colored tablecells
 
-    # [
-    #     [u'Kalle Persson', 1, u'UAF', 150.0, 23, 127, 3, 2, [[u'auktion', 150.0, u'Fisk till auktionen']]],
-    #     [u'Olle Karlsson', 2, u'UAF', 95.0, 14, 81, 2, 2, [[u'auktion', 95.0, u'Fisk till auktionen']]],
-    #     [u'Lena Svensson', 3, u'Haninge AF', 290.0, 44, 246, 4, 4,[[u'auktion', 150.0, u'Fisk till auktionen'], [u'fasta bordet', 40.0, u'Fisk till auktionen'],[u'fasta bordet', 25.0, u'V\xe4xter till fasta bordet'],[u'fasta bordet', 75.0, u'Tillbeh\xf6r till fasta bordet']]],
-    #     [u'Pia Larsson', 4, u'Malm\xf6 AF', 30.0, 5, 25, 1, 1, [[u'fasta bordet', 30.0, u'Fisk till auktionen']]]
-    # ]
+    def truncate_str(self, text, length):
+        """
+        Caluculates the length of a string when rendered with the font and size for the label and truncates it to fit in a given length
+        :param text: text string to truncate
+        :param length: max length of string
+        :return: truncated string
+        """
+        truncated = False
+        name_width = shapes.stringWidth(text, self.font, self.font_size)
+        while name_width > length:
+            text = text[:-1]
+            name_width = shapes.stringWidth(text, self.font, self.font_size)
+            truncated = True
+        if truncated:
+            return text + "..."
+        else:
+            return text
 
     def make_pdf(self, data, tot_data):
         """
@@ -93,23 +108,30 @@ class EconomicReport(object):
             count_sold = seller[7]
             data2 = seller[8]
 
-            data1 = [['Säljare nr:', seller_id, seller_name, club, ""]]
+            data1 = [['Säljare nr:', seller_id, self.truncate_str(seller_name, 60 * mm), self.truncate_str(club, 70 * mm), ""]]
 
-            t1 = Table(data1, colWidths=(20 * mm, 10 * mm, 90 * mm, 40 * mm, doc.width - (20 + 10 + 90 + 40)*mm))  # column width
+            t1 = Table(data1, colWidths=(20 * mm, 10 * mm, 60 * mm, 70 * mm, doc.width - (20 + 10 + 60 + 70)*mm))  # column width
             t1.setStyle(TableStyle([("LINEABOVE", (0, 0), (4, 0), 1, black),
                                     ("LINEBELOW", (0, -1), (4, -1), 0.5, black),
                                     ('ALIGN', (0, 0), (0, 0), "RIGHT"),
                                     ('ALIGN', (1, 0), (1, 0), "LEFT")
                                     ]))
+            if self.debug:
+                t1.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
+                                    ('BACKGROUND', (1, 0), (1, -1), blueviolet),
+                                    ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
+                                    ('BACKGROUND', (3, 0), (3, -1), lawngreen),
+                                    ]))
             # t1.setStyle(TableStyle([('BACKGROUND', (0, 0), (4, 2), grey)]))
             story.append(t1)
             print(doc.width)
             t2 = Table(data2, colWidths=(60 * mm, 30 * mm, 70*mm, doc.width - (60 + 30 + 70)*mm ))  # column width
-            # t2.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
-            #                         ('BACKGROUND', (1, 0), (1, -1), blueviolet),
-            #                         ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
-            #                         ('BACKGROUND', (3, 0), (3, -1), lawngreen),
-            #                         ]))
+            if self.debug:
+                t2.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), grey),
+                                    ('BACKGROUND', (1, 0), (1, -1), blueviolet),
+                                    ('BACKGROUND', (2, 0), (2, -1), yellowgreen),
+                                    ('BACKGROUND', (3, 0), (3, -1), lawngreen),
+                                    ]))
 
             story.append(t2)
 

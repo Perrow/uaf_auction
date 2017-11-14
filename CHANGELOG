@@ -1,3 +1,9 @@
+Version 0.55 2017-11-14
+    Redesign of labels, Moved price up one row to make place for scientific name and popular name on separate rows. Also right aligined date, post id and auction/flea market info/price.
+    Fixed a bug in Zlabels that switched fixed price and min price. This was due to the same bug in faker, also fixed.
+    All sellers, not just the sellers that actually sold anything, are in the compilation.pdf.
+    Truncation of seller name and aquarium club on economic report pdf.    
+
 Version 0.54 2017-11-10
     The scientific name for fishes is now required when registering posts. This is due to rules from Swedish Board of Agriculture.
 

@@ -9,7 +9,6 @@ from reportlab.lib.units import mm
 
 
 class ZLabels(object):
-
     def __init__(self, pdf_name, event_name, event_date):
         """
         Class for generating labels in the size 70*37 mm in a 3 by 8 grid on A4 paper
@@ -24,7 +23,7 @@ class ZLabels(object):
         self.label_width = mm * 70  # mm
         self.label_height = mm * 37  # mm
         self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
-        self.label_rows = int(self.paper_height / self.label_height)   # nr of rows
+        self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
 
         self.font_size = 9
         self.font = 'Helvetica'
@@ -56,12 +55,10 @@ class ZLabels(object):
         :param border: Draw border around labels or not
         """
 
-        #import cStringIO
-        #output = cStringIO.StringIO()
+        # import cStringIO
+        # output = cStringIO.StringIO()
         from io import BytesIO
         output = BytesIO()
-        # pdf_name = "{}.pdf".format(self.pdf_name)
-        # canvas = Canvas("static/pdf/{}".format(pdf_name))
         canvas = Canvas(output)
         canvas.setLineWidth(.3)
         canvas.setTitle("Labels")
@@ -69,7 +66,6 @@ class ZLabels(object):
 
         start_y = self.paper_height
         left_margin = 20
-        left_margin2 = 140
 
         saved = False
         count = 0
@@ -84,11 +80,12 @@ class ZLabels(object):
             # Loop over the sellers items
             for post in seller[4]:
                 post_id = post[0]
-                post_name = post[1]
-                post_min_price = post[2]
+                pop_name = post[1]
+                sci_name = post[2]
                 post_fixed_price = post[3]
-                post_type = post[4]
-                print("post_type: {}, post_name: {}, post_fixed_price: {}, post_minprice: {}".format(post_type, post_name, post_fixed_price,post_min_price))
+                post_min_price = post[4]
+                post_type = post[5]
+                print("post_type: {}, post_name: {}, post_fixed_price: {}, post_minprice: {}".format(post_type, pop_name, sci_name, post_fixed_price, post_min_price))
 
                 # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
@@ -112,31 +109,36 @@ class ZLabels(object):
 
                 canvas.setFont(self.font, self.font_size)
                 canvas.drawString(x + left_margin + 25, y - self.row_height * 2, self.event_name)
-                canvas.drawString(x + left_margin + mm * 40, y - self.row_height * 2, self.event_date)
+                str_width = shapes.stringWidth(self.event_date, self.font, self.font_size)
+                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 2, self.event_date)
 
                 canvas.drawString(x + left_margin + 25, y - self.row_height * 3, "Säljare nr: {}".format(seller_id))
 
                 canvas.setFont(self.font, 25)
-                canvas.drawString(x + left_margin2, y - self.row_height * 4, str(post_id))
+                str_width = shapes.stringWidth(str(post_id), self.font, 25)
+                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 4, str(post_id))
 
                 canvas.setFont(self.font, self.font_size)
-                canvas.drawString(x + left_margin, y - self.row_height * 4, seller_name)
-                canvas.drawString(x + left_margin, y - self.row_height * 5, seller_society)
+                canvas.drawString(x + left_margin, y - self.row_height * 4, self.truncate_str(seller_name, 35 * mm))
+                canvas.drawString(x + left_margin, y - self.row_height * 5, self.truncate_str(seller_society, 150))
                 canvas.drawString(x + left_margin, y - self.row_height * 6, "Tel: {}".format(seller_phone))
                 if post_type == "fixed_price":
-                    msg = u"Fasta bordet: "
+                    msg = u"Fastpris: "
                     if post_fixed_price is not None:
                         if len(str(post_fixed_price)) > 0:
                             msg += "{} kr".format(post_fixed_price)
-                    canvas.drawString(x + left_margin, y - self.row_height * 7, msg)
+                    str_width = shapes.stringWidth(msg, self.font, self.font_size)
+                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 6, msg)
                 if post_type == "auction":
                     msg = u"Auktion"
                     if post_min_price is not None:
                         if len(str(post_min_price)) > 0:
-                            msg += ": Reservationspris {} kr".format(post_min_price)
-                    canvas.drawString(x + left_margin, y - self.row_height * 7, msg)
+                            msg += ": {} kr".format(post_min_price)
+                    str_width = shapes.stringWidth(msg, self.font, self.font_size)
+                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 6, msg)
 
-                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_name, 150)))
+                canvas.drawString(x + left_margin, y - self.row_height * 7, "{}".format(self.truncate_str(sci_name, 150)))
+                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(pop_name, 150)))
                 count += 1
 
             # if new seller add an empty row and empty labels on current row
@@ -145,7 +147,7 @@ class ZLabels(object):
             if column > 0:  # one or two labels on current row add to rows to make an empty row
                 tot_row += 2
             else:
-                tot_row += 1 # three labels on current row only add one empty row
+                tot_row += 1  # three labels on current row only add one empty row
             count = tot_row * 3
 
         if not saved:
@@ -157,6 +159,12 @@ class ZLabels(object):
 
 if __name__ == "__main__":
     MK = ZLabels("test", "Uppsala Storauktion", "2016-11-27")
-    test_data = [[1, u'Kristian Persson', u'0733-505932', u'UAF', [[1, u'Afrikansk bandbarb Barbus fasciolatus', u'5', None], [3, u'Neontetra Paracheirodon innesi', u'10', None], [5, u'Vinkeltetra Thayeria boehlkei', u'5', None], [9, u'Guppy Poecilia reticulata', u'25', None], [10, u'Tigerbarb Puntigrus tetrazona', u'5', None], [11, u'Pump ', u'1', 70.0]]], [2, u'Olle Karlsson', u'0730-421587', u'\xd6rebro', [[2, u'Kuhlii-\xe5l Pangio kuhlii', u'4', None], [4, u'Odessabarb Pethia padamya', u'5', None], [7, u'Skalar Pterophyllum scalare', u'5', None], [12, u'Ledramp ', u'1', 100.0], [13, u'Vattenpest Egeria densa', u'5', 20.0]]], [3, u'Lena Svensson', u'0733-954321', u'Haninge AF', [[8, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'7', None]]], [4, u'Pia Larsson', u'0733-987632', u'Malm\xf6 AF', [[6, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'3', None]]]]
+    test_data = [[1, u'Kristian Persson', u'0733-505932', u'UAF',
+                  [[1, u'Afrikansk bandbarb Barbus fasciolatus', u'5', None], [3, u'Neontetra Paracheirodon innesi', u'10', None], [5, u'Vinkeltetra Thayeria boehlkei', u'5', None], [9, u'Guppy Poecilia reticulata', u'25', None],
+                   [10, u'Tigerbarb Puntigrus tetrazona', u'5', None], [11, u'Pump ', u'1', 70.0]]], [2, u'Olle Karlsson', u'0730-421587', u'\xd6rebro',
+                                                                                                      [[2, u'Kuhlii-\xe5l Pangio kuhlii', u'4', None], [4, u'Odessabarb Pethia padamya', u'5', None], [7, u'Skalar Pterophyllum scalare', u'5', None],
+                                                                                                       [12, u'Ledramp ', u'1', 100.0], [13, u'Vattenpest Egeria densa', u'5', 20.0]]],
+                 [3, u'Lena Svensson', u'0733-954321', u'Haninge AF', [[8, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'7', None]]],
+                 [4, u'Pia Larsson', u'0733-987632', u'Malm\xf6 AF', [[6, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'3', None]]]]
 
     MK.make_pdf(test_data)
