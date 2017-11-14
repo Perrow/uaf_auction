@@ -1,3 +1,6 @@
+Version 0.56 2017-11-14
+    Restored a line in label pdf generation that was deleted by mistake.
+
 Version 0.55 2017-11-14
     Redesign of labels, Moved price up one row to make place for scientific name and popular name on separate rows. Also right aligined date, post id and auction/flea market info/price.
     Fixed a bug in Zlabels that switched fixed price and min price. This was due to the same bug in faker, also fixed.

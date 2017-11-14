@@ -26,7 +26,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.55"
+VERSION = "0.56"
 
 # For flask-login
 lm = LoginManager()
@@ -1107,9 +1107,9 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             post_data = []
             for post in posts:
                 printed_labels.append(str(post[0]))
+                post_data.append([post[0], post[1], post[2], post[3], post[4], post[5]])
             seller_data.append(post_data)
             data.append(seller_data)
-        # print(data)
         if mark_printed:
             # Mark printed labels as printed in database
             update_sql = "UPDATE posts SET label_printed = 'yes'  WHERE obj_id IN({})".format(", ".join(printed_labels))
