@@ -20,12 +20,20 @@ $(document).ready(function () {
 
     var display_current = function () {
         console.log("Display current");
-        $('#current_post_id').html(current_data.obj_id).fadeIn();
+        var cur_id = "";
+        if (current_data.obj_id == null || current_data.obj_id == ""){
+            cur_id = "";
+            console.log("id = null");
+        } else {
+            cur_id = "Post : " + current_data.obj_id;
+        }
+        
+        $('#current_post_id').html(cur_id).fadeIn();
         $('#current_scientific_name').html(current_data.scientific_name).fadeIn();
         if (current_data.minimum_price == null || current_data.minimum_price == "") {
             $('#current_min_price').html("").fadeIn();
         } else {
-            $('#current_min_price').html("Reservationspris: " + current_data.minimum_price).fadeIn();
+            $('#current_min_price').html("Reservationspris: " + current_data.minimum_price + "kr").fadeIn();
         }
         $('#current_plain_name').html(current_data.plain_name).fadeIn();
         $('#current_description').html(current_data.description).fadeIn();
@@ -37,15 +45,6 @@ $(document).ready(function () {
 
     };
 
-    var display_next = function () {
-        console.log("Display next");
-        $('#next_post_id').html(next_data.obj_id).fadeIn();
-        $('#next_scientific_name').html(next_data.scientific_name).fadeIn();
-        $('#next_min_price').html(next_data.minimum_price).fadeIn();
-        $('#next_plain_name').html(next_data.plain_name).fadeIn();
-        $('#next_description').html(next_data.description).fadeIn();
-        $('#next_seller_name').html(next_data.name).fadeIn();
-    };
 
     var clear_current = function () {
         console.log("Clearing");
@@ -60,18 +59,6 @@ $(document).ready(function () {
         $('#current_error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
     };
 
-    var clear_next = function () {
-        console.log("Clearing");
-        $('#next_post_id').html("").fadeIn();
-        $('#next_scientific_name').html("").fadeIn();
-        $('#next_min_price').html("").fadeIn();
-        $('#next_plain_name').html("").fadeIn();
-        $('#next_description').html("").fadeIn();
-        $('#next_seller_name').html("").fadeIn();
-        $('#next_type').html("").fadeIn();
-        $('#next_sold').html("").fadeIn();
-        $('#next_error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
-    };
 
     var set_focus = function () {
         var input = $("#post_id");
@@ -87,10 +74,8 @@ $(document).ready(function () {
         console.log(post_id);
         if (post_id == "") {
             console.log("empty data, advance one row");
-            current_data = next_data;
-            next_data = empty_data;
+            current_data = empty_data;
             display_current();
-            display_next();
         } else {
             $.ajax({
                 url: 'json/' + post_id,
@@ -101,11 +86,9 @@ $(document).ready(function () {
                         // clear_current();
                     } else {
                         console.log("Found");
-                        current_data = next_data;
-                        next_data = data;
+                        current_data = data;
                         console.log(data);
                         display_current();
-                        display_next();
 
                         // Warning for posts not registrated for auction
                         if (data.type != "auction") {
@@ -171,6 +154,7 @@ $(document).ready(function () {
     };
 
 
+    $('#submit').hide();
     get_sold_stat();
     console.log('Everything is ready.');
 });

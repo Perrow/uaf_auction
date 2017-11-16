@@ -1,3 +1,7 @@
+Version 0.57 2017-11-16
+    Made the text larger for current post on display page. Removee all information exept post id for next post. Renamed to display_two.
+    Added a display page with only curren post, display_one.
+
 Version 0.56 2017-11-14
     Restored a line in label pdf generation that was deleted by mistake.
 

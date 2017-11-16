@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% block head %}
+        <title>{% block title %}{% endblock %}</title>
+
+    {% endblock %}
+    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-show-password.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
+    <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
+
+</head>
+
+<body>
+<div class="container">
+    <br>
+    <div class=row>
+        <div class="col-sm-6">
+            <h3>Antal sålda auktionsposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:0%">
+                    <div id="sold_auction_text"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <h3>Antal sålda fastabordetposter</h3>
+            <div class="progress">
+                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:0%">
+                    <div id="sold_fleamarket_text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="current">
+        <div class="jumbotron">
+            <div class="row">
+                <div class="col-sm-3">
+                    <h1>
+                        <div id="current_post_id"></div>
+                    </h1>
+                </div>
+                <div class="col-sm-9">
+                    <h1>
+                        <div id="current_min_price"></div>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <h1>
+                        <div id="current_plain_name"></div>
+                    </h1>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="row">
+                    <h1>
+                        <span id="current_scientific_name"></span>
+                    </h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <h2>
+                        <span id="current_description"></span>
+                    </h2>
+                </div>
+
+                <div class="col-sm-6">
+                    <h2>
+                        <span id="current_seller_name"></span>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <form action="">
+        <div class="row">
+            <div class="col-sm-1">
+                <label for="postid">Nästa id: </label>
+            </div>
+            <div class="col-sm-1">
+                <input type="text" name="post_id" id="post_id" class="form-control">
+            </div>
+            <div class="col-sm-1">
+                <input type="submit" id="submit" name="submit" value="Skicka" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/display_one.js') }}"></script>
+

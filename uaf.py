@@ -26,7 +26,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.56"
+VERSION = "0.57"
 
 # For flask-login
 lm = LoginManager()
@@ -534,13 +534,22 @@ def reports():
     return render_template('reports.html')
 
 
-@app.route("/display_current", methods=['GET'])
+@app.route("/display_two", methods=['GET'])
 @admin_required
-def display_current():
+def display_two():
     """
     A page for displaying current and next post on an projector or something
     """
-    return render_template('display.html')
+    return render_template('display_two.html')
+
+
+@app.route("/display_one", methods=['GET'])
+@admin_required
+def display_one():
+    """
+    A page for displaying current post on an projector or something
+    """
+    return render_template('display_one.html')
 
 
 @app.route("/auktion", methods=['GET', 'POST'])

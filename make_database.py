@@ -16,26 +16,26 @@ conn = sqlite3.connect("auktion.db3")
 F = faker.Faker()
 
 sellers = [[u"Kalle Persson", u"Tallmon 1, 54878 Näppeby", u"kalle.persson@mail.com".lower(), u"051-25468", u"UAF", u"yes", u"password", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes"]]
-for n in range(15):
+for n in range(5):
     sellers.append(F.generate_seller())
 
 print(sellers)
 
 posts = []
 for seller_id in range(1, len(sellers) + 1):
-    for i in range(0, random.randint(0, 20)):
+    for i in range(0, random.randint(0, 5)):
         posts.append(F.generate_fish_auction_post(seller_id))
  
-    for i in range(0, random.randint(0, 20)):
+    for i in range(0, random.randint(0, 5)):
         posts.append(F.generate_plant_fleamarket_post(seller_id))
 
-    for i in range(0, random.randint(0, 20)):
+    for i in range(0, random.randint(0, 5)):
         posts.append(F.generate_shrimp_fleamarket_post(seller_id))
 
 print(posts)
 
 auction_info = (
-    (u"Uppsala Akvarieförening", u"UAF", u"Uppsala", u"Uppsala storauktion", u"2017", u"2017-11-19", 0.20, u"Uppsala akvarieförening anordnar en storauktion bla bla..."),
+    (u"Uppsala Akvarieförening", u"UAF", u"Uppsala", u"Uppsala Test", u"2017", u"2017-05-20", 0.20, u"Uppsala akvarieförening ordnar ett test av auktionsprogrammet."),
 )
 
 # sellers = (
