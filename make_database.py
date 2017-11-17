@@ -35,7 +35,7 @@ for seller_id in range(1, len(sellers) + 1):
 print(posts)
 
 auction_info = (
-    (u"Uppsala Akvarieförening", u"UAF", u"Uppsala", u"Uppsala Test", u"2017", u"2017-05-20", 0.20, u"Uppsala akvarieförening ordnar ett test av auktionsprogrammet."),
+    (u"Uppsala Akvarieförening", u"UAF", u"Uppsala", u"Uppsala Test", u"2017", u"2017-05-20", 0.20, u"Uppsala akvarieförening ordnar ett test av auktionsprogrammet.", "yes"),
 )
 
 # sellers = (
@@ -99,7 +99,7 @@ with conn:
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
     cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
     cur.execute('CREATE TABLE all_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
-    cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
+    cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
     cur.execute('CREATE TABLE printers (purpose TEXT, cups_name TEXT)')
 
     password_file = open("sellers.txt", "w")  # Textfile to be able to log in with the passwords.
@@ -117,8 +117,9 @@ with conn:
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, time_stamp_registration, minimum_price, fixed_price, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", posts)
     cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", used_types)
     cur.executemany("INSERT INTO all_types (type_id, description, sale_type) VALUES(?, ?, ?)", all_types)
-    cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+    cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
     cur.executemany("INSERT INTO printers (purpose, cups_name) VALUES (?, ?)", printers)
-
-
+    
+    # To add new column to existing database table:
+    # ALTER TABLE auction_info ADD COLUMN registration_open TEXT;
 

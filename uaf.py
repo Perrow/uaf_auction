@@ -26,7 +26,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.58"
+VERSION = "0.59"
 
 # For flask-login
 lm = LoginManager()
@@ -291,7 +291,7 @@ def register_many_posts():
             tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
             select += tempstr
     select += '</select>'
-    return render_template('register_many_posts.html', select=select)
+    return render_template('register_many_posts.html', select=select, registration_open=is_registration_open())
 
 
 @app.route('/list')
@@ -353,7 +353,7 @@ def list_my_posts():
         ON posts.type=used_types.type_id
         WHERE seller_id = ?""", [cur_id])
         result = cur.fetchall()
-        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id)
+        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id, registration_open=is_registration_open())
 
 
 @app.route('/delete_post')
@@ -363,20 +363,23 @@ def delete_post(post_id=None):
     """
     Deletes a post from the database
     """
-    conn = sqlite3.connect(DATABASE)
-    with conn:
-        cur = conn.cursor()
-        if post_id:
-            # Check that the current user owns the post
-            cur_id = current_user.get_id()
-            check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
-            cur.execute(check_user_sql, [post_id])
-            owner_id = str(cur.fetchone()[0])
-            if cur_id == owner_id:
-                delete_posts_sql = "DELETE FROM posts WHERE obj_id=?"
-                cur.execute(delete_posts_sql, [post_id])
-            else:
-                flash("Du har inte rättigheter att radera den posten")
+    if is_registration_open():
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            if post_id:
+                # Check that the current user owns the post
+                cur_id = current_user.get_id()
+                check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
+                cur.execute(check_user_sql, [post_id])
+                owner_id = str(cur.fetchone()[0])
+                if cur_id == owner_id:
+                    delete_posts_sql = "DELETE FROM posts WHERE obj_id=?"
+                    cur.execute(delete_posts_sql, [post_id])
+                else:
+                    flash("Du har inte rättigheter att radera den posten.")
+    else:
+        flash("Registreringen är stängd.")
     return redirect(url_for('list_my_posts'))
 
 
@@ -387,6 +390,10 @@ def edit_post(post_id=None):
     """
     Edits a post from the database
     """
+    if not is_registration_open():
+        flash("Registreringen är stängd.")
+        return redirect(url_for('list_my_posts'))
+
     conn = sqlite3.connect(DATABASE)
     # post_id=94&master_type=1&sciname=Ceratophyllum+demersum&popname=Hornsärv&min_price=&fixed_price=90.0&description=hj&submit=Skicka
 
@@ -745,6 +752,53 @@ def about():
     return render_template('about.html', version=VERSION)
 
 
+def is_registration_open():
+    """
+    Checks if registration is open
+    :return: True if open, False if closed.
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT registration_open FROM auction_info")
+        result = cur.fetchone()
+        print(result)
+        print("registration_open: ".format(result[0]))
+        if result[0] == "yes":
+            registration_open = True
+        else:
+            registration_open = False
+    return registration_open
+
+
+@app.route('/open_close_registration', methods=['GET', 'POST'])
+@admin_required
+def open_close_registration():
+    """
+    Open or close registration
+    :return:
+    """
+    if request.method == 'POST':
+        close_registration_button = request.form.get('close_registration_button', None)
+        open_registration_button = request.form.get('open_registration_button', None)
+        open_close = ""
+        if close_registration_button is not None:
+            flash("Föranmälan är: {}".format("stängd"))
+            open_close = "no"
+        if open_registration_button is not None:
+            flash("Föranmälan är: {}".format("öppen"))
+            open_close = "yes"
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE auction_info SET registration_open = ?", [open_close])
+            conn.commit()
+
+        return redirect(url_for('index'))
+    else:
+        return render_template('open_close_registration.html', registration_open=is_registration_open())
+
+
 @app.route('/setup_printer', methods=['GET', 'POST'])
 @admin_required
 def setup_printer():
@@ -772,7 +826,6 @@ def setup_printer():
         return redirect(url_for('setup_printer'))
     else:
 
-        printer_names = []
         printers_found = False
         try:
             result = subprocess.run(['lpstat', '-a'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -906,13 +959,14 @@ def json_sold():
 
     return jsonify(sold_stat_dict)
 
+
 def get_sold_statistic():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
         cur.execute("""SELECT "total_" || all_types.sale_type, count(posts.type) FROM posts
-	                  INNER JOIN all_types
-	                  ON posts.type=all_types.type_id
+                      INNER JOIN all_types
+                      ON posts.type=all_types.type_id
                       GROUP BY all_types.sale_type
 
                       UNION ALL
@@ -920,7 +974,6 @@ def get_sold_statistic():
                       SELECT "sold_on_" || sold_on, count(sold_price) AS nr_sold FROM posts GROUP BY sold_on""")
 
         sql_result = cur.fetchall()
-        total = 0
         total_auction = 0
         total_fleamarket = 0
         sold_auction = 0

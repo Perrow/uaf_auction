@@ -1,5 +1,8 @@
+Version 0.59 2017-11-16
+    Issue 17. Admin can close and open registration. When registration is closed can seller not add, edit or delete posts. Admin can add posts.
+
 Version 0.58 2017-11-16
-    Changed the code for detecting available printers so it will not crash if CUPS are not istalled or no printers are installed.
+    Issue 39. Changed the code for detecting available printers so it will not crash if CUPS are not istalled or no printers are installed.
     Added cancel buttons to "Create event", "Edit event" and "Printer setup". The only thing the do is go to index page.
 
 Version 0.57 2017-11-16

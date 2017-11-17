@@ -6,6 +6,7 @@
 {% block body %}
 <div class="container">
     <h1>Registrera poster</h1>
+    {% if registration_open == True %}
 
     <form id="register_form" action="/register_many_posts" method="POST">
 
@@ -40,6 +41,10 @@
         </div>
     </form>
     <p>Tomma poster kommer inte att sparas ( = inget vetenskapligt- och populärnamn )</p>
+    {%  else %}
+    <p>Föranmälan är stängd.</p>
+    {% endif %}
 </div>
+
 <script src="{{ url_for('static', filename='js/register_many.js') }}"></script>
 {% endblock %}

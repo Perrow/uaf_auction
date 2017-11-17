@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %} Öppna - stäng föranmälan {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1> Öppna eller stäng föranmälan </h1>
+        {% if registration_open == True %}
+            <h2>Föranmälan är öppen.</h2>
+            <form action="" method="POST">
+                <div class="form-group">
+                    <input type="submit" name="close_registration_button" value="Stäng föranmälan" class="btn btn-danger">
+                </div>
+            </form>
+        {% else %}
+            <h2>Föranmälan är stängd.</h2>
+            <form action="" method="POST">
+                <div class="form-group">
+                    <input type="submit" name="open_registration_button" value="Öppna föranmälan" class="btn btn-primary">
+                </div>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
