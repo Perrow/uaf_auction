@@ -1,30 +1,36 @@
 {% extends "base.html" %}
 {% block title %} Setup skrivare {% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
 {% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Skrivare </h1>
-    <p>Välj skrivare för utskrift på etiketter och för utskrifter på vanligt papper.</p>
-    <form action="" method="POST">
-        <div class="form-group">
-            <label for="label_printer">Skrivare för etiketter:</label>
-            <select name="label_printer" id="label_printer" class="form-control">
-                {% for item in printers %}
-                <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-            </select>
-            <br>
-            <label for="paper_printer">Skrivare för papper:</label>
-            <select name="paper_printer" id="paper_printer" class="form-control">
-                {% for item in printers %}
-                <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-            </select>
-            <br>
-            <input type="submit" value="spara" class="btn btn-primary">
-        </div>
-    </form>
-</div>
+    <div class="container">
+        <h1> Skrivare </h1>
+        {% if printers_found == False %}
+            <h2>Inga skrivare hittades.</h2>
+        {% else %}
+            <p>Välj skrivare för utskrift på etiketter och för utskrifter på vanligt papper.</p>
+            <form action="" method="POST">
+                <div class="form-group">
+                    <label for="label_printer">Skrivare för etiketter:</label>
+                    <select name="label_printer" id="label_printer" class="form-control">
+                        {% for item in printers %}
+                            <option value="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    <label for="paper_printer">Skrivare för papper:</label>
+                    <select name="paper_printer" id="paper_printer" class="form-control">
+                        {% for item in printers %}
+                            <option value="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    <input type="submit" value="spara" class="btn btn-primary">
+                    <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
+                </div>
+            </form>
+        {% endif %}
+
+    </div>
 {% endblock %}

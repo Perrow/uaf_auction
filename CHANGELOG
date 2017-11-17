@@ -1,3 +1,7 @@
+Version 0.58 2017-11-16
+    Changed the code for detecting available printers so it will not crash if CUPS are not istalled or no printers are installed.
+    Added cancel buttons to "Create event", "Edit event" and "Printer setup". The only thing the do is go to index page.
+
 Version 0.57 2017-11-16
     Made the text larger for current post on display page. Removee all information exept post id for next post. Renamed to display_two.
     Added a display page with only curren post, display_one.

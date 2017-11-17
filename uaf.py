@@ -3,7 +3,7 @@
 import os
 import sqlite3
 import time
-
+import subprocess
 from flask import jsonify
 from flask import make_response
 from flask import send_file
@@ -26,7 +26,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.57"
+VERSION = "0.58"
 
 # For flask-login
 lm = LoginManager()
@@ -771,24 +771,32 @@ def setup_printer():
 
         return redirect(url_for('setup_printer'))
     else:
-        all_printers_str = os.popen('lpstat -a').read().strip()
-        print(all_printers_str)
-        # Split lines
-        all_printers_lst = all_printers_str.split('\n')
-        printers = []
-        # Split words in each row and save the printer name
-        for row in all_printers_lst:
-            words = row.split()
-            printers.append(words[0].strip())
-        return render_template('setup_printer.html', printers=printers)
 
-        # import subprocess
-        #
-        # command = "gcc -E myHeader.h"  # the shell command
-        # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        #
-        # #Launch the shell command:
-        # output, error = process.communicate()
+        printer_names = []
+        printers_found = False
+        try:
+            result = subprocess.run(['lpstat', '-a'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            all_printer_str = result.stdout.decode("utf-8")
+            err_msg = result.stderr.decode("utf-8")
+
+            print("stdout: {}".format(all_printer_str))
+            print("error: {}".format(err_msg))
+
+            all_printers_lst = str(all_printer_str).strip().split("\n")
+            printer_names = []
+            # Split words in each row and save the printer name
+            if err_msg == "":
+                for row in all_printers_lst:
+                    words = row.split()
+                    printer_names.append(words[0].strip())
+                    printers_found = True
+        except FileNotFoundError:
+            print("Skrivar sytem CUPS är inte installerat. Inga skrivare hittades")
+            printer_names = []
+            printers_found = False
+        # print(default_printer)
+        print("Found printers: {}".format(printer_names))
+        return render_template('setup_printer.html', printers=printer_names, printers_found=printers_found)
 
 
 @app.route('/download_database')
