@@ -7,6 +7,7 @@ python/
 *pdf
 *pyc
 *.swp
+*.db3
 
 templates/.flea_market.html.swp
 templates/.login.html.swp

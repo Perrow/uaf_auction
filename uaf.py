@@ -3,6 +3,7 @@
 import os
 import sqlite3
 import time
+import datetime
 import subprocess
 from flask import jsonify
 from flask import make_response
@@ -26,7 +27,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.59"
+VERSION = "0.60"
 
 # For flask-login
 lm = LoginManager()
@@ -646,7 +647,7 @@ def create_event():
         encrypted_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
         admin_data = [admin_name, admin_address, admin_email, admin_phone, admin_aquarium_club, "yes", encrypted_password, time.strftime("%Y-%m-%d %H:%M:%S"), admin_accept_cookies, admin_accept_database]
 
-        conn = sqlite3.connect("auktion.db3")
+        conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
 
@@ -707,7 +708,7 @@ def edit_event():
         selected_types = request.form.getlist('type')
         print(request.form.getlist('type'))
 
-        conn = sqlite3.connect("auktion.db3")
+        conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
             cur.execute('DELETE FROM auction_info')
@@ -866,11 +867,39 @@ def download_database():
 @admin_required
 def get_database():
     try:
-        filename = os.path.join(app.root_path, "auktion.db3")
+        filename = os.path.join(app.root_path, DATABASE)
         print(filename)
         return send_file(filename, as_attachment=True)
     except Exception as e:
         return str(e)
+
+
+@app.route('/plot_registration')
+@admin_required
+def plot_registration():
+        """
+        Plots a diagram showing the number of registations per day
+        :return: webpage
+        """
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute('SELECT substr(time_stamp_registration, 0, 11) AS date, count(*)  FROM posts GROUP BY date  ORDER BY date ASC')
+            res = cur.fetchall()
+
+            first_date = datetime.datetime.strptime(res[0][0], "%Y-%m-%d").date() + datetime.timedelta(days=-1)
+            last_date = datetime.datetime.strptime(res[-1][0], "%Y-%m-%d").date() + datetime.timedelta(days=1)
+
+            # Compile plot data in csv format that are injected into the script part of the template
+            plot_data = '"Datum,Antal\\n"+\n'
+            plot_data += '"{},\\n"+\n'.format(first_date)  # Buffert to avoid half a bar
+            for row in res:
+                plot_data += '"{},{}\\n"+\n'.format(row[0], row[1])
+            plot_data += '"{},\\n"+\n'.format(last_date)   # Buffert to avoid half a bar
+            plot_data = plot_data[:-3] + '",'
+
+        return render_template('plot_registration.html', plot_data=plot_data)
+
 
 # *** JSON *** #
 
