@@ -122,4 +122,5 @@ with conn:
     
     # To add new column to existing database table:
     # ALTER TABLE auction_info ADD COLUMN registration_open TEXT;
+    # UPDATE auction_info SET registration_open = "yes";
 

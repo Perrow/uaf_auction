@@ -19,22 +19,24 @@
             </a>
         </p>
 
-        <table style="width:100%" class="table-hover">
+        <table style="width:100%" class="table table-hover" id="posttable">
+            <thead>
             <tr>
-                <th>Nr</th>
-                <th>Vetenskapligt namn</th>
-                <th>Namn</th>
-                <th>Beskrivning av posten</th>
+                <th>Nr&nbsp;&nbsp;</th>
+                <th>Vetenskapligt namn&nbsp;</th>
+                <th>Namn&nbsp;</th>
+                <th>Beskrivning av posten&nbsp;</th>
+                <th>Godstyp&nbsp;</th>
+                <th>Google bildsök&nbsp;</th>
 
-                <th>Godstyp</th>
-                <th>Google bildsök</th>
-           
                 {% if registration_open == True %}
-                    <th>Editera</th>
-                    <th>Ta bort</th>
+                    <th>Editera&nbsp;</th>
+                    <th>Ta bort&nbsp;</th>
                 {% endif %}
 
             </tr>
+            </thead>
+            <tbody>
             {% for row in data %}
                 <tr>
                     <td> {{ row[0] }}</td>
@@ -71,8 +73,10 @@
 
                 </tr>
             {% endfor %}
+            </tbody>
 
         </table>
     </div>
 
+    <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
 {% endblock %}
