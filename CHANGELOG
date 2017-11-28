@@ -1,3 +1,6 @@
+Version 0.62 2017-11-28
+    Truncated post name in make_compilation_pdf and adjusted truncation in make_economic_report.
+
 Version 0.61 2017-11-27
     Added sorting to both tables with posts, https://datatables.net/.
 

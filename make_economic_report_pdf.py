@@ -30,8 +30,8 @@ class EconomicReport(object):
         self.event_city = event_city
 
         self.paper_width, self.paper_height = A4
-        self.font_size = 12  # Reprotlab default
-        self.font = 'Helvetica'  # Reprotlab default
+        self.font_size = 10  # Reportlab default for table
+        self.font = 'Helvetica'  # Reportlab default
         self.debug = False  # Turns on colored tablecells
 
     def truncate_str(self, text, length):
@@ -45,7 +45,7 @@ class EconomicReport(object):
         name_width = shapes.stringWidth(text, self.font, self.font_size)
         while name_width > length:
             text = text[:-1]
-            name_width = shapes.stringWidth(text, self.font, self.font_size)
+            name_width = shapes.stringWidth(text + "...", self.font, self.font_size)
             truncated = True
         if truncated:
             return text + "..."
@@ -108,7 +108,7 @@ class EconomicReport(object):
             count_sold = seller[7]
             data2 = seller[8]
 
-            data1 = [['Säljare nr:', seller_id, self.truncate_str(seller_name, 60 * mm), self.truncate_str(club, 70 * mm), ""]]
+            data1 = [['Säljare nr:', seller_id, self.truncate_str(seller_name, 55 * mm), self.truncate_str(club, 65 * mm), ""]]
 
             t1 = Table(data1, colWidths=(20 * mm, 10 * mm, 60 * mm, 70 * mm, doc.width - (20 + 10 + 60 + 70)*mm))  # column width
             t1.setStyle(TableStyle([("LINEABOVE", (0, 0), (4, 0), 1, black),

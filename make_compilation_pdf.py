@@ -2,6 +2,7 @@
 from reportlab.platypus import PageBreak
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.graphics import shapes
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.colors import red, blueviolet, yellowgreen, lawngreen, black
@@ -26,7 +27,26 @@ class Compilation(object):
         self.event_city = event_city
         self.commision = commision
         self.paper_width, self.paper_height = A4
+        self.font_size = 10  # Reportlab default
+        self.font = 'Helvetica'  # Reportlab default
 
+    def truncate_str(self, text, length):
+        """
+        Caluculates the length of a string when rendered with the font and size for the label and truncates it to fit in a given length
+        :param text: text string to truncate
+        :param length: max length of string
+        :return: truncated string
+        """
+        truncated = False
+        name_width = shapes.stringWidth(text, self.font, self.font_size)
+        while name_width > length:
+            text = text[:-1]
+            name_width = shapes.stringWidth(text + "...", self.font, self.font_size)
+            truncated = True
+        if truncated:
+            return text + "..."
+        else:
+            return text
 
     def make_pdf(self, compilation_data):
         #import cStringIO
@@ -65,15 +85,19 @@ class Compilation(object):
             data = seller[3]
 
             print(data)
+            for row in data:
+                truncated_item = self.truncate_str(row[2], 80 * mm)
+                row[2] = truncated_item
 
             # # Table
             # data = [['Post', 'Typ', 'Namn', 'Pris', 'Såld'],
             #         ['10', '', 'Tigerbarb', '30', 'Auktion'],
             #         ['11', '', 'Platy', '20', 'Auktion'],
             #         ['12', 'växt', 'Anubias', '50', 'Loppis']]
-            t = Table(data, colWidths=(10 * mm, 50 * mm, 80 * mm, 15 * mm, 25 * mm))  # column width
+            t = Table(data, colWidths=(10 * mm, 45 * mm, 85 * mm, 15 * mm, 25 * mm))  # column width
             t.setStyle(TableStyle([
-                ("LINEBELOW", (0, 0), (-1, 0), 1, black)
+                ("LINEBELOW", (0, 0), (-1, 0), 1, black),
+                ('FONTSIZE', (0, 0), (-1, -1), self.font_size),
                 # (start cell x, y), slut cell x, y) räknat med 0,0 i övre vänstra hörnet på tabellen. (-1,-1) är nedre högra hörnet
                 # ("GRID", (0, 0), (-1, -1), 0.5, lawngreen)
             ]))
