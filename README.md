@@ -13,11 +13,11 @@ This program are to be used during an auction or a fleamarket by an aquarium clu
 
 ## Requirements
 
-This is a client server program written in Python 2.7, HTML, JavaScript and CSS. 
+This is a client server program written in Python 3.5, HTML5, JavaScript and CSS with Bootstrap. 
 It is meant to be run on a Linux (tested on Ubuntu) server with Apache, but should run on other python compatible servers.
 
 ### Install and setup of webserver on Linux (Ubuntu / Rasbian)
-Tested on Ubuntu 14.04 and Rasbian 2017-03-02-raspbian-jessie-lite.
+Tested on Ubuntu 14.04, 16.04, Linux Mint 18 and Rasbian 2017-03-02-raspbian-jessie-lite.
 Install apache with python support
 
 ```
@@ -27,7 +27,7 @@ sudo apt-get upgrade
 sudo apt-get install apache2
 sudo apt-get install libapache2-mod-wsgi python-dev
 ```
-Enable mod_wsgi, need for running pyhton under apache.
+Enable mod_wsgi, need for running python under apache.
 ```
 sudo a2enmod wsgi 
 ```
@@ -77,7 +77,7 @@ from uaf import app as application
 
 If needed:
 ```
-sudo apt-get install python-pip 
+sudo apt-get install python3-pip 
 ```
 
 Needed Python libraries:
@@ -87,19 +87,11 @@ Needed Python libraries:
 * reportlab
 * bcrypt
 
-
-Recommended Python environment is anaconda then:
+pip:
 ```
-conda install flask-login
-conda install reportlab
-conda install bcrypt
-```
-
-Or use pip:
-```
-sudo pip install flask_login
-sudo pip install reportlab
-sudo pip install bcrypt
+sudo pip3 install flask_login
+sudo pip3 install reportlab
+sudo pip3 install bcrypt
 ```
 In order to install bcrypt on Ubuntu 14.04 and Rasbian, libffi-dev was needed.
 ```

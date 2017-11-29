@@ -27,7 +27,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.62"
+VERSION = "0.63"
 
 # For flask-login
 lm = LoginManager()

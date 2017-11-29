@@ -3,6 +3,7 @@ $(document).ready(function () {
     var current_data = "";
     var next_data = "";
     var empty_data = { description: "", fixed_price: "", minimum_price: "", name: "", obj_id: "", plain_name: "", scientific_name: "", sold_on: "", sold_price: "", type: "" };
+    var not_found_data = { description: "", fixed_price: "", minimum_price: "", name: "", obj_id: "", plain_name: "Posten finns inte", scientific_name: "", sold_on: "", sold_price: "", type: "" };
 
     // leave the input box, with tab for example
     $('#post_id').blur(function () {
@@ -33,7 +34,7 @@ $(document).ready(function () {
         if (current_data.minimum_price == null || current_data.minimum_price == "") {
             $('#current_min_price').html("").fadeIn();
         } else {
-            $('#current_min_price').html("Reservationspris: " + current_data.minimum_price + "kr").fadeIn();
+            $('#current_min_price').html("Minpris: " + current_data.minimum_price + "kr").fadeIn();
         }
         $('#current_plain_name').html(current_data.plain_name).fadeIn();
         $('#current_description').html(current_data.description).fadeIn();
@@ -106,7 +107,11 @@ $(document).ready(function () {
                 success: function (data) {
                     if (data.hasOwnProperty('error')) {
                         console.log("Not found");
-                        // clear_current();
+                        current_data = next_data;
+                        next_data = not_found_data;
+                        next_data["obj_id"] = post_id;
+                        display_current();
+                        display_next();
                     } else {
                         console.log("Found");
                         current_data = next_data;
