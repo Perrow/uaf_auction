@@ -57,8 +57,13 @@ class Receipt(object):
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
         normal_center = styles['Center']
 
+        logo = "static/img/logo_for_pdf.jpg"
+        im = Image(logo, 30 * mm, 30 * mm)
+        im.hAlign = "LEFT"
         #Start document
-        story = [Spacer(1, 25 * mm)]
+        # story = [Spacer(1, 25 * mm)]
+        story = []
+
 
         for seller in data:
             seller_id = seller[0]
@@ -77,6 +82,8 @@ class Receipt(object):
                      ]
 
             # Start page 1 sellers receipt
+
+            story.append(im)
             p = Paragraph(u"Inlämningskvitto", title)
             story.append(p)
             p = Paragraph(self.event_name, title)
@@ -92,12 +99,13 @@ class Receipt(object):
             story.append(t2)
             story.append(Spacer(1, 10 * mm))
 
-            p = Paragraph(u"Spara ditt inlämningskvitto. Du måste kunna visa upp det för att få ut dina pengar efter försäljningens slut.", normal)
+            p = Paragraph(u"Spara detta inlämningskvitto. Du måste kunna visa upp det för att få ut dina pengar efter auktionens slut.", normal)
             story.append(p)
 
             story.append(PageBreak())
 
             # Start page 2 association receipt
+            story.append(im)
             p = Paragraph(u"{}:s kopia".format(self.Association_short_name), normal_right)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
@@ -116,10 +124,14 @@ class Receipt(object):
             story.append(t2)
             story.append(Spacer(1, 10 * mm))
 
-            p = Paragraph(u"Säljaren ansvarar för att inlämnade växter, fiskar och andra djur är i god kondition och att alla tillbehör inte är behäftade med fel eller brister som ej redovisats på varan. {} avsäger sig ansvar för eventuella krav på inlämnat gods från köparen och hänvisare i sådana fall till på varan angiven säljare.".format(self.Association), normal)
+            p = Paragraph(u"Med min underskrift nedan erkänner jag som säljare fullt ansvar för att inlämnade djur och växter är de jag har angett och att de är i god kondition. Jag är ansvarig för att  tillbehör är i det skick som anges och jag har angett de brister som inte omedelbart framgår.", normal)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
-            p = Paragraph(u"Undertecknad har tagit del av ovanstående villkor.", normal)
+            p = Paragraph(u"Om köparen upptäcker att oärlighet i ovanstående har skett riktas ersättningskrav mot säljaren och inte mot förmedlaren {}. {} är efter förmåga behjälpliga vid oenighet.".format(self.Association, self.Association), normal)
+            story.append(p)
+
+            story.append(Spacer(1, 10 * mm))
+            p = Paragraph(u"Undertecknad accepterar oavanstående.", normal)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
             p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)

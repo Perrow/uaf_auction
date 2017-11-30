@@ -51,6 +51,13 @@
             </td>
         </tr>
         <tr>
+            <td>Fastabordet säljarkvitto:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('clerk_receipt_view') }} "> PDF </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('clerk_receipt_server_print') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>        
+        <tr>
             <td>Auktionslista:</td>
             <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> PDF </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} ">

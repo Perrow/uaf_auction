@@ -1,3 +1,7 @@
+Version 0.64 2017-11-30
+    Updated the text on the receipt and compilation pdfs, also added logo.
+    Issue 42. Added new pdf for fleamarket seller that calculates the total amount of money that the clerk has handled. The clerk is saved in the database.
+
 Version 0.63
     Updated the README.md file to python 3.5
     Fixed some layout issues on the display pages.

@@ -55,7 +55,8 @@ class Compilation(object):
         output = BytesIO()
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(output)
-        story = [Spacer(1, 25 * mm)]
+        # story = [Spacer(1, 25 * mm)]
+        story = []
         normal = styles["Normal"]
         h1 = styles["h1"]
         h2 = styles["h2"]
@@ -69,9 +70,14 @@ class Compilation(object):
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
         normal_center = styles['Center']
 
+        logo = "static/img/logo_for_pdf.jpg"
+        im = Image(logo, 30 * mm, 30 * mm)
+        im.hAlign = "LEFT"
+
         for seller in compilation_data:
             seller_id = seller[0]
             seller_name = seller[1]
+            story.append(im)
             p = Paragraph(self.event_name, title)
             story.append(p)
             p = Paragraph(self.event_date, title)
@@ -125,15 +131,15 @@ class Compilation(object):
             story.append(t2)
 
             story.append(PageBreak())
-
+            story.append(im)
             p = Paragraph(self.event_name, title)
             story.append(p)
             p = Paragraph(self.event_date, title)
             story.append(p)
-            p = Paragraph("Kvittens", title)
+            p = Paragraph("Utbetalningskvitto", title)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
-            p = Paragraph("Av {} har jag mottagit kr {} utgörande ersättning för inlämnade och försålda poster.".format(self.hosting_association, to_seller), normal)
+            p = Paragraph("Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100)), normal)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
             p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)

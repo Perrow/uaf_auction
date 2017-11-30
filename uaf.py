@@ -20,6 +20,7 @@ import make_receipt_pdf
 import list_shorter
 import make_economic_report_pdf
 import make_wall_list_pdf
+import make_clerk_receipt_pdf
 
 
 __author__ = 'Kristian Persson'
@@ -27,7 +28,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.63"
+VERSION = "0.64"
 
 # For flask-login
 lm = LoginManager()
@@ -596,13 +597,14 @@ def flea_market():
     print(prices)
     sold_items = zip(post_ids, prices)
     sale_type = "fasta bordet"
+    clerk_id = current_user.get_id()
 
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
         for post_id, price in sold_items:
             if post_id != "":
-                cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
+                cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=?, sold_by=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), clerk_id, post_id))
                 flash("Post {} registrerad som såld för {} kronor.".format(post_id, price))
 
     conn.close()
@@ -1220,6 +1222,7 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
     return pdf
 
 
+
 @app.route('/economic_report_view')
 @admin_required
 def economic_report_view(selected_id=None):
@@ -1354,6 +1357,57 @@ def get_economic_report_pdf():
 
     pdf = economic_pdf.make_pdf(data, tot_data)
     return pdf
+
+
+@app.route('/clerk_receipt_view')
+@admin_required
+def clerk_receipt_view(selected_id=None):
+    """
+    Generates a downloadable pdf of seller receipts
+    :param selected_id: selected seller id or None for all sellers
+    :return: pdf response
+    """
+    pdf = get_clerk_receipt_pdf()
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=clerk_receipt.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+
+@app.route('/clerk_receipt_server_print')
+@admin_required
+def clerk_receipt_server_print(selected_id=None):
+    """
+    Writes the compilation pdf on a printer connected to the server via CUPS
+    :param selected_id: selected seller id or None for all sellers
+    :return: Nothing
+    """
+    pdf = get_clerk_receipt_pdf()
+    server_print(pdf, printer="paper")
+    return '', 204  # empty response
+
+
+def get_clerk_receipt_pdf():
+    """
+    Creates a pdf with all the auction objects for printing
+    :return: a pdf
+    """
+    conn = sqlite3.connect(DATABASE)
+    clerk_id = current_user.get_id()
+    with conn:
+        club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
+        cur = conn.cursor()
+        sql = """SELECT sellers.name, SUM(sold_price) FROM posts 
+                JOIN sellers ON sellers.seller_id = posts.sold_by
+                WHERE posts.sold_by = ?"""
+        cur.execute(sql, [clerk_id])
+        data = cur.fetchone()
+        print(data)
+        m_c_r_p = make_clerk_receipt_pdf.make_clerk_receipt_pdf(event_name, club_name, club_short_name,  event_date, event_city)
+        pdf = m_c_r_p.make_pdf(data)
+        return pdf
+
 
 
 @app.route('/wall_list_view')
