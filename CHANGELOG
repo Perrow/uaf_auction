@@ -1,3 +1,6 @@
+Version 0.65 2017-12-12
+    Added timeplots on auction and fleamarket sales.
+
 Version 0.64 2017-11-30
     Updated the text on the receipt and compilation pdfs, also added logo.
     Issue 42. Added new pdf for fleamarket seller that calculates the total amount of money that the clerk has handled. The clerk is saved in the database.

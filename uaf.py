@@ -28,7 +28,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.64"
+VERSION = "0.65"
 
 # For flask-login
 lm = LoginManager()
@@ -901,6 +901,48 @@ def plot_registration():
             plot_data = plot_data[:-3] + '",'
 
         return render_template('plot_registration.html', plot_data=plot_data)
+
+@app.route('/plot_sales')
+@admin_required
+def plot_sales():
+        """
+        Plots diagrams showing the number of sales per minute
+        :return: webpage
+        """
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+
+            cur.execute("""SELECT substr(posts.time_stamp_sold,0,17) as time, count(posts.obj_id) FROM posts
+                           WHERE posts.time_stamp_sold IS NOT NULL AND posts.sold_on = "fasta bordet"
+                           GROUP BY substr(posts.time_stamp_sold,0,17)
+                           ORDER BY time asc""")
+            res = cur.fetchall()
+
+            # Compile plot data in csv format that are injected into the script part of the template
+            plot_data_fleamarket = '"Datum,Antal\\n"+\n'
+            first = res[0][0]
+            last = res[-1][0]
+            print(first, last)
+            for row in res:
+                plot_data_fleamarket += '"{},{}\\n"+\n'.format(row[0], row[1])
+            plot_data_fleamarket = plot_data_fleamarket[:-3] + '",'
+
+            cur.execute("""SELECT substr(posts.time_stamp_sold,0,17) as time, count(posts.obj_id) FROM posts
+                           WHERE posts.time_stamp_sold IS NOT NULL AND posts.sold_on = "auktion"
+                           GROUP BY substr(posts.time_stamp_sold,0,17)
+                           ORDER BY time asc""")
+            res = cur.fetchall()
+
+            # Compile plot data in csv format that are injected into the script part of the template
+            plot_data_auction = '"Datum,Antal\\n"+\n'
+            plot_data_auction += '"{},\\n"+\n'.format(first)
+            for row in res:
+                plot_data_auction += '"{},{}\\n"+\n'.format(row[0], row[1])
+            plot_data_auction += '"{},\\n"+\n'.format(last)
+            plot_data_auction = plot_data_auction[:-3] + '",'
+
+        return render_template('plot_sales.html', plot_data_auction=plot_data_auction, plot_data_fleamarket=plot_data_fleamarket)
 
 
 # *** JSON *** #
