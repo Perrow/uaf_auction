@@ -154,16 +154,14 @@ class Faker:
             u"Örebro Akvarieklubb",
             u"Umeå Akvarieförening"
         ]
-        
+
         self.comments_animals = [
-            u"2 st",
-            u"6 st",
-            u"10 st",
+            u"Unga honor",
             u"Ungdjur",
             u"Lekpar",
             u"Mycket fina vildfångade"
         ]
-        
+
         self.comments_plants = [
             u"Snabbväxande",
             u"Ljuskrävande",
@@ -232,28 +230,31 @@ class Faker:
     def generate_fish_auction_post(self, seller_id):
         type = 1
         sci_name, pop_name = self.get_fish_name()
+        quantity = random.randint(1, 10) 
         comment = self.get_animal_comment()
         mimimum_price = None
         fixed_price = None
         if random.randint(0, 100) < 20:
             mimimum_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
     def generate_plant_fleamarket_post(self, seller_id):
         type = 8
         comment = self.get_plant_comment()
         pop_name, sci_name = self.get_plant_name()
+        quantity = random.randint(1, 10)
         mimimum_price = None
         fixed_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
     def generate_shrimp_fleamarket_post(self, seller_id):
         type = 4
         comment = self.get_animal_comment()
         pop_name, sci_name = self.get_shrimp_name()
+        quantity = random.randint(1, 10)
         mimimum_price = None
         fixed_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
 
 if __name__ == "__main__":
     

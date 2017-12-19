@@ -1,3 +1,17 @@
+Version 0.66 2017-12-18
+    Split the sellers page into one information page with address and such and a manage seller page, where admins can print, remove etc.
+    Added sorting to the sellers tables.
+    Issue 44. Admin can delete individual posts for all sellers.
+    Issue 45. Admin can change password for seller.
+    Issue 40. Added information if the scientific name is mandatory to the database, more flexible than the previous hack solution.
+    Issue 41. When selecting non living things in the register posts page scientific name input is hidden, actually governed by a column in the database.
+    Issue 46. Seller id number is added to the sellers pages.
+    Issue 47. User edited posts are marked as unprinted.
+    Issue 51. Added seller id to dropdown in register posts for other seller page.
+    Issue 53. Limited the length of the description to 50 characters on the register posts page, make it possible to print description on label.
+    Issue 54. Added quantity to registring posts, and editing posts.
+    Selection of a auction type on the register page deletes the fleamarket price and vice versa.
+
 Version 0.65 2017-12-12
     Added timeplots on auction and fleamarket sales.
 

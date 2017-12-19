@@ -13,7 +13,7 @@
             {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
         </p>
 
-        <table style="width:100%" class="table table-hover" id="posttable">
+        <table style="width:100%" class="table table-hover" id="sorted_table">
             <thead>
             <tr>
                 <th>Nr&nbsp;&nbsp;</th>
@@ -22,6 +22,10 @@
                 <th>Beskrivning av posten&nbsp;</th>
                 <th>Godstyp&nbsp;</th>
                 <th>Google bildsök&nbsp;</th>
+                {% if current_user.is_admin %}
+                    <th>Editera&nbsp;</th>
+                    <th>Ta bort&nbsp;</th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
@@ -46,7 +50,18 @@
                             </a>
                         </td>
                     {% endif %}
-
+                    {% if current_user.is_admin %}
+                        <td>
+                            <a class="btn btn-warning" href=" {{ url_for('edit_post') }}/{{ row[0] }} "> Editera
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </a>
+                        </td>
+                        <td>
+                            <a class="btn btn-danger" href=" {{ url_for('delete_post') }}/{{ row[0] }} "> Ta bort
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        </td>
+                    {% endif %}
 
                 </tr>
             {% endfor %}

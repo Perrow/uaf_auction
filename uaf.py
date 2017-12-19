@@ -28,7 +28,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.65"
+VERSION = "0.66"
 
 # For flask-login
 lm = LoginManager()
@@ -156,6 +156,36 @@ def index():
     return render_template('index.html', event_name=event_name, club_name=club_name, event_date=event_date, event_description=event_description)
 
 
+@app.route('/edit_password', methods=['GET', 'POST'])
+@app.route('/edit_password/<seller_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_password(seller_id=None):
+    print("Edit password: {}".format(seller_id))
+    if request.method == 'POST':
+        seller_id = request.form['seller_id'].strip().lower()
+        password = request.form['password'].strip().encode('utf-8')
+        salt = bcrypt.gensalt()
+        encrypted_password = bcrypt.hashpw(password, salt)
+        con = sqlite3.connect(DATABASE)
+        with con:
+            cur = con.cursor()
+            sql = 'UPDATE sellers SET password = ? WHERE seller_id = ?' 
+            cur.execute(sql, [encrypted_password, seller_id])
+            flash("Nytt lösenord för säljare: {} sparat.".format(seller_id))
+        return redirect(url_for('list_seller_actions'))
+    else:
+        con = sqlite3.connect(DATABASE)
+        with con:
+            cur = con.cursor()
+            cur.execute('SELECT sellers.name FROM sellers WHERE sellers.seller_id = ?', [seller_id])
+            sellers = cur.fetchone()
+            if sellers:
+                return render_template('edit_password.html', seller_id=seller_id, name=sellers[0])
+            else:
+                flash("Användaren hittades inte.")
+                return redirect(url_for('list_seller_actions'))
+
+
 @app.route('/new_seller', methods=['GET', 'POST'])
 def new_seller():
     """
@@ -211,17 +241,18 @@ def admin_register_many_posts():
         types = request.form.getlist('type')
         scinames = request.form.getlist('sciname')
         popnames = request.form.getlist('popname')
+        quantity = request.form.getlist('quantity')
         min_prices = request.form.getlist('min_price')
         fixed_prices = request.form.getlist('fixed_price')
         descriptions = request.form.getlist('description')
         seller_id = request.form['seller_select']
 
-        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
+        new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
+            for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
 
             flash("Posterna registrerade.")
 
@@ -236,7 +267,7 @@ def admin_register_many_posts():
             tempstr = '<option value="{}">{}</option>'.format(row[0], row[1])
             select += tempstr
         # Get list of sellers
-        cur.execute("SELECT seller_id, name FROM sellers")
+        cur.execute('SELECT seller_id, sellers.seller_id || " - " || sellers.name FROM sellers')
         sellers = cur.fetchall()
 
     select += '</select>'
@@ -256,29 +287,23 @@ def register_many_posts():
         types = request.form.getlist('type')
         scinames = request.form.getlist('sciname')
         popnames = request.form.getlist('popname')
+        quantity = request.form.getlist('quantity')
         min_prices = request.form.getlist('min_price')
         fixed_prices = request.form.getlist('fixed_price')
         descriptions = request.form.getlist('description')
 
-        # print(seller_email)
-        print(types)
-        print(scinames)
-        print(popnames)
-        print(min_prices)
-        print(fixed_prices)
-        print(descriptions)
-        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
+        new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
         # print(new_items)
 
         seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
+            for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
                 if scientific_name == "" and plain_name == "":
                     pass
                 else:
-                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
 
             flash("Posterna registrerade.")
 
@@ -375,14 +400,16 @@ def delete_post(post_id=None):
                 check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
                 cur.execute(check_user_sql, [post_id])
                 owner_id = str(cur.fetchone()[0])
-                if cur_id == owner_id:
+                if cur_id == owner_id or current_user.is_admin:  # Admins may delete all posts
                     delete_posts_sql = "DELETE FROM posts WHERE obj_id=?"
                     cur.execute(delete_posts_sql, [post_id])
                 else:
                     flash("Du har inte rättigheter att radera den posten.")
+                    return redirect(request.referrer)
     else:
         flash("Registreringen är stängd.")
-    return redirect(url_for('list_my_posts'))
+    return redirect(request.referrer)
+    # return redirect(url_for('list_my_posts'))
 
 
 @app.route('/edit_post', methods=['GET', 'POST'])
@@ -392,12 +419,12 @@ def edit_post(post_id=None):
     """
     Edits a post from the database
     """
-    if not is_registration_open():
+    if not is_registration_open() and current_user.is_admin is False:
         flash("Registreringen är stängd.")
-        return redirect(url_for('list_my_posts'))
+        # return redirect(url_for('list_posts'))
+        return redirect(request.referrer)
 
     conn = sqlite3.connect(DATABASE)
-    # post_id=94&master_type=1&sciname=Ceratophyllum+demersum&popname=Hornsärv&min_price=&fixed_price=90.0&description=hj&submit=Skicka
 
     if request.method == 'POST':
         post_id = request.form['post_id']
@@ -406,13 +433,8 @@ def edit_post(post_id=None):
         popname = request.form['popname']
         min_price = request.form['min_price']
         fixed_price = request.form['fixed_price']
+        quantity = request.form['quantity']
         description = request.form['description']
-        print(post_type)
-        print(sciname)
-        print(popname)
-        print(min_price)
-        print(fixed_price)
-        print(description)
         with conn:
             cur = conn.cursor()
             # Check that the current user owns the post
@@ -420,14 +442,20 @@ def edit_post(post_id=None):
             check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
             cur.execute(check_user_sql, [post_id])
             owner_id = str(cur.fetchone()[0])
-            if cur_id == owner_id:
-                edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, description=?, type=?, minimum_price=?, fixed_price=? WHERE obj_id=?; "
-                cur.execute(edit_posts_sql, [sciname, popname, description, post_type, min_price, fixed_price, post_id])
+            if cur_id == owner_id or current_user.is_admin:  # Admins may edit all posts
+                edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, quantity=?, description=?, type=?, minimum_price=?, fixed_price=?, label_printed=? WHERE obj_id=?; "
+                cur.execute(edit_posts_sql, [sciname, popname, quantity, description, post_type, min_price, fixed_price, "no", post_id])
                 flash("Posten uppdaterad")
-                return redirect(url_for('list_my_posts'))
+                if current_user.is_admin:
+                    return redirect(url_for('list_posts'))
+                else:
+                    return redirect(url_for('list_my_posts'))
             else:
                 flash("Du har inte rättigheter att ändra på den posten.")
-                return redirect(url_for('list_my_posts'))
+                if current_user.is_admin:
+                    return redirect(url_for('list_posts'))
+                else:
+                    return redirect(url_for('list_my_posts'))
     else:
         if post_id:
 
@@ -438,14 +466,14 @@ def edit_post(post_id=None):
                 check_user_sql = "SELECT seller_id FROM posts WHERE obj_id = ?"
                 cur.execute(check_user_sql, [post_id])
                 owner_id = str(cur.fetchone()[0])
-                if cur_id == owner_id:
+                if cur_id == owner_id or current_user.is_admin:  # Admins may edit all posts
                     # Get the postdata
-                    edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
+                    edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, quantity, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
                     cur.execute(edit_posts_sql, [post_id])
                     data = cur.fetchone()
 
                     # make the selectinput
-                    cur_type = int(data[4])
+                    cur_type = int(data[5])
                     cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
                     result = cur.fetchall()
                     select = '<select  class="selectpicker form-control" id="master_type" name="master_type">'
@@ -461,14 +489,20 @@ def edit_post(post_id=None):
                     return render_template('edit_post.html', data=data, select=select)
                 else:
                     flash("Du har inte rättigheter att ändra på den posten.")
-                    return redirect(url_for('list_my_posts'))
+                    if current_user.is_admin:
+                        return redirect(url_for('list_all_posts'))
+                    else:
+                        return redirect(url_for('list_my_posts'))
         else:
-            return redirect(url_for('list_my_posts'))
+            if current_user.is_admin:
+                return redirect(url_for('list_posts'))
+            else:
+                return redirect(url_for('list_my_posts'))
 
 
-@app.route('/list_seller')
+@app.route('/list_seller_actions')
 @admin_required
-def list_seller():
+def list_seller_actions():
     """
     Page for listing all sellers in the database
     """
@@ -476,11 +510,28 @@ def list_seller():
 
     with conn:
         cur = conn.cursor()
-        sql = """SELECT sellers.name, sellers.address, sellers.email, sellers.phone, sellers.aquarium_club, count(posts.obj_id) as num_posts, cast(sellers.seller_id as text), isAdmin FROM sellers
+        sql = """SELECT sellers.name, sellers.address, sellers.email, sellers.phone, sellers.aquarium_club, count(posts.obj_id) as num_posts, cast(sellers.seller_id as text), isAdmin, sellers.seller_id FROM sellers
                  LEFT JOIN posts ON sellers.seller_id=posts.seller_id GROUP BY sellers.seller_id;"""
         cur.execute(sql)
         result = cur.fetchall()
-    return render_template('list_seller.html', data=result)
+    return render_template('list_seller_actions.html', data=result)
+
+
+@app.route('/list_seller_info')
+@admin_required
+def list_seller_info():
+    """
+    Page for listing all sellers in the database
+    """
+    conn = sqlite3.connect(DATABASE)
+
+    with conn:
+        cur = conn.cursor()
+        sql = """SELECT sellers.name, sellers.address, sellers.email, sellers.phone, sellers.aquarium_club, count(posts.obj_id) as num_posts, cast(sellers.seller_id as text), isAdmin, sellers.seller_id FROM sellers
+                 LEFT JOIN posts ON sellers.seller_id=posts.seller_id GROUP BY sellers.seller_id;"""
+        cur.execute(sql)
+        result = cur.fetchall()
+    return render_template('list_seller_info.html', data=result)
 
 
 @app.route('/delete_seller')
@@ -498,7 +549,7 @@ def delete_seller(seller_id=None):
             cur.execute(delete_seller_sql, [seller_id])
             delete_posts_sql = "DELETE FROM posts WHERE seller_id=?"
             cur.execute(delete_posts_sql, [seller_id])
-    return redirect(url_for('list_seller'))
+    return redirect(url_for('list_seller_actions'))
 
 
 @app.route('/make_admin')
@@ -514,7 +565,7 @@ def make_admin(seller_id=None):
         if seller_id:
             make_admin_sql = "UPDATE sellers SET isAdmin = 'yes'  WHERE seller_id=?"
             cur.execute(make_admin_sql, [seller_id])
-    return redirect(url_for('list_seller'))
+    return redirect(url_for('list_seller_actions'))
 
 
 @app.route('/demote_admin')
@@ -530,7 +581,7 @@ def demote_admin(seller_id=None):
         if seller_id:
             make_admin_sql = "UPDATE sellers SET isAdmin = 'no'  WHERE seller_id=?"
             cur.execute(make_admin_sql, seller_id)
-    return redirect(url_for('list_seller'))
+    return redirect(url_for('list_seller_actions'))
 
 
 @app.route('/reports')
@@ -658,22 +709,20 @@ def create_event():
             cur.execute("DROP TABLE IF EXISTS used_types")
             cur.execute("DROP TABLE IF EXISTS auction_info")
 
-            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT)')
+            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
-            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
-            cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
+            cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
 
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
             cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             # cur.execute("SELECT type_id, description, sale_type FROM all_types WHERE type_id=?", selected_types)
-            print([",".join(selected_types)])
-            sql = "SELECT type_id, description, sale_type FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
-            print(sql)
+            sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
             cur.execute(sql, selected_types)
             selected_types_data = cur.fetchall()
             print(selected_types_data)
-            cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", selected_types_data)
+            cur.executemany("INSERT INTO used_types (type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input) VALUES(?, ?, ?, ?, ?)", selected_types_data)
 
             cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
             conn.commit()
@@ -902,6 +951,7 @@ def plot_registration():
 
         return render_template('plot_registration.html', plot_data=plot_data)
 
+
 @app.route('/plot_sales')
 @admin_required
 def plot_sales():
@@ -921,26 +971,27 @@ def plot_sales():
 
             # Compile plot data in csv format that are injected into the script part of the template
             plot_data_fleamarket = '"Datum,Antal\\n"+\n'
-            first = res[0][0]
-            last = res[-1][0]
-            print(first, last)
-            for row in res:
-                plot_data_fleamarket += '"{},{}\\n"+\n'.format(row[0], row[1])
-            plot_data_fleamarket = plot_data_fleamarket[:-3] + '",'
-
-            cur.execute("""SELECT substr(posts.time_stamp_sold,0,17) as time, count(posts.obj_id) FROM posts
-                           WHERE posts.time_stamp_sold IS NOT NULL AND posts.sold_on = "auktion"
-                           GROUP BY substr(posts.time_stamp_sold,0,17)
-                           ORDER BY time asc""")
-            res = cur.fetchall()
-
-            # Compile plot data in csv format that are injected into the script part of the template
             plot_data_auction = '"Datum,Antal\\n"+\n'
-            plot_data_auction += '"{},\\n"+\n'.format(first)
-            for row in res:
-                plot_data_auction += '"{},{}\\n"+\n'.format(row[0], row[1])
-            plot_data_auction += '"{},\\n"+\n'.format(last)
-            plot_data_auction = plot_data_auction[:-3] + '",'
+            if res:
+                first = res[0][0]
+                last = res[-1][0]
+                print(first, last)
+                for row in res:
+                    plot_data_fleamarket += '"{},{}\\n"+\n'.format(row[0], row[1])
+                plot_data_fleamarket = plot_data_fleamarket[:-3] + '",'
+
+                cur.execute("""SELECT substr(posts.time_stamp_sold,0,17) as time, count(posts.obj_id) FROM posts
+                               WHERE posts.time_stamp_sold IS NOT NULL AND posts.sold_on = "auktion"
+                               GROUP BY substr(posts.time_stamp_sold,0,17)
+                               ORDER BY time asc""")
+                res = cur.fetchall()
+
+                # Compile plot data in csv format that are injected into the script part of the template
+                plot_data_auction += '"{},\\n"+\n'.format(first)
+                for row in res:
+                    plot_data_auction += '"{},{}\\n"+\n'.format(row[0], row[1])
+                plot_data_auction += '"{},\\n"+\n'.format(last)
+                plot_data_auction = plot_data_auction[:-3] + '",'
 
         return render_template('plot_sales.html', plot_data_auction=plot_data_auction, plot_data_fleamarket=plot_data_fleamarket)
 
@@ -958,7 +1009,7 @@ def json_get_type(type_nr):
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT sale_type FROM used_types WHERE type_id=?", (type_nr,))
+        cur.execute("SELECT sale_type, scientific_name_obligatory, display_scientific_name_input FROM used_types WHERE type_id=?", (type_nr,))
 
         columns = [d[0] for d in cur.description]
         sql_result = cur.fetchall()
@@ -1010,7 +1061,7 @@ def json_get_sell_types():
     conn = sqlite3.connect(DATABASE)
     with conn:
         cur = conn.cursor()
-        cur.execute(""" SELECT type_id, description, sale_type FROM used_types""")
+        cur.execute("""SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM used_types""")
 
         columns = [d[0] for d in cur.description]
         sql_result = cur.fetchall()
@@ -1262,7 +1313,6 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
 
     pdf = labels.make_pdf(data, border=False)
     return pdf
-
 
 
 @app.route('/economic_report_view')

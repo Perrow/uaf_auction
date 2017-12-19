@@ -15,26 +15,26 @@ $(document).ready(function () {
 
     // Stop sending form with enter
     $("form").bind("keypress", function (e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode === 13) {
             return false;
         }
     });
 
-    // Toggles the fixed price and minimum price boxes according to the select status
-    var add_toggler_func = function (rownr) {
-        console.log("row " + rownr);
-        var type_id = "#type" + rownr;
-        var fixed_price_div = "#fixed_price_div" + rownr;
-        $(fixed_price_div).hide();
-
-        $(type_id).change(function () {
+    var select_change = function () {
+        var rownr = $(this).attr("id").substring(4);
+            console.log("rownr_select_change_" + rownr);
             var type_id = "#type" + rownr;
             var min_price_div_id = "#min_price_div" + rownr;
+            var min_price_id = "#min_price" + rownr;
             var fixed_price_div_id = "#fixed_price_div" + rownr;
+            var fixed_price_id = "#fixed_price" + rownr;
+            var sciname_div_id = "#sciname_div_id" + rownr;
             var type_id_val = $(type_id).val();
             console.log(type_id_val);
             var min_price_div = $(min_price_div_id);
             var fixed_price_div = $(fixed_price_div_id);
+            var sciname_div = $(sciname_div_id);
+            var sciname = $("#sciname" + rownr);
 
             $.ajax({
                 url: 'json_get_type/' + type_id_val,
@@ -48,25 +48,51 @@ $(document).ready(function () {
                         if (data.sale_type == "auction") {
                             fixed_price_div.hide();
                             min_price_div.show();
+                            $(fixed_price_id).val("");
+                            console.log("fixed_price_id ", fixed_price_id);
                             console.log("hide fixed, show min");
                         } else {
                             fixed_price_div.show();
                             min_price_div.hide();
+                            $(min_price_id).val("");
+                            console.log("min_price_id ", min_price_id);
                             console.log("hide min, show fixed");
                         }
+                        if (data.display_scientific_name_input == "yes") {
+                            sciname_div.show();
+                            console.log("show scientific name div", sciname_div_id);
+                        } else {
+                            sciname_div.hide();
+                            sciname.val("");  // Empty the scientific input when changing to an auction type that do not have scientific name.
+                            console.log("hide scientific name div", sciname_div_id);
+                        }
+                        if (data.scientific_name_obligatory == "yes") {
+                            sciname.addClass("check_sciname");
+                            console.log("check scientific name ", sciname_div_id);
+                        } else {
+                            sciname.removeClass("check_sciname");
+                            console.log("do not check scientific name", sciname_div_id);
+                        }
                     }
-                    ;
 
                     console.log('.ajax() request returned successfully.');
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-                },
+                }
             });
-        });
 
-        ;
     }
+
+    
+    // Toggles the fixed price, minimum price boxes and the scientific name box according to the select status
+    var add_toggler_func = function (rownr) {
+        console.log("row " + rownr);
+        var type_id = "#type" + rownr;
+        var fixed_price_div = "#fixed_price_div" + rownr;
+        $(fixed_price_div).hide();
+        $(type_id).change(select_change);
+    };
 
 
     //  Copies all values from the post above to current post
@@ -83,6 +109,8 @@ $(document).ready(function () {
         var dest_min_price_id = "#" + "min_price" + rownr;
         var source_fixed_price_id = "#" + "fixed_price" + prev_row;
         var dest_fixed_price_id = "#" + "fixed_price" + rownr;
+        var source_quantity_id = "#" + "quantity" + prev_row;
+        var dest_quantity_id = "#" + "quantity" + rownr;
         var source_description_id = "#" + "description" + prev_row;
         var dest_description_id = "#" + "description" + rownr;
         $(copybutton_id).click(function () {
@@ -91,6 +119,7 @@ $(document).ready(function () {
             $(dest_popname_id).val($(source_popname_id).val());
             $(dest_min_price_id).val($(source_min_price_id).val());
             $(dest_fixed_price_id).val($(source_fixed_price_id).val());
+            $(dest_quantity_id).val($(source_quantity_id).val());
             $(dest_description_id).val($(source_description_id).val());
             $(dest_type_id).trigger("change");
         });
@@ -124,12 +153,11 @@ $(document).ready(function () {
                     });
                     console.log(option_values);
                 }
-                ;
                 console.log('.ajax() request returned successfully.');
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-            },
+            }
         });
     };
 
@@ -144,6 +172,7 @@ $(document).ready(function () {
         rowNum = Number($("#numberofposts").val());
         for (var i = 0; i < rowNum; i++) {
             var type_id = "type" + i;
+            var sciname_div_id = "sciname_div_id" + i;
             var sciname_id = "sciname" + i;
             var sciname_id_error = "sciname_error" + i;
             var popname_id = "popname" + i;
@@ -154,6 +183,7 @@ $(document).ready(function () {
             var fixed_price_div_id = "fixed_price_div" + i;
             var min_price_error_id = "min_price_error" + i;
             var fixed_price_error_id = "fixed_price_error" + i;
+            var quantity_id = "quantity" + i;
             var description_id = "description" + i;
             var copybutton_id = "copybutton" + i;
 
@@ -169,13 +199,13 @@ $(document).ready(function () {
                 '<br>' +
 
                 '<div class="row">' +
-                '<div class="col-sm-5">' +
+                '<div class="col-sm-5" id="' + sciname_div_id + '">' +
                 '<label class="control-label" for="' + sciname_id + '">Vetenskapligt namn:</label><br>' +
                 '<input class="form-control sciname" id="' + sciname_id + '" name="sciname" type="text" value="">' +
                 '<div id="' + sciname_id_error + ' " class="error"></div>' +
                 '</div>' +
                 '<div class="col-sm-5">' +
-                '<label class="control-label" for="' + popname_id + '">Populärnamn:</label><br>' +
+                '<label class="control-label" for="' + popname_id + '">Namn:</label><br>' +
                 '<input class="form-control" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
                 '</div>' +
                 '<div class="col-sm-2"  id="' + min_price_div_id + '">' +
@@ -184,16 +214,21 @@ $(document).ready(function () {
                 '   <input class="form-control min_price_input" id="' + min_price_id + '" name="min_price" type="text" value=""> <br>' +
                 '</div>' +
                 '<div  class="col-sm-2" id="' + fixed_price_div_id + '" class="left ten ">' +
-                '<label  class="control-label" for="' + fixed_price_id + '">Fast pris:</label>' +
+                '<label class="control-label" for="' + fixed_price_id + '">Fast pris:</label>' +
                 '<input class="form-control fixed_price_input" id="' + fixed_price_id + '" name="fixed_price" type="text" value="">' +
                 '<div id="' + fixed_price_error_id + ' " class="error"></div>' +
 
                 '</div>' +
                 '</div>' + // end row
                 '<div class="row">' +
-                '<div class="col-sm-12">' +
-                '<label class="control-label" for="' + description_id + '">Beskrivning, ange gärna antal, färg eller annat intressant:</label><br>' +
-                '<input class="form-control" id="' + description_id + '" name="description" type="text" value=""> <br>' +
+                '<div class="col-sm-2">' +
+                '<label class="control-label" for="' + quantity_id + '">Antal:</label><br>' +
+                '<input class="form-control" id="' + quantity_id + '" name="quantity" type="text" value=""> <br>' +  
+                '</div>' + 
+                '<div class="col-sm-10">' +
+                '<label class="control-label" for="' + description_id + '">Beskrivning, färg eller annat intressant. Max 50 tecken:</label><br>' +
+                '<input class="form-control" id="' + description_id + '" name="description" type="text" value="" maxlength="50"> <br>' +
+                '</div>' + 
                 '</div>' + // end row
                 '</div>'
             if (i > 0) {  // Do not put copy button on the first subform
@@ -204,6 +239,8 @@ $(document).ready(function () {
             $("#form_elements").append(new_post_html);
             copy_func(i);
             add_toggler_func(i);
+            select_change.call($("#type" + i)); // call the function with the parameter as this in the function
+
             console.log(sale_type);
             if (sale_type == "auction") {
                 $("#" + fixed_price_div_id).hide();
@@ -265,32 +302,27 @@ $(document).ready(function () {
             }
         });
 
-        $(".sciname").each(function () {
+        $(".sciname").each(function () { // Check that a scientific name is given if required
             var nr = $(this).attr("id").substring(7);
             var sci_name_id = "#sciname" + nr;
             var pop_name_id = "#popname" + nr;
             var type_id = "#type" + nr;
-            var selected_type_text = $(type_id + ' option:selected').text();
-            if ($(sci_name_id).val() == "" && $(pop_name_id).val() == "") {
-                console.log("Empty post, skipping test for scientific namn.")
-            } else {
-                if (selected_type_text.includes("Fisk")) {  // Only check for scientific name on fishes
-                    console.log("Fisk");
-                    // Popname or sciname given
-                    if ($(this).val() == "") {
-                        console.log("Missing scientific name");
-                        $(this).siblings('div').text(" Du måste fylla i vetenskapligt namn");
-                        $(this).addClass("error_border");
-                        all_ok = false;
-                    } else {
-                        $(this).removeClass("error_border");
-                        $(this).siblings('div').text("");
-                    }
+            if ($(sci_name_id).hasClass("check_sciname")) {
+
+                // Popname or sciname given
+                if ($(this).val() == "") {
+                    console.log("Missing scientific name");
+                    $(this).siblings('div').text(" Du måste fylla i vetenskapligt namn");
+                    $(this).addClass("error_border");
+                    all_ok = false;
                 } else {
                     $(this).removeClass("error_border");
                     $(this).siblings('div').text("");
-                    console.log("No fisk");
                 }
+            } else {
+                $(this).removeClass("error_border");
+                $(this).siblings('div').text("");
+                console.log("No check for sciname");
             }
         });
 
@@ -303,6 +335,8 @@ $(document).ready(function () {
 
     var option_values = "";
     var sale_type = "error";
+    var scientific_name_obligatory = "";
+    var display_scientific_name_input = "";
     $("#submit").hide();
 
     console.log('Everything is ready.');

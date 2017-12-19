@@ -36,6 +36,8 @@ $(document).ready(function(){
             var type_id = "#master_type";
             var min_price_div_id = "#min_price_div_id";
             var fixed_price_div_id = "#fixed_price_div_id";
+            var min_price_id = "#min_price_id";
+            var fixed_price_id = "#fixed_price_id";
             var type_id_val = $(type_id).val();
             console.log(type_id_val);
             var min_price_div = $(min_price_div_id);
@@ -53,10 +55,12 @@ $(document).ready(function(){
                         if (data.sale_type == "auction") {
                             fixed_price_div.hide();
                             min_price_div.show();
+                            $(fixed_price_id).val("");
                             console.log("hide fixed, show min");
                         } else {
                             fixed_price_div.show();
                             min_price_div.hide();
+                            $(min_price_id).val("");
                             console.log("hide min, show fixed");
                         }
                     };

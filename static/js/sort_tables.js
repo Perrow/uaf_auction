@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    $('#posttable').DataTable({
+    $('#sorted_table').DataTable({
         paging: false
     });
 });
