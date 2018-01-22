@@ -10,14 +10,16 @@
     <table class="table-hover">
         <tr>
             <td>Etiketter för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} "> PDF </a></td>
+   
+                            
+                    <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('labels_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
         </tr>
         <tr>
             <td>Outskrivna etiketter för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('unprinted_labels') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('unprinted_labels') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('unprinted_labels_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
@@ -31,35 +33,42 @@
         </tr>           
         <tr>
             <td>Sammanställning för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
         </tr>
         <tr>
+            <td>Sammanställning för alla incheckade säljare:</td>
+            <td><a class="btn btn-link" href=" {{ url_for('compilation_view_checked') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
+            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print_checked') }} ">
+                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
+            </td>
+        </tr>        
+        <tr>
             <td>Inlämningskvitton för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('receipt_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
         </tr>
         <tr>
             <td>Ekonomisk rapport:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('economic_report_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
         </tr>
         <tr>
             <td>Fastabordet säljarkvitto:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('clerk_receipt_view') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('clerk_receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('clerk_receipt_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>
         </tr>        
         <tr>
             <td>Auktionslista:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> PDF </a></td>
+            <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
             <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} ">
                 <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
             </td>

@@ -17,6 +17,7 @@ $(document).ready(function () {
                     $('#seller_name').html("").fadeIn();
                     $('#type').html("").fadeIn();
                     $('#sold').html("").fadeIn();
+                    $('#checked_in').html("").fadeIn();
                     $('#error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
                 } else {
                     console.log("Found");
@@ -31,6 +32,11 @@ $(document).ready(function () {
                     } else {
                         $('#type').html("").fadeIn();
                     }
+                    if (data.is_checked_in != "yes") {
+                        $('#checked_in').html("Ej incheckad post").fadeIn();
+                    } else {
+                        $('#checked_in').html("").fadeIn();
+                    }                    
                     if (data.sold_on !== null) {
                         $('#sold').html("Redan sålt").fadeIn();
                         document.getElementById("price").value = data.sold_price;
@@ -52,6 +58,7 @@ $(document).ready(function () {
                 $('#seller_name').html("").fadeIn();
                 $('#type').html("").fadeIn();
                 $('#sold').html("").fadeIn();
+                $('#checked_in').html("").fadeIn();
                 $('#error').html("INGET POST ID GAVS").fadeIn();
                 console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
             },

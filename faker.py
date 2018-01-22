@@ -216,7 +216,7 @@ class Faker:
         phone_number = self.get_phone()
         password = self.get_password()
         club = self.get_aquarium_club()
-        return name, address, email, phone_number, club, admin, password, time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes"
+        return name, address, email, phone_number, club, admin, password, time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes", "no"
 
     def get_fish_name(self):
         return random.choice(self.fish_names)
@@ -236,7 +236,7 @@ class Faker:
         fixed_price = None
         if random.randint(0, 100) < 20:
             mimimum_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no", "no"
 
     def generate_plant_fleamarket_post(self, seller_id):
         type = 8
@@ -245,7 +245,7 @@ class Faker:
         quantity = random.randint(1, 10)
         mimimum_price = None
         fixed_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no", "no"
 
     def generate_shrimp_fleamarket_post(self, seller_id):
         type = 4
@@ -254,7 +254,7 @@ class Faker:
         quantity = random.randint(1, 10)
         mimimum_price = None
         fixed_price = random.randint(1, 10) * 10
-        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no"
+        return seller_id, sci_name, pop_name, quantity, comment, type, time.strftime("%Y-%m-%d %H:%M:%S"), mimimum_price, fixed_price, "no", "no"
 
 if __name__ == "__main__":
     

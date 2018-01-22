@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %} Index {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+<div class="container">
+    <h1>Registrera dig som användare för att kunna förhandsanmäla.</h1>
+
+    <br>
+    <form id="register_seller" class="form-horizontal" action="/register_seller" method="POST">
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="name">Namn:</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="name" name="name" placeholder="Förnamn Efternamn">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="address">Adress:</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="address" name="address" placeholder="Gatuadress, postnummer ort">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="email">Email:</label>
+            <div class="col-sm-9">
+                <input type="email" class="form-control" id="email" name="email" placeholder="nnn@nn.nn">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="phone">Telefonnummer:</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="phone" name="phone" placeholder="012-3456789">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="aquarium_club">Akvarieförening:</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="aquarium_club" name="aquarium_club" placeholder="Akvarieförening">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="password">Lösenord:</label>
+            <div class="col-sm-9">
+                <input type="password" class="form-control" id="password" name="password" placeholder="lösenord" data-toggle="password">
+              </div>
+        </div>
+        <div id="message" class="bg-danger"></div>
+
+        <div class="checkbox">
+            <label class="control-label"><input type="checkbox" id="cookies" name="cookies" value="yes">Jag accepterar att denna tjänst använder cookies för att hantera inloggning.</label>
+        </div>
+        <div class="checkbox">
+            <label class="control-label"><input type="checkbox" id="database" name="database" value="yes">Jag accepterar att denna tjänst lagrar mina uppgifter i en databas.</label>
+        </div>
+        <br>
+        <div id="checkbox_message" class="bg-danger"></div>
+        <br>
+        <!--Send button-->
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <input type="submit" value="Skicka" name="submit" class="btn btn-primary">
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/create_event.js') }}"></script>
+
+{% endblock %}

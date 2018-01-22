@@ -1,124 +1,123 @@
 {% extends "base.html" %}
 {% block title %} Loppis {% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
 
 {% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Loppis</h1>
-    <div class=row>
-        <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
-        <div class="col-sm-6">
-            <h3>Antal sålda auktionsposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{sold_statistic[3]}}%">
-                    <div id="sold_auction_text">{{sold_statistic[2]}} av {{sold_statistic[1]}}</div>
+    <div class="container">
+        <h1>Loppis</h1>
+        <div class=row>
+            <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
+            <div class="col-sm-6">
+                <h3>Antal sålda auktionsposter</h3>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{ sold_statistic[3] }}%">
+                        <div id="sold_auction_text">{{ sold_statistic[2] }} av {{ sold_statistic[1] }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <h3>Antal sålda fastabordetposter</h3>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{ sold_statistic[6] }}%">
+                        <div id="sold_fleamarket_text">{{ sold_statistic[5] }} av {{ sold_statistic[4] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <h3>Antal sålda fastabordetposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{sold_statistic[6]}}%">
-                    <div id="sold_fleamarket_text">{{sold_statistic[5]}} av {{sold_statistic[4]}}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <p> Fyll i postens nummer, tryck TAB. </p>
+        <p> Fyll i postens nummer, tryck TAB. </p>
 
-    <div id="sum" class="well">Att betala:</div>
+        <div id="sum" class="well">Att betala:</div>
 
-    <form action="/loppis" method="POST">
-        <div id="form_elements">
-            <div class="row">
-                <div class="col-sm-2">
-                    <label for="post1">Post nr:</label>
-                </div>
-                <div class="col-sm-2">
-                    <label for="price1">Pris:</label>
-                </div>
-                <div class="col-sm-2">
-                    <label for="info1">Namn:</label>
-                </div>
-            </div>
-            <div id="row1">
+        <form action="/loppis" method="POST">
+            <div id="form_elements">
                 <div class="row">
                     <div class="col-sm-2">
-                        <!--<label for="post1">Post nr:</label>-->
-                        <input class="loppis post_id form-control" id="post1" name="post_id" type="text" value="">
+                        <label for="post1">Post nr:</label>
                     </div>
                     <div class="col-sm-2">
-                        <!--<label for="price1">Pris:</label>-->
-                        <input class="loppis price form-control" id="price1" name="price" type="text" value="">
+                        <label for="price1">Pris:</label>
                     </div>
-                    <div class="col-sm-6">
-                        <!--<label for="info1"></label><br>-->
-                        <div class="form-control" id="info1">
-                        </div>
-                    </div>
-                    <div class="col-sm-1">
-                        <button type="button" id="remove1" class="btn btn-danger" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>
+                    <div class="col-sm-2">
+                        <label for="info1">Namn:</label>
                     </div>
                 </div>
-                <br>
-            </div>
+                <div id="row1">
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <!--<label for="post1">Post nr:</label>-->
+                            <input class="loppis post_id form-control" id="post1" name="post_id" type="text" value="">
+                        </div>
+                        <div class="col-sm-2">
+                            <!--<label for="price1">Pris:</label>-->
+                            <input class="loppis price form-control" id="price1" name="price" type="text" value="">
+                        </div>
+                        <div class="col-sm-6">
+                            <!--<label for="info1"></label><br>-->
+                            <div class="form-control" id="info1">
+                            </div>
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" id="remove1" class="btn btn-danger" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>
+                        </div>
+                    </div>
+                    <br>
+                </div>
 
-        </div>
+            </div>
+            <br>
+            <button id="addbutton" type="button" class="btn btn-primary">Extra säljrad</button>
+            <button id="sumbutton" type="button" class="btn btn-primary">Beräkna summa</button>
+            <input id="submit" name="submit" type="submit" class="btn btn-primary" value="Skicka">
+        </form>
         <br>
-        <button id="addbutton" type="button" class="btn btn-primary">Extra säljrad</button>
-        <button id="sumbutton" type="button" class="btn btn-primary">Beräkna summa</button>
-        <input id="submit" name="submit" type="submit" class="btn btn-primary" value="Skicka">
-    </form>
-    <br>
 
-    <div class="warning" id="type"></div>
+        <div class="warning" id="type"></div>
+        <div class="warning" id="sold"></div>
+        <div class="warning" id="checked_in"></div>
+        <div class="error" id="error"></div>
+        <br>
 
-    <div class="warning" id="sold"></div>
+        <div class="well">
 
-    <div class="error" id="error"></div>
-    <br>
-
-    <div class="well">
-
-        <div class="row">
-            <div class="col-sm-2">
-                Namn:
+            <div class="row">
+                <div class="col-sm-2">
+                    Namn:
+                </div>
+                <div class="col-sm-10">
+                    <div id="plain_name"></div>
+                </div>
             </div>
-            <div class="col-sm-10">
-                <div id="plain_name"></div>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-sm-2">
-                Vetenskapligt namn:
+            <div class="row">
+                <div class="col-sm-2">
+                    Vetenskapligt namn:
+                </div>
+                <div class="col-sm-10">
+                    <span id="scientific_name"></span>
+                </div>
             </div>
-            <div class="col-sm-10">
-                <span id="scientific_name"></span>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-sm-2">
-                Beskrivning:
+            <div class="row">
+                <div class="col-sm-2">
+                    Beskrivning:
+                </div>
+                <div class="col-sm-10">
+                    <span id="description"></span>
+                </div>
             </div>
-            <div class="col-sm-10">
-                <span id="description"></span>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-sm-2">
-                Säljare:
-            </div>
-            <div class="col-sm-10">
-                <span id="seller_name"></span>
+            <div class="row">
+                <div class="col-sm-2">
+                    Säljare:
+                </div>
+                <div class="col-sm-10">
+                    <span id="seller_name"></span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
 {% endblock %}

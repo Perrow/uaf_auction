@@ -30,11 +30,11 @@
         <ul class="nav navbar-nav">
             {% if not current_user.is_authenticated %}
                 <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-                <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
+                <li><a href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
                     säljare</a></li>
             {% endif %}
             {% if current_user.is_admin %}
-                <li><a href="{{ url_for('new_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
+                <li><a href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
                     säljare</a></li>
             {% endif %}
 
@@ -74,6 +74,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('list_seller_info') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa info om säljare</a>
                             <li><a href="{{ url_for('list_seller_actions') }}"><i class="fa fa-users" aria-hidden="true"></i> Hantera säljare</a>
+                            <li><a href="{{ url_for('list_seller_checkin') }}"><i class="fa fa-users" aria-hidden="true"></i> Checka in säljare</a>
                         </ul>
                     </li>
                     <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>

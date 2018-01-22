@@ -131,7 +131,7 @@ class Receipt(object):
             story.append(p)
 
             story.append(Spacer(1, 10 * mm))
-            p = Paragraph(u"Undertecknad accepterar oavanstående.", normal)
+            p = Paragraph(u"Undertecknad accepterar ovanstående.", normal)
             story.append(p)
             story.append(Spacer(1, 10 * mm))
             p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)

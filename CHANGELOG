@@ -1,3 +1,11 @@
+Version 0.67 2018-01-18
+    Issue 57 & 58 Added columns for check in on event for seller and posts in the database.
+    Issue 57 & 58 Added pages for set check in status for sellers and posts. 
+    Issue 58 Auction and fleamarket pages rises a warning when trying to sell a post that has not been checked in.
+    Issue 58 Newly created posts are marked as not checked in.
+    Issue 57 Newly created selles are marked as not checked in.
+    Issue 57 Compilation pdf with only checked in sellers is available on the report page.
+
 Version 0.66 2017-12-18
     Split the sellers page into one information page with address and such and a manage seller page, where admins can print, remove etc.
     Added sorting to the sellers tables.

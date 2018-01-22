@@ -28,7 +28,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.66"
+VERSION = "0.67"
 
 # For flask-login
 lm = LoginManager()
@@ -169,7 +169,7 @@ def edit_password(seller_id=None):
         con = sqlite3.connect(DATABASE)
         with con:
             cur = con.cursor()
-            sql = 'UPDATE sellers SET password = ? WHERE seller_id = ?' 
+            sql = 'UPDATE sellers SET password = ? WHERE seller_id = ?'
             cur.execute(sql, [encrypted_password, seller_id])
             flash("Nytt lösenord för säljare: {} sparat.".format(seller_id))
         return redirect(url_for('list_seller_actions'))
@@ -186,8 +186,8 @@ def edit_password(seller_id=None):
                 return redirect(url_for('list_seller_actions'))
 
 
-@app.route('/new_seller', methods=['GET', 'POST'])
-def new_seller():
+@app.route('/register_seller', methods=['GET', 'POST'])
+def register_seller():
     """
    Page for adding new sellers to the database
     :return:
@@ -205,6 +205,7 @@ def new_seller():
         accept_database = "no"
         if request.form.get('database'):
             accept_database = "yes"
+        has_checked_in = "no"
 
         conn = sqlite3.connect(DATABASE)
         with conn:
@@ -216,8 +217,8 @@ def new_seller():
             else:
                 salt = bcrypt.gensalt()
                 encrypted_password = bcrypt.hashpw(password, salt)
-                seller_data = [name, address, email, phone, aquarium_club, encrypted_password, "no", time.strftime("%Y-%m-%d %H:%M:%S"), accept_cookies, accept_database]
-                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
+                seller_data = [name, address, email, phone, aquarium_club, encrypted_password, "no", time.strftime("%Y-%m-%d %H:%M:%S"), accept_cookies, accept_database, has_checked_in]
+                cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp, accepts_cookies, accepts_database, has_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
 
                 flash("Användare {} skapad.".format(name))
             authed_user = auth(email, password)
@@ -226,7 +227,7 @@ def new_seller():
 
             return redirect(url_for('index'))
     else:
-        return render_template('new_seller.html')
+        return render_template('register_seller.html')
 
 
 @app.route("/admin_register_many_posts", methods=['GET', 'POST'])
@@ -252,7 +253,7 @@ def admin_register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
 
             flash("Posterna registrerade.")
 
@@ -303,7 +304,7 @@ def register_many_posts():
                 if scientific_name == "" and plain_name == "":
                     pass
                 else:
-                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no"))
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
 
             flash("Posterna registrerade.")
 
@@ -381,6 +382,23 @@ def list_my_posts():
         WHERE seller_id = ?""", [cur_id])
         result = cur.fetchall()
         return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id, registration_open=is_registration_open())
+
+
+@app.route('/list_post_checkin')
+@app.route('/list_post_checkin/<seller_id>')
+@admin_required
+def list_posts_checkin(seller_id=None):
+    """
+    Page for listing and check in and out sellers posts in the database
+    """
+    if seller_id:
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            list_sql = 'SELECT obj_id, scientific_name, plain_name, description, is_checked_in FROM posts WHERE seller_id=?'
+            cur.execute(list_sql, [seller_id])
+            result = cur.fetchall()
+            return render_template('list_posts_checkin.html', data=result)
 
 
 @app.route('/delete_post')
@@ -517,6 +535,23 @@ def list_seller_actions():
     return render_template('list_seller_actions.html', data=result)
 
 
+@app.route('/list_seller_checkin')
+@admin_required
+def list_seller_checkin():
+    """
+    Page for listing all sellers in the database
+    """
+    conn = sqlite3.connect(DATABASE)
+
+    with conn:
+        cur = conn.cursor()
+        sql = """SELECT cast(sellers.seller_id as text), sellers.name, count(posts.obj_id) as num_posts, has_checked_in FROM sellers
+                 LEFT JOIN posts ON sellers.seller_id=posts.seller_id GROUP BY sellers.seller_id;"""
+        cur.execute(sql)
+        result = cur.fetchall()
+    return render_template('list_seller_checkin.html', data=result)
+
+
 @app.route('/list_seller_info')
 @admin_required
 def list_seller_info():
@@ -550,6 +585,74 @@ def delete_seller(seller_id=None):
             delete_posts_sql = "DELETE FROM posts WHERE seller_id=?"
             cur.execute(delete_posts_sql, [seller_id])
     return redirect(url_for('list_seller_actions'))
+
+
+@app.route('/check_in_seller')
+@app.route('/check_in_seller/<seller_id>')
+@admin_required
+def check_in_seller(seller_id=None):
+    """
+    Marks a seller as checked in at the event
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            checkin_seller_sql = 'UPDATE sellers SET has_checked_in = "yes" WHERE seller_id=?'
+            cur.execute(checkin_seller_sql, [seller_id])
+            checkin_posts_sql = 'UPDATE posts SET is_checked_in = "yes" WHERE seller_id=?'
+            cur.execute(checkin_posts_sql, [seller_id])
+    return redirect(url_for('list_seller_checkin'))
+
+
+@app.route('/check_out_seller')
+@app.route('/check_out_seller/<seller_id>')
+@admin_required
+def check_out_seller(seller_id=None):
+    """
+    Marks a seller as not checked in at the event
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            checkin_seller_sql = 'UPDATE sellers SET has_checked_in = "no" WHERE seller_id=?'
+            cur.execute(checkin_seller_sql, [seller_id])
+            checkin_posts_sql = 'UPDATE posts SET is_checked_in = "no" WHERE seller_id=?'
+            cur.execute(checkin_posts_sql, [seller_id])
+    return redirect(url_for('list_seller_checkin'))
+
+
+@app.route('/check_in_post')
+@app.route('/check_in_post/<post_id>')
+@admin_required
+def check_in_post(post_id=None):
+    """
+    Marks a seller as checked in at the event
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if post_id:
+            checkin_posts_sql = 'UPDATE posts SET is_checked_in = "yes" WHERE obj_id=?'
+            cur.execute(checkin_posts_sql, [post_id])
+    return redirect(request.referrer)
+
+
+@app.route('/check_out_post')
+@app.route('/check_out_post/<post_id>')
+@admin_required
+def check_out_post(post_id=None):
+    """
+    Marks a seller as not checked in at the event
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if post_id:
+            checkin_seller_sql = 'UPDATE posts SET is_checked_in = "no" WHERE obj_id=?'
+            cur.execute(checkin_seller_sql, [post_id])
+        return redirect(request.referrer)
 
 
 @app.route('/make_admin')
@@ -1033,7 +1136,7 @@ def get_json(post_id):
     with conn:
         cur = conn.cursor()
 
-        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, used_types.sale_type as type, posts.minimum_price
+        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, used_types.sale_type as type, posts.minimum_price, posts.is_checked_in
         FROM sellers
         INNER JOIN posts
         ON sellers.seller_id=posts.seller_id
@@ -1490,9 +1593,9 @@ def get_clerk_receipt_pdf():
     with conn:
         club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
         cur = conn.cursor()
-        sql = """SELECT sellers.name, SUM(sold_price) FROM posts 
-                JOIN sellers ON sellers.seller_id = posts.sold_by
-                WHERE posts.sold_by = ?"""
+        sql = """SELECT sellers.name, SUM(sold_price) FROM posts
+                 JOIN sellers ON sellers.seller_id = posts.sold_by
+                 WHERE posts.sold_by = ?"""
         cur.execute(sql, [clerk_id])
         data = cur.fetchone()
         print(data)
@@ -1563,7 +1666,22 @@ def compilation_view(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: pdf response
     """
-    pdf = get_compilation_pdf(selected_id)
+    pdf = get_compilation_pdf(selected_id=selected_id)
+
+    response = make_response(pdf)
+    response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
+    response.mimetype = 'application/pdf'
+    return response
+
+
+@app.route('/compilation_view_checked')
+@admin_required
+def compilation_view_checked():
+    """
+    Generates a downloadable pdf of seller receipts for sellers that have checked in at the event
+    :return: pdf response
+    """
+    pdf = get_compilation_pdf(only_checked=True)
 
     response = make_response(pdf)
     response.headers['Content-Disposition'] = "attachment; filename=result.pdf"
@@ -1580,15 +1698,28 @@ def compilation_server_print(selected_id=None):
     :param selected_id: selected seller id or None for all sellers
     :return: Nothing
     """
-    pdf = get_compilation_pdf(selected_id)
+    pdf = get_compilation_pdf(selected_id=selected_id)
     server_print(pdf, printer="paper")
     return '', 204  # empty response
 
 
-def get_compilation_pdf(selected_id=None):
+@app.route('/compilation_print_checked')
+@admin_required
+def compilation_server_print_checked():
+    """
+    Writes the compilation pdf on a printer connected to the server via CUPS for sellers that have checked in at the event
+    :return: Nothing
+    """
+    pdf = get_compilation_pdf(only_checked=True)
+    server_print(pdf, printer="paper")
+    return '', 204  # empty response
+
+
+def get_compilation_pdf(selected_id=None, only_checked=False):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
     :param selected_id:
+    :param only_checked: Only select the sellers that have checked in at the event
     :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
@@ -1600,7 +1731,11 @@ def get_compilation_pdf(selected_id=None):
 
         # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
         # seller_ids = cur.fetchall()
-        cur.execute("SELECT DISTINCT seller_id FROM sellers")
+        if only_checked:
+            seller_sql = 'SELECT DISTINCT seller_id FROM sellers WHERE has_checked_in="yes"'
+        else:
+            seller_sql = 'SELECT DISTINCT seller_id FROM sellers'
+        cur.execute(seller_sql)
         seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:
@@ -1656,10 +1791,11 @@ def receipt_server_print(selected_id=None):
     return '', 204  # empty response
 
 
-def get_receipt_pdf(selected_id=None):
+def get_receipt_pdf(selected_id=None, checked=False):
     """
     Generates a receipt pdf for one or all sellers.
     :param selected_id: id of selected seller or none for all
+    :param checked: Only for the sellers that have checked in at the event
     :return: a pdf as a cStringIO object
     """
     conn = sqlite3.connect(DATABASE)
@@ -1680,7 +1816,8 @@ def get_receipt_pdf(selected_id=None):
         if selected_id:
             seller_ids = [[selected_id]]
         else:
-            cur.execute("SELECT DISTINCT seller_id FROM posts ORDER BY seller_id")
+            seller_sql = 'SELECT DISTINCT seller_id FROM posts ORDER BY seller_id'
+            cur.execute(seller_sql)
             seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:

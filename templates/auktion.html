@@ -1,111 +1,110 @@
 {% extends "base.html" %}
 {% block title %} Auktion {% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
 
 {% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Auktion</h1>
+    <div class="container">
+        <h1>Auktion</h1>
 
-    <div class=row>
-        <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
-        <div class="col-sm-6">
-            <h3>Antal sålda auktionsposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{sold_statistic[3]}}%">
-                    <div id="sold_auction_text">{{sold_statistic[2]}} av {{sold_statistic[1]}}</div>
+        <div class=row>
+            <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
+            <div class="col-sm-6">
+                <h3>Antal sålda auktionsposter</h3>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{ sold_statistic[3] }}%">
+                        <div id="sold_auction_text">{{ sold_statistic[2] }} av {{ sold_statistic[1] }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <h3>Antal sålda fastabordetposter</h3>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{ sold_statistic[6] }}%">
+                        <div id="sold_fleamarket_text">{{ sold_statistic[5] }} av {{ sold_statistic[4] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <h3>Antal sålda fastabordetposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{sold_statistic[6]}}%">
-                    <div id="sold_fleamarket_text">{{sold_statistic[5]}} av {{sold_statistic[4]}}</div>
+        <p> Fyll i postens nummer, tryck TAB. </p>
+
+        <form action="/auktion" method="POST">
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="post_id">Postens nummer:</label>
+
+                    <input autofocus="autofocus" class="form-control" id="post_id" name="post_id" type="text" value="">
+                </div>
+
+                <div class="col-sm-2">
+                    <label for="price">Pris:</label>
+
+                    <input class="form-control" id="price" name="price" type="text" value="">
                 </div>
             </div>
-        </div>
-    </div>
-    <p> Fyll i postens nummer, tryck TAB. </p>
+            <label for="sale_type"></label>
 
-    <form action="/auktion" method="POST">
-        <div class="row">
-            <div class="col-sm-2">
-                <label for="post_id">Postens nummer:</label>
+            <input id="sale_type" name="sale_type" type="hidden" value="auktion">
+            <br>
+            <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Skicka">
 
-                <input autofocus="autofocus" class="form-control" id="post_id" name="post_id" type="text" value="">
-            </div>
-
-            <div class="col-sm-2">
-                <label for="price">Pris:</label>
-
-                <input class="form-control" id="price" name="price" type="text" value="">
-            </div>
-        </div>
-        <label for="sale_type"></label>
-
-        <input id="sale_type" name="sale_type" type="hidden" value="auktion">
+        </form>
         <br>
-        <input class="btn btn-primary" id="submit" name="submit" type="submit" value="Skicka">
 
-    </form>
-    <br>
+        <div class="warning" id="type"></div>
+        <div class="warning" id="sold"></div>
+        <div class="warning" id="checked_in"></div>
+        <div class="error" id="error"></div>
+        <br>
 
-    <div class="warning" id="type"></div>
-
-    <div class="warning" id="sold"></div>
-
-    <div class="error" id="error"></div>
-    <br>
-
-    <div class="well">
-        <div class="row">
-            <div class="col-sm-2">
-                Reservationspris:
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-2">
+                    Reservationspris:
+                </div>
+                <div class="col-sm-10">
+                    <div id="min_price"></div>
+                </div>
             </div>
-            <div class="col-sm-10">
-                <div id="min_price"></div>
+
+            <div class="row">
+                <div class="col-sm-2">
+                    Namn:
+                </div>
+                <div class="col-sm-10">
+                    <div id="plain_name"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2">
+                    Vetenskapligt namn:
+                </div>
+                <div class="col-sm-10">
+                    <span id="scientific_name"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2">
+                    Beskrivning:
+                </div>
+                <div class="col-sm-10">
+                    <span id="description"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-2">
+                    Säljare:
+                </div>
+                <div class="col-sm-10">
+                    <span id="seller_name"></span>
+                </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-sm-2">
-                Namn:
-            </div>
-            <div class="col-sm-10">
-                <div id="plain_name"></div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2">
-                Vetenskapligt namn:
-            </div>
-            <div class="col-sm-10">
-                <span id="scientific_name"></span>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2">
-                Beskrivning:
-            </div>
-            <div class="col-sm-10">
-                <span id="description"></span>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2">
-                Säljare:
-            </div>
-            <div class="col-sm-10">
-                <span id="seller_name"></span>
-            </div>
-        </div>
     </div>
-
-</div>
-<script src="{{ url_for('static', filename='js/auktion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auktion.js') }}"></script>
 {% endblock %}
