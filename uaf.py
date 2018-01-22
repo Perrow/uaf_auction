@@ -28,7 +28,7 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.67"
+VERSION = "0.68"
 
 # For flask-login
 lm = LoginManager()
@@ -160,7 +160,6 @@ def index():
 @app.route('/edit_password/<seller_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_password(seller_id=None):
-    print("Edit password: {}".format(seller_id))
     if request.method == 'POST':
         seller_id = request.form['seller_id'].strip().lower()
         password = request.form['password'].strip().encode('utf-8')
@@ -294,7 +293,6 @@ def register_many_posts():
         descriptions = request.form.getlist('description')
 
         new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
-        # print(new_items)
 
         seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
@@ -727,13 +725,24 @@ def auction():
         post_id = request.form['post_id']
         price = request.form['price']
         sale_type = request.form['sale_type']
+        sold = False
+        unsold = False
+        if request.form['submit'] == 'Osåld':
+            unsold = True
+        elif request.form['submit'] == 'Skicka':
+            sold = True
+
         with conn:
             cur = conn.cursor()
-            if post_id != "":
-                cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
-                flash("Post {} registrerad som såld.".format(post_id))
+            if sold:
+                if post_id != "":
+                    cur.execute("UPDATE Posts SET sold_price=?, sold_on=?, time_stamp_sold=? WHERE obj_id=?", (price, sale_type, time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
+                    flash("Post {} registrerad som såld.".format(post_id))
+            if unsold:
+                if post_id != "":
+                    cur.execute("UPDATE Posts SET sold_on=?, time_stamp_sold=? WHERE obj_id=?", ( "unsold", time.strftime("%Y-%m-%d %H:%M:%S"), post_id))
 
-    conn.close()
+    # conn.close()
     sold_statistic = get_sold_statistic()
     return render_template('auktion.html', sold_statistic=sold_statistic)
 
@@ -747,8 +756,6 @@ def flea_market():
     """
     post_ids = request.form.getlist('post_id')
     prices = request.form.getlist('price')
-    print(post_ids)
-    print(prices)
     sold_items = zip(post_ids, prices)
     sale_type = "fasta bordet"
     clerk_id = current_user.get_id()
@@ -797,7 +804,6 @@ def create_event():
         if request.form.get('database'):
             admin_accept_database = "yes"
         selected_types = request.form.getlist('type')
-        print(request.form.getlist('type'))
 
         salt = bcrypt.gensalt()
         encrypted_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
@@ -824,7 +830,6 @@ def create_event():
             sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
             cur.execute(sql, selected_types)
             selected_types_data = cur.fetchall()
-            print(selected_types_data)
             cur.executemany("INSERT INTO used_types (type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input) VALUES(?, ?, ?, ?, ?)", selected_types_data)
 
             cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", admin_data)
@@ -860,7 +865,6 @@ def edit_event():
         event_description = request.form['event_description']
 
         selected_types = request.form.getlist('type')
-        print(request.form.getlist('type'))
 
         conn = sqlite3.connect(DATABASE)
         with conn:
@@ -869,14 +873,10 @@ def edit_event():
             auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
             cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
-            # cur.execute("SELECT type_id, description, sale_type FROM all_types WHERE type_id=?", selected_types)
-            print([",".join(selected_types)])
             cur.execute('DELETE FROM used_types')
             sql = "SELECT type_id, description, sale_type FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
-            print(sql)
             cur.execute(sql, selected_types)
             selected_types_data = cur.fetchall()
-            print(selected_types_data)
             cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", selected_types_data)
 
             conn.commit()
@@ -892,7 +892,6 @@ def edit_event():
             cur.execute('SELECT type_id FROM used_types')
             used_types_tuples = cur.fetchall()
             used_types = [x[0] for x in used_types_tuples]
-            print(used_types)
             cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description FROM auction_info')
             auction_info = cur.fetchone()
         return render_template('edit_event.html', all_types=all_types, auction_info=auction_info, used_types=used_types)
@@ -917,7 +916,6 @@ def is_registration_open():
         cur = conn.cursor()
         cur.execute("SELECT registration_open FROM auction_info")
         result = cur.fetchone()
-        print(result)
         print("registration_open: ".format(result[0]))
         if result[0] == "yes":
             registration_open = True
@@ -987,9 +985,6 @@ def setup_printer():
             all_printer_str = result.stdout.decode("utf-8")
             err_msg = result.stderr.decode("utf-8")
 
-            print("stdout: {}".format(all_printer_str))
-            print("error: {}".format(err_msg))
-
             all_printers_lst = str(all_printer_str).strip().split("\n")
             printer_names = []
             # Split words in each row and save the printer name
@@ -1022,7 +1017,6 @@ def download_database():
 def get_database():
     try:
         filename = os.path.join(app.root_path, DATABASE)
-        print(filename)
         return send_file(filename, as_attachment=True)
     except Exception as e:
         return str(e)
@@ -1078,7 +1072,6 @@ def plot_sales():
             if res:
                 first = res[0][0]
                 last = res[-1][0]
-                print(first, last)
                 for row in res:
                     plot_data_fleamarket += '"{},{}\\n"+\n'.format(row[0], row[1])
                 plot_data_fleamarket = plot_data_fleamarket[:-3] + '",'
@@ -1380,7 +1373,6 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         auction_info = cur.fetchone()
         auction_name = auction_info[0]
         auction_date = auction_info[1]
-        # print(auction_name, auction_date, int(selected_id))
         labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
         if selected_id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
@@ -1410,7 +1402,6 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         if mark_printed:
             # Mark printed labels as printed in database
             update_sql = "UPDATE posts SET label_printed = 'yes'  WHERE obj_id IN({})".format(", ".join(printed_labels))
-            print(update_sql)
             cur.execute(update_sql)
             conn.commit()
 
@@ -1501,7 +1492,6 @@ def get_economic_report_pdf():
             sold_stat_data = [['Kategori', 'Summa', 'Sålt på']]
             if sold_stats:
                 for sold_stat in sold_stats:
-                    print(sold_stat[0], sold_stat[1], sold_stat[2], sold_stat[3], sold_stat[4])
                     sold_stat_data.append([sold_stat[4], int(sold_stat[2]), sold_stat[3], ""])
             else:
                 sold_stat_data.append(["", "", "", ""])
@@ -1538,9 +1528,6 @@ def get_economic_report_pdf():
         for row in res2:
             tot_sold_sum += row[0]
             tot_nr_sold_posts += row[1]
-
-            print("key {}".format(stat[key]))
-            print([row[2], stat[key], row[1], row[0]])
             tot_data_type.append([row[2], stat[row[2]], row[1], int(row[0])])
 
         tot_sold_sum = int(tot_sold_sum)
@@ -1598,7 +1585,6 @@ def get_clerk_receipt_pdf():
                  WHERE posts.sold_by = ?"""
         cur.execute(sql, [clerk_id])
         data = cur.fetchone()
-        print(data)
         m_c_r_p = make_clerk_receipt_pdf.make_clerk_receipt_pdf(event_name, club_name, club_short_name,  event_date, event_city)
         pdf = m_c_r_p.make_pdf(data)
         return pdf
@@ -1747,15 +1733,27 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
             cur.execute("SELECT sum(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold_for = cur.fetchone()[0]
 
-            cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
+            # cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
+            cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on, posts.is_checked_in FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ?", [seller_id])
             res = cur.fetchall()
-            data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld']]
+            data_posts = [[u'Post', u'Typ', u'Namn', u'Pris', u'Såld på', u'incheckad']]
             for posts in res:
-                data_posts.append([posts[0], posts[1], posts[2], int(posts[3]), posts[4]])
+                if posts[3] is None:  # Unsold objects will get an empty price column
+                    price = ""
+                else:
+                    price = int(posts[3])
+                if posts[4] == "unsold":  # Removes "unsold" in the list
+                    sold_at = ""
+                else:
+                    sold_at = posts[4]
+                if posts[5] == "yes":
+                    in_checkad = "Ja"
+                else:
+                    in_checkad = "Nej"
+                    
+                data_posts.append([posts[0], posts[1], posts[2].strip(), price, sold_at, in_checkad])
             data.append([seller_id, seller_name, sold_for, data_posts])
-
-        print(data)
-
+            print(data)
     pdf = comp_pdf.make_pdf(data)
     return pdf
 
@@ -1821,7 +1819,6 @@ def get_receipt_pdf(selected_id=None, checked=False):
             seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:
-            print("Seller_id: {}".format(seller_id))
             cur.execute("SELECT name, address, email, phone, aquarium_club FROM sellers WHERE seller_id=?", seller_id)
             result = cur.fetchone()
             seller_name = result[0]

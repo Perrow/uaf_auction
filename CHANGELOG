@@ -1,3 +1,9 @@
+Version 0.68 2018-01-22
+    Issue 59. Added an unsold button to the auction page. Marks the post as unsold in the database, which is usefull for follow up of the auction.
+    Added sellers all posts to the compilation, not just the sold posts. Easier for the seller to se what was sold.
+    Each post is marked as checked in or not on the compilation.
+    Removed some debug print statements.
+
 Version 0.67 2018-01-18
     Issue 57 & 58 Added columns for check in on event for seller and posts in the database.
     Issue 57 & 58 Added pages for set check in status for sellers and posts. 
