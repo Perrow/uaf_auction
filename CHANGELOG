@@ -1,3 +1,6 @@
+Version 0.68 2018-02-01
+    Fixed  bug where creating a new event did not add columns in the database for check in functionality.
+
 Version 0.68 2018-01-22
     Issue 59. Added an unsold button to the auction page. Marks the post as unsold in the database, which is usefull for follow up of the auction.
     Added sellers all posts to the compilation, not just the sold posts. Easier for the seller to se what was sold.
