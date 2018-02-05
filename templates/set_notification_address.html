@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %} Sätt email för notifieringar {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+<div class="container">
+    <h1>Emailadress för notifieringar</h1>
+
+    
+    <p>Notiferingsmail skickas när en ny säljare registerar sig och när poster anmäls.</p>
+    <p>En tom adress innebär att inga notifieringar kommer att skickas.</p>
+    <p>Nuvarande email är: {{ current_email }}</p>
+
+    <form id="notification_address_form" class="form-horizontal" action="/set_notification_address" method="POST">
+        <div class="form-group">
+            <label class="control-label col-sm-3" for="email_address">Adress för notifikationsmail:</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="email_address" name="email_address"
+                       placeholder="email" value="">
+            </div>
+        </div>
+
+      
+        <!--Send button-->
+        <div class="form-group">
+            <input type="submit" value="Skicka" class="btn btn-primary">
+            <input id="inp" type="button" value="Avbryt" class="btn btn-danger"
+                   onclick="location.href='{{ url_for('index') }}';"/>
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}

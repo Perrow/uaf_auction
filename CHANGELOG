@@ -1,4 +1,8 @@
-Version 0.68 2018-02-01
+Version 0.70 2018-02-05
+    Issue 61. Added e-mail notifications via gmail. A mail is sent when a user is registered and when posts are registered. 
+    The notification email address is set via the adminstrator interface and the gmail information is set in the config.cfg file.
+
+Version 0.69 2018-02-01
     Fixed  bug where creating a new event did not add columns in the database for check in functionality.
 
 Version 0.68 2018-01-22

@@ -12,6 +12,8 @@ import bcrypt
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user  # , UserMixin
 from flask import Flask, request, abort, redirect, url_for, render_template, flash  #, Response
 from functools import wraps
+import smtplib
+from email.mime.text import MIMEText
 ###
 import user_model
 import zlabels
@@ -28,7 +30,10 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-VERSION = "0.69"
+GMAILUSER = app.config['GMAILUSER']
+GMAILPASSWORD = app.config['GMAILPASSWORD']
+
+VERSION = "0.70"
 
 # For flask-login
 lm = LoginManager()
@@ -109,6 +114,40 @@ def auth(username, password):
 # *** Utils *** #
 
 
+def get_email_notification_address():
+    """
+    Fetch the notification email address from the database
+    :return: str with the email address
+    """
+    conn = sqlite3.connect(DATABASE)
+
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT email FROM notification_email")
+        email = cur.fetchone()[0]
+        return email
+
+
+def send_email(subject, message):
+    """
+    Sends an email message via gmail account
+    :param send_to: address to send to
+    :param subject: email subject
+    :param message: email message
+    """
+    send_to = get_email_notification_address()
+    if send_to != "":
+        msg = MIMEText(message)
+        msg['Subject'] = subject
+        msg['From'] = GMAILUSER
+        msg['To'] = send_to
+
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(GMAILUSER, GMAILPASSWORD)
+        server.sendmail(GMAILUSER, send_to, msg.as_bytes())
+        server.close()
+
 def get_auction_info():
     """
     Extract the auction info from the database
@@ -118,7 +157,7 @@ def get_auction_info():
 
     with conn:
         cur = conn.cursor()
-        cur.execute("SELECT hosting_association, hosting_association_abrv, event_name, date, city, commission from auction_info")
+        cur.execute("SELECT hosting_association, hosting_association_abrv, event_name, date, city, commission FROM auction_info")
         auction_info = cur.fetchone()
         club_name = auction_info[0]
         club_short_name = auction_info[1]
@@ -220,6 +259,7 @@ def register_seller():
                 cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, password, isAdmin, time_stamp, accepts_cookies, accepts_database, has_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
 
                 flash("Användare {} skapad.".format(name))
+                send_email("uaf_auction: new seller registered", 'Seller {} with email: {} created.'.format(name, email))
             authed_user = auth(email, password)
             if authed_user:
                 login_user(authed_user)
@@ -296,15 +336,18 @@ def register_many_posts():
 
         seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
+        nr_posts = 0
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
                 if scientific_name == "" and plain_name == "":
                     pass
                 else:
+                    nr_posts += 1
                     cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
 
             flash("Posterna registrerade.")
+            send_email("uaf_auction: posts registered", 'Seller no {} registered {} posts.\n {}\n {}'.format(seller_id, nr_posts, scinames, popnames))
 
     # Fetch sale types from database, generate a select for the default sale type
     conn = sqlite3.connect(DATABASE)
@@ -954,6 +997,26 @@ def open_close_registration():
         return render_template('open_close_registration.html', registration_open=is_registration_open())
 
 
+@app.route('/set_notification_address', methods=['GET', 'POST'])
+@admin_required
+def set_notification_address():
+    if request.method == 'POST':
+        email_address = request.form['email_address']
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM notification_email")
+            cur.execute("INSERT INTO notification_email (email) VALUES (?)", [email_address])
+            return redirect(url_for('set_notification_address'))
+    else:
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT email FROM notification_email")
+            res = cur.fetchone()
+        return render_template('set_notification_address.html', current_email=res[0])
+    
+    
 @app.route('/setup_printer', methods=['GET', 'POST'])
 @admin_required
 def setup_printer():
