@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+import sys
 import sqlite3
 import time
 import datetime
@@ -33,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.70"
+VERSION = "0.71"
 
 # For flask-login
 lm = LoginManager()
@@ -131,7 +132,6 @@ def get_email_notification_address():
 def send_email(subject, message):
     """
     Sends an email message via gmail account
-    :param send_to: address to send to
     :param subject: email subject
     :param message: email message
     """
@@ -141,12 +141,16 @@ def send_email(subject, message):
         msg['Subject'] = subject
         msg['From'] = GMAILUSER
         msg['To'] = send_to
+        try:
+            server = smtplib.SMTP_SSL('smtp.gmail.comp', 465)
+            server.ehlo()
+            server.login(GMAILUSER, GMAILPASSWORD)
+            server.sendmail(GMAILUSER, send_to, msg.as_bytes())
+            server.close()
+        except:
+            e = sys.exc_info()[0]
+            print("Failed to send notification email\n{}".format(e))
 
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.ehlo()
-        server.login(GMAILUSER, GMAILPASSWORD)
-        server.sendmail(GMAILUSER, send_to, msg.as_bytes())
-        server.close()
 
 def get_auction_info():
     """
@@ -266,7 +270,7 @@ def register_seller():
 
             return redirect(url_for('index'))
     else:
-        return render_template('register_seller.html')
+        return render_template('register_seller.html', registration_open=is_registration_open())
 
 
 @app.route("/admin_register_many_posts", methods=['GET', 'POST'])
@@ -1449,11 +1453,11 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         for seller in sellers:
             seller_id = seller[0]
             if only_printed:
-                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description FROM posts
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description, posts.quantity, posts.description FROM posts
                         INNER JOIN all_types ON posts.type = all_types.type_id
                         WHERE posts.seller_id=? and posts.label_printed='no'""", (seller_id,))
             else:
-                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description FROM posts
+                cur.execute("""SELECT posts.obj_id, posts.plain_name, posts.scientific_name, posts.fixed_price, posts.minimum_price, all_types.sale_type, all_types.description, posts.quantity, posts.description FROM posts
                         INNER JOIN all_types ON posts.type = all_types.type_id
                         WHERE posts.seller_id=?""", (seller_id,))
             posts = cur.fetchall()
@@ -1461,7 +1465,7 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             post_data = []
             for post in posts:
                 printed_labels.append(str(post[0]))
-                post_data.append([post[0], post[1], post[2], post[3], post[4], post[5]])
+                post_data.append([post[0], post[1], post[2], post[3], post[4], post[5], post[7], post[8]])
             seller_data.append(post_data)
             data.append(seller_data)
         if mark_printed:

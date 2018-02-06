@@ -7,6 +7,7 @@
 <div class="container">
     <h1>Registrera dig som användare för att kunna förhandsanmäla.</h1>
 
+    {% if (registration_open == True) or (current_user.is_admin == True) %}
     <br>
     <form id="register_seller" class="form-horizontal" action="/register_seller" method="POST">
 
@@ -70,6 +71,9 @@
             </div>
         </div>
     </form>
+    {%  else %}
+    <p>Du kan inte registrera dig då föranmälan är stängd.</p>
+    {% endif %}
 </div>
 
 <script src="{{ url_for('static', filename='js/create_event.js') }}"></script>

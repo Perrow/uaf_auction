@@ -41,7 +41,7 @@ class ZLabels(object):
         name_width = shapes.stringWidth(text, self.font, self.font_size)
         while name_width > length:
             text = text[:-1]
-            name_width = shapes.stringWidth(text, self.font, self.font_size)
+            name_width = shapes.stringWidth(text + "...", self.font, self.font_size)
             truncated = True
         if truncated:
             return text + "..."
@@ -85,7 +85,7 @@ class ZLabels(object):
                 post_fixed_price = post[3]
                 post_min_price = post[4]
                 post_type = post[5]
-                print("post_type: {}, post_name: {}, post_fixed_price: {}, post_minprice: {}".format(post_type, pop_name, sci_name, post_fixed_price, post_min_price))
+                post_quantity_description = "{},{}".format(post[6], post[7]).strip(",")
 
                 # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
@@ -105,40 +105,39 @@ class ZLabels(object):
                     canvas.line(x, y - self.label_height, x, y)  # Left line
 
                 # Add logo
-                canvas.drawInlineImage("static/img/logo_64.jpg", x + left_margin, y - self.row_height * 3, 20, 20)
+                canvas.drawInlineImage("static/img/logo_64.jpg", x + left_margin, y - self.row_height * 3, 20, 20)                # Logo image
 
                 canvas.setFont(self.font, self.font_size)
-                canvas.drawString(x + left_margin + 25, y - self.row_height * 2, self.event_name)
+                canvas.drawString(x + left_margin + 25, y - self.row_height * 2, self.event_name)                                 # Event name
                 str_width = shapes.stringWidth(self.event_date, self.font, self.font_size)
-                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 2, self.event_date)
-
-                canvas.drawString(x + left_margin + 25, y - self.row_height * 3, "Säljare nr: {}".format(seller_id))
+                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 2, self.event_date)       # Event date
 
                 canvas.setFont(self.font, 25)
                 str_width = shapes.stringWidth(str(post_id), self.font, 25)
-                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 4, str(post_id))
+                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 4, str(post_id))          # Post id
 
                 canvas.setFont(self.font, self.font_size)
-                canvas.drawString(x + left_margin, y - self.row_height * 4, self.truncate_str(seller_name, 35 * mm))
-                canvas.drawString(x + left_margin, y - self.row_height * 5, self.truncate_str(seller_society, 150))
-                canvas.drawString(x + left_margin, y - self.row_height * 6, "Tel: {}".format(seller_phone))
+                canvas.drawString(x + left_margin, y - self.row_height * 4, "{}".format(self.truncate_str("{}: {}".format(seller_id, seller_name), 40 * mm)))  # Seller Name
+                canvas.drawString(x + left_margin + 25, y - self.row_height * 3, self.truncate_str(seller_society, 30 * mm))      # Seller society
+                canvas.drawString(x + left_margin, y - self.row_height * 5, "Tel: {}".format(seller_phone))                       # Seller phone number
                 if post_type == "fixed_price":
                     msg = u"Fastpris: "
                     if post_fixed_price is not None:
                         if len(str(post_fixed_price)) > 0:
                             msg += "{} kr".format(post_fixed_price)
                     str_width = shapes.stringWidth(msg, self.font, self.font_size)
-                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 6, msg)
+                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 5, msg)               # Fleamarket price
                 if post_type == "auction":
                     msg = u"Auktion"
                     if post_min_price is not None:
                         if len(str(post_min_price)) > 0:
                             msg += ": {} kr".format(post_min_price)
                     str_width = shapes.stringWidth(msg, self.font, self.font_size)
-                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 6, msg)
+                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 5, msg)               # Auction price
 
-                canvas.drawString(x + left_margin, y - self.row_height * 7, "{}".format(self.truncate_str(sci_name, 150)))
-                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(pop_name, 150)))
+                canvas.drawString(x + left_margin, y - self.row_height * 6, "{}".format(self.truncate_str(sci_name, 150)))        # Scientific name
+                canvas.drawString(x + left_margin, y - self.row_height * 7, "{}".format(self.truncate_str(pop_name, 150)))        # Popular name
+                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_quantity_description, 55 * mm)))  # Quantity and description
                 count += 1
 
             # if new seller add an empty row and empty labels on current row

@@ -1,3 +1,8 @@
+Version 0.71 2018-02-06
+    Added error handling to the send email function.
+    Issue 55. Registration of new sellers is turned off if the event is not open. Unless you are logged in as an admin, they can register new sellers even if the event is closed.
+    Issue 60. Added quantity and description to the label.
+
 Version 0.70 2018-02-05
     Issue 61. Added e-mail notifications via gmail. A mail is sent when a user is registered and when posts are registered. 
     The notification email address is set via the adminstrator interface and the gmail information is set in the config.cfg file.
