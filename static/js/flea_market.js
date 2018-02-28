@@ -1,6 +1,7 @@
 $(document).ready(function () {
     'use strict';
-
+    var tot_sum = 0;
+    
     // TEst function for development
     var func_test = function (post_id, price_id) {
 //        $("#form_elements").append('<label for="' + post_id + '">Post nr:</label> <input class="loppis" id="' + post_id + '" name="post_id" type="text" value=""> <label for="' + price_id + '">Pris:</label>  <input class="loppis price" id="' + price_id + '" name="price" type="text" value="">');
@@ -33,9 +34,15 @@ $(document).ready(function () {
             calculate_sum();
         });
 
+        // Calculates the sum when cursor leaves the price input box
         $('#' + price_id).change(function () {
             calculate_sum();
         });
+        
+        //This calculates the sum when the value in the price input box changes on the fly
+        var e = document.getElementById(price_id);
+        e.oninput = calculate_sum;
+        e.onpropertychange = e.oninput; // for IE8
 
         // Removes a row in the form
         $('#' + remove_id).click(function () {
@@ -55,7 +62,7 @@ $(document).ready(function () {
             if ($("input").hasClass("newRow")) {
                 console.log("Found a newRow");
             } else {
-                console.log("postid: " + cur_post_id)
+                console.log("postid: " + cur_post_id);
                 if (cur_post_id != "") {
                     add_row();
                 }
@@ -107,7 +114,6 @@ $(document).ready(function () {
                         $('#error').html("").fadeIn();
                         $("#" + price_id).trigger("change");
                     }
-                    ;
                     console.log('.ajax() request returned successfully.');
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -121,7 +127,7 @@ $(document).ready(function () {
                     $('#checked_in').html("").fadeIn();
                     $('#error').html("INGET POST ID GAVS").fadeIn();
                     console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-                },
+                }
             });
         });
     };
@@ -163,17 +169,18 @@ $(document).ready(function () {
         $("#form_elements").append(html_str);
         // Add handler to items in the new row
         func(rowNum);
-    };
+    }
 
 
     // Handler for sumbutton
     $("#sumbutton").click(function () {
         calculate_sum();
     });
+    
 
-    // Caclulate the sum the customer should pay    
+    // Calculate the sum the customer should pay    
     function calculate_sum() {
-        var tot_sum = 0;
+        tot_sum = 0;
         $('.price').each(function (i, obj) {
             console.log(this.value);
             tot_sum += Number(this.value);
@@ -182,6 +189,17 @@ $(document).ready(function () {
         });
     }
 
+    // Calculate the change the custumer should receive
+    $("#changebutton").click( function () {
+        console.log("changebutton");
+        var from_seller = Number($("#from_seller").val());
+        console.log(from_seller);
+        console.log(tot_sum);
+        var change = from_seller - tot_sum;
+        console.log(change);
+        $("#to_seller").val(change);
+    });
+    
     // Check that all posts has a price before submitting
     $("#submit").click(function () {
         var all_ok = true;

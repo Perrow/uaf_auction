@@ -1,3 +1,8 @@
+Version 0.72 2018-02-28
+    Fixed some small bugs in notification email. Added a test button for email.
+    Added a calculate change function to flea market page.
+    Fixed so that price change are updated on the fly and not only when the focus leaves the price input.
+
 Version 0.71 2018-02-06
     Added error handling to the send email function.
     Issue 55. Registration of new sellers is turned off if the event is not open. Unless you are logged in as an admin, they can register new sellers even if the event is closed.

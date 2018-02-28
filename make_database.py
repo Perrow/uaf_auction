@@ -105,7 +105,7 @@ with conn:
     cur.executemany("INSERT INTO all_types (type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input) VALUES(?, ?, ?, ?, ?)", all_types)
     cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
     cur.executemany("INSERT INTO printers (purpose, cups_name) VALUES (?, ?)", printers)
-    cur.executemany("INSERT INTO notification_email (email) VALUES (?)", notification_email)
+    # cur.executemany("INSERT INTO notification_email (email) VALUES (?)", notification_email)
 
     # To add new column to existing database table:
     # ALTER TABLE auction_info ADD COLUMN registration_open TEXT;

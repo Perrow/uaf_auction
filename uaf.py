@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.71"
+VERSION = "0.72"
 
 # For flask-login
 lm = LoginManager()
@@ -125,8 +125,11 @@ def get_email_notification_address():
     with conn:
         cur = conn.cursor()
         cur.execute("SELECT email FROM notification_email")
-        email = cur.fetchone()[0]
-        return email
+        email = cur.fetchone()
+        if email:
+            return email[0]
+        else:
+            return ""
 
 
 def send_email(subject, message):
@@ -142,7 +145,7 @@ def send_email(subject, message):
         msg['From'] = GMAILUSER
         msg['To'] = send_to
         try:
-            server = smtplib.SMTP_SSL('smtp.gmail.comp', 465)
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
             server.ehlo()
             server.login(GMAILUSER, GMAILPASSWORD)
             server.sendmail(GMAILUSER, send_to, msg.as_bytes())
@@ -1018,9 +1021,26 @@ def set_notification_address():
             cur = conn.cursor()
             cur.execute("SELECT email FROM notification_email")
             res = cur.fetchone()
-        return render_template('set_notification_address.html', current_email=res[0])
-    
-    
+            if res:
+                cur_address = res[0]
+            else:
+                cur_address = ""
+        return render_template('set_notification_address.html', current_email=cur_address)
+
+
+@app.route('/send_test_mail')
+@admin_required
+def send_test_mail():
+    """
+    Sends a test email to the notification email address
+    :return: 
+    """
+    send_email("Test av notifieringsemail", "Om du får det här mailet så fungerar notifieringsemailen som den ska.")
+    print("Sent test mail")
+    flash("Email skickat.")
+    return redirect(url_for('set_notification_address'))
+
+
 @app.route('/setup_printer', methods=['GET', 'POST'])
 @admin_required
 def setup_printer():
