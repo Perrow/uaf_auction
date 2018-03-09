@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.72"
+VERSION = "0.73"
 
 # For flask-login
 lm = LoginManager()
@@ -926,10 +926,10 @@ def edit_event():
             cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             cur.execute('DELETE FROM used_types')
-            sql = "SELECT type_id, description, sale_type FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
+            sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
             cur.execute(sql, selected_types)
             selected_types_data = cur.fetchall()
-            cur.executemany("INSERT INTO used_types (type_id, description, sale_type) VALUES(?, ?, ?)", selected_types_data)
+            cur.executemany("INSERT INTO used_types (type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input) VALUES(?, ?, ?, ?, ?)", selected_types_data)
 
             conn.commit()
 

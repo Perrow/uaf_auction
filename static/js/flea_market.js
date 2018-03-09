@@ -159,8 +159,8 @@ $(document).ready(function () {
             '<div class="col-sm-6">' +
             '<div class="form-control" id="' + info_id + '"> </div>' +
             '</div>' +
-            '<div class="col-sm-1">' +
-            '<button type="button" id="' + remove_id + '" class="btn btn-danger" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>' +
+            '<div class="col-sm-2">' +
+            '<button type="button" id="' + remove_id + '" class="btn btn-danger btn-block" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>' +
             '</div>' +
             '</div>' +
             '<br>' +

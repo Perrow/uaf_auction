@@ -1,3 +1,6 @@
+Version 0.73 2018-03-09
+    Fixed a bug in edit event that removed the input for scientific names from register posts, the database was not updated correctly.
+
 Version 0.72 2018-02-28
     Fixed some small bugs in notification email. Added a test button for email.
     Added a calculate change function to flea market page.
