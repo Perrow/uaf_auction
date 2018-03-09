@@ -1,3 +1,7 @@
+Version 0.74 2018-03-09
+    Changeing the event divided the provision by 100 each time and also left the event as closed because the registration_open field was left empty.
+    Changed the images search text from länk to Bildsök.
+
 Version 0.73 2018-03-09
     Fixed a bug in edit event that removed the input for scientific names from register posts, the database was not updated correctly.
 

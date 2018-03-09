@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.73"
+VERSION = "0.74"
 
 # For flask-login
 lm = LoginManager()
@@ -921,9 +921,12 @@ def edit_event():
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
+            cur.execute("SELECT registration_open FROM auction_info")
+            registration_open = cur.fetchone()[0]
             cur.execute('DELETE FROM auction_info')
-            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
-            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description, registration_open]
+
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             cur.execute('DELETE FROM used_types')
             sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
@@ -946,6 +949,8 @@ def edit_event():
             used_types = [x[0] for x in used_types_tuples]
             cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description FROM auction_info')
             auction_info = cur.fetchone()
+            auction_info = list(auction_info)
+            auction_info[5] = auction_info[5] * 100
         return render_template('edit_event.html', all_types=all_types, auction_info=auction_info, used_types=used_types)
 
 
