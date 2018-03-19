@@ -1,3 +1,7 @@
+Version 0.75 2018-03-19
+    Added quantity and price columns to "list my own posts" page.
+    Added information about checked in posts on seller receipt.
+
 Version 0.74 2018-03-09
     Changeing the event divided the provision by 100 each time and also left the event as closed because the registration_open field was left empty.
     Changed the images search text from länk to Bildsök.

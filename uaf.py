@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.74"
+VERSION = "0.75"
 
 # For flask-login
 lm = LoginManager()
@@ -423,7 +423,7 @@ def list_my_posts():
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
 
-        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.description, used_types.description
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, IFNULL(posts.quantity, '') as quant, posts.minimum_price, fixed_price, posts.description, used_types.description
         FROM posts
         INNER JOIN used_types
         ON posts.type=used_types.type_id
@@ -1038,7 +1038,7 @@ def set_notification_address():
 def send_test_mail():
     """
     Sends a test email to the notification email address
-    :return: 
+    :return:
     """
     send_email("Test av notifieringsemail", "Om du får det här mailet så fungerar notifieringsemailen som den ska.")
     print("Sent test mail")
@@ -1922,13 +1922,22 @@ def get_receipt_pdf(selected_id=None, checked=False):
             seller_club = result[4]
             cur.execute("SELECT obj_id  FROM posts WHERE seller_id = ? ORDER BY obj_id", seller_id)
             res = cur.fetchall()
-            post_ids = []
+            registered_post_ids = []
             for posts in res:
-                post_ids.append(posts[0])
-            nr_posts = len(post_ids)
+                registered_post_ids.append(posts[0])
+            nr_posts = len(registered_post_ids)
             shorter = list_shorter.ListShorter()
-            post_ids = shorter.short(post_ids)
-            data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, post_ids])
+            registered_post_ids = shorter.short(registered_post_ids)
+            
+            cur.execute('SELECT obj_id  FROM posts WHERE seller_id = ? and is_checked_in = "yes" ORDER BY obj_id', seller_id)
+            res = cur.fetchall()
+            checked_in_post_ids = []
+            for posts in res:
+                checked_in_post_ids.append(posts[0])
+            check_in_nr_posts = len(checked_in_post_ids)
+            shorter = list_shorter.ListShorter()
+            checked_in_post_ids = shorter.short(checked_in_post_ids)
+            data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, check_in_nr_posts, registered_post_ids, checked_in_post_ids])
 
     pdf = receipt_pdf.make_pdf(data)
     return pdf
