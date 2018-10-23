@@ -186,6 +186,7 @@ $(document).ready(function () {
             tot_sum += Number(this.value);
             console.log(tot_sum);
             $('#sum').html("Att betala: " + tot_sum).fadeIn();
+            $('#sum2').html( tot_sum).fadeIn();
         });
     }
 
