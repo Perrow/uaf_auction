@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %} Setup etiketter {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1> Etiketter </h1>
+
+        <p>Programmet stödjer 3 olika storlekar av etiketter. Alla med 24 etiketter per ark, 3 kolumner 8 rader.</p>
+        <form action="" method="POST">
+            <div class="form-group">
+                {% if label_type == "with_margins_24" %}
+                    <input type="radio" name="label" value="with_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, 64 * 34 mm   <br>
+                {% else %}
+                    <input type="radio" name="label" value="with_margins_24"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, 64 * 34 mm   <br>
+                {% endif %}
+                <br>
+                {% if label_type == "with_topmargin_24" %}
+                    <input type="radio" name="label" value="with_topmargin_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_70_36.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler över och under , 70 *
+                    36 mm<br>
+                {% else %}
+                    <input type="radio" name="label" value="with_topmargin_24"> <img src="{{ url_for('static', filename = 'img/24_label_70_36.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler över och under , 70 * 36 mm<br>
+                {% endif %}
+                <br>
+                {% if label_type == "without_margins_24" %}
+                    <input type="radio" name="label" value="without_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_70_37.jpg') }}" alt="etiketter" height="100"> 24 etiketter utan marginaler runt, 70 * 37 mm<br>
+                {% else %}
+                    <input type="radio" name="label" value="without_margins_24""> <img src="{{ url_for('static', filename = 'img/24_label_70_37.jpg') }}" alt="etiketter" height="100"> 24 etiketter utan marginaler runt, 70 * 37 mm<br>
+                {% endif %}
+                <br>
+                <input type="submit" value="spara" class="btn btn-primary">
+                <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
+            </div>
+        </form>
+
+    </div>
+{% endblock %}

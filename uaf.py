@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.75"
+VERSION = "0.76"
 
 # For flask-login
 lm = LoginManager()
@@ -1046,6 +1046,30 @@ def send_test_mail():
     return redirect(url_for('set_notification_address'))
 
 
+@app.route('/setup_labels', methods=['GET', 'POST'])
+@admin_required
+def setup_labels():
+    if request.method == "POST":
+        label_type = request.form['label']
+        print("selected label_type", label_type)
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM label_type")
+            cur.execute("INSERT INTO label_type (label_type) VALUES (?)", [label_type])
+        return render_template('setup_labels.html', label_type=label_type)
+    else:
+        conn = sqlite3.connect(DATABASE)
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT label_type FROM label_type")
+            label_type = cur.fetchone()
+            if label_type is not None:
+                label_type = label_type[0]
+            print(label_type)
+        return render_template('setup_labels.html', label_type=label_type)
+
+
 @app.route('/setup_printer', methods=['GET', 'POST'])
 @admin_required
 def setup_printer():
@@ -1467,7 +1491,12 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         auction_info = cur.fetchone()
         auction_name = auction_info[0]
         auction_date = auction_info[1]
-        labels = zlabels.ZLabels("mypdf", auction_name, auction_date)
+        conn = sqlite3.connect(DATABASE)
+        cur.execute("SELECT label_type FROM label_type")
+        label_type = cur.fetchone()
+        if label_type is not None:
+            label_type = label_type[0]
+        labels = zlabels.ZLabels("mypdf", auction_name, auction_date, label_type)
         if selected_id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         else:

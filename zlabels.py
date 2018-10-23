@@ -9,7 +9,12 @@ from reportlab.lib.units import mm
 
 
 class ZLabels(object):
-    def __init__(self, pdf_name, event_name, event_date):
+
+    with_margins_24 = "with_margins_24"  # 24 labels with margin around, labels 64 * 34 mm
+    without_margins_24 = "without_margins_24"  # 24 labels without margins, labels 70 * 37 mm, but printers can not print all the way to the edge but leave ca 5 mm
+    with_top_margin_24 = "with_topmargin_24"  # 24 labels wit top and bottom marging, labels 70 * 36 mm, but printers can not print all the way to the edge but leave ca 5 mm
+
+    def __init__(self, pdf_name, event_name, event_date, label_type):
         """
         Class for generating labels in the size 70*37 mm in a 3 by 8 grid on A4 paper
         :param pdf_name: Name of pdf file without extension
@@ -19,41 +24,117 @@ class ZLabels(object):
         self.event_name = event_name
         self.event_date = event_date
         self.pdf_name = pdf_name
+        self.label_type = label_type
+
+        # Label setup
+        # https://www.officedepot.se/ecommerce/sortiment/etiketter--markning-c2477/etiketter-till-skrivare-c2431/etikett-l4773-63-5x33-9-480-fp-5922080/
         self.paper_width, self.paper_height = A4
-        self.label_width = mm * 70  # mm
-        self.label_height = mm * 37  # mm
-        self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
-        self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
 
-        self.font_size = 9
-        self.font = 'Helvetica'
-        self.row_height = mm * 4
-        print(self.label_columns, self.label_rows, self.paper_height)
+        if label_type == ZLabels.with_margins_24:
+            self.label_width = mm * 63.5  # mm
+            self.label_height = mm * 33.9  # mm
+            self.paper_left_right_margin = mm * 7  # mm
+            self.paper_top_bottom_margin = mm * 12  # mm
+            self.label_spacing = mm * 2  # mm
+            self.printer_margin = mm *0  # mm Not used if paper has enough margins round the labels
+            self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
+            self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
+            self.left_margin = 13 * mm
+            self.font_size = 9
+            self.font = 'Helvetica'
+            self.bold_font = 'Helvetica-Bold'
+            self.row_height = mm * 4
+            self.text_width = mm * 47
 
-    def truncate_str(self, text, length):
+        elif label_type == ZLabels.without_margins_24:
+            self.label_width = mm * 70  # mm
+            self.label_height = mm * 37  # mm
+            self.paper_left_right_margin = mm * 0  # mm
+            self.paper_top_bottom_margin = mm * 0  # mm
+            self.label_spacing = mm * 0  # mm
+            self.printer_margin = mm * 5  # mm
+            self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
+            self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
+            self.left_margin = 13 * mm
+            self.font_size = 9
+            self.font = 'Helvetica'
+            self.bold_font = 'Helvetica-Bold'
+            self.row_height = mm * 3.5
+            self.text_width = mm * 45
+
+        elif label_type == ZLabels.with_top_margin_24:
+            self.label_width = mm * 70  # mm
+            self.label_height = mm * 36  # mm
+            self.paper_left_right_margin = mm * 0  # mm
+            self.paper_top_bottom_margin = mm * 5  # mm
+            self.label_spacing = mm * 0  # mm
+            self.printer_margin = mm * 5  # mm
+            self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
+            self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
+            self.left_margin = 13 * mm
+            self.font_size = 9
+            self.font = 'Helvetica'
+            self.bold_font = 'Helvetica-Bold'
+            self.row_height = mm * 3.5
+            self.text_width = mm * 45
+
+        print(self.label_columns, self.label_rows, self.paper_height / mm)
+
+    def make_multiline(self, text, max_length, font, font_size):
+        """
+        Takes aline of text and constructs a list of line fragments where each fragment do not exceed the maximum length of a line
+        :param text: Text to split into lines
+        :param max_length: max length of a line
+        :param font: font name
+        :param font_size: font size
+        :return: list of strings
+        """
+        parts = text.split(" ")
+        lines = []  # Resulting list of lines
+        line = []  # current line
+        for word in parts:
+            # Test width of line including spaces
+            tmp_line = line.copy()
+            tmp_line.append(word)
+            tmp_line = " ".join(tmp_line)
+            total_width = shapes.stringWidth(tmp_line, font, font_size)
+            if total_width < max_length:
+                line.append(word)
+            else:
+                lines.append(" ".join(line))
+                line = [word]
+        lines.append(" ".join(line))
+        return lines
+
+    def truncate_str(self, text, max_length, font, font_size):
         """
         Caluculates the length of a string when rendered with the font and size for the label and truncates it to fit in a given length
         :param text: text string to truncate
-        :param length: max length of string
+        :param max_length: max length of string
         :return: truncated string
         """
         truncated = False
-        name_width = shapes.stringWidth(text, self.font, self.font_size)
-        while name_width > length:
+        name_width = shapes.stringWidth(text, font, font_size)
+        while name_width > max_length:
             text = text[:-1]
-            name_width = shapes.stringWidth(text + "...", self.font, self.font_size)
+            name_width = shapes.stringWidth(text + "...", font, font_size)
             truncated = True
         if truncated:
             return text + "..."
         else:
             return text
 
-    def make_pdf(self, data, border=True):
+    def make_pdf(self, data, border=True, debug=False):
         """
         Make the label pdf
         :param data: the data to generate labels from
         :param border: Draw border around labels or not
         """
+        # [4, 'Bengt Bengtsson', '018-0123456', 'UAF', [
+        #   [8, 'Ancistrus', 'Ancistrus sp Super Red', 180.0, '', 'fixed_price', 2, 'Troligen 2 honor'],
+        #   [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', '', '', 'auction', 1, ''],
+        # [seller_id, seller_name, seller_phone, seller_society, [
+        #   [post_id, pop_name, sci_name, post_fixed_price, post_min_price, post_type, quantity, comment
 
         # import cStringIO
         # output = cStringIO.StringIO()
@@ -65,7 +146,6 @@ class ZLabels(object):
         canvas.setAuthor(self.event_name)
 
         start_y = self.paper_height
-        left_margin = 20
 
         saved = False
         count = 0
@@ -85,7 +165,8 @@ class ZLabels(object):
                 post_fixed_price = post[3]
                 post_min_price = post[4]
                 post_type = post[5]
-                post_quantity_description = "{},{}".format(post[6], post[7]).strip(",")
+                post_quantity = post[6]
+                post_description = post[7]
 
                 # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
@@ -94,50 +175,113 @@ class ZLabels(object):
                 column = count % 3
                 row = math.floor(count / 3)
 
-                x = column * self.label_width
-                y = start_y - row * self.label_height
+                x = column * self.label_width + self.paper_left_right_margin
+                y = start_y - row * self.label_height - self.paper_top_bottom_margin
+                print(y / mm)
+                label_space = self.label_spacing * column
+                label_x_left = x + self.printer_margin + label_space
+                label_x_right = x - self.printer_margin + label_space + self.label_width
+                label_y_top = y - self.printer_margin
+                label_y_bottom = y - self.label_height + self.printer_margin
+                label_text_x = label_x_left + self.left_margin + 1.5 * mm
 
                 # Border
                 if border:
-                    canvas.line(x, y, x + self.label_width, y)  # upper line
-                    canvas.line(x + self.label_width, y, x + self.label_width, y - self.label_height)  # right line
-                    canvas.line(x, y - self.label_height, x + self.label_width, y - self.label_height)  # bottom line
-                    canvas.line(x, y - self.label_height, x, y)  # Left line
+                    canvas.setLineWidth(.3)
+                    canvas.line(x + label_space, y, x + label_space + self.label_width, y)  # upper line
+                    canvas.line(x + label_space + self.label_width, y, x + label_space + self.label_width, y - self.label_height)  # right line
+                    canvas.line(x + label_space, y - self.label_height, x + label_space + self.label_width, y - self.label_height)  # bottom line
+                    canvas.line(x + label_space, y - self.label_height, x + label_space, y)  # Left line
+
+                    # inner bounding box for label so that nothing should end up outside of where the printer prints
+                    # upper line
+                if debug == True:
+                    canvas.line(label_x_left,
+                                label_y_top,
+                                label_x_right,
+                                label_y_top)
+                    # right line
+                    canvas.line(label_x_right,
+                                label_y_bottom,
+                                label_x_right,
+                                label_y_top)
+                    # bottom line
+                    canvas.line(label_x_left,
+                                label_y_bottom,
+                                label_x_right,
+                                label_y_bottom)
+                    # Left line
+                    canvas.line(label_x_left,
+                                label_y_bottom,
+                                label_x_left,
+                                label_y_top)
 
                 # Add logo
-                canvas.drawInlineImage("static/img/logo_64.jpg", x + left_margin, y - self.row_height * 3, 20, 20)                # Logo image
+                center = (self.left_margin - 25) / 2
+                canvas.drawInlineImage("static/img/logo_64.jpg", label_x_left + center, label_y_top - 30, 25, 25)
+                canvas.setLineWidth(1)
+                canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
+                canvas.setLineWidth(.3)
 
+                # Post id
+                canvas.setFont(self.font, 20)
+                str_width = shapes.stringWidth(str(post_id), self.font, 20)
+                center = (self.left_margin - str_width) / 2
+                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, str(post_id))          # Post id
+
+                # Event name and date
+                canvas.setFont(self.font, self.font_size - 2)
+                canvas.drawString(label_text_x, label_y_top - self.row_height * 1, "{} - {}".format(self.event_name, self.event_date))
+
+                # Fixed price or auction
                 canvas.setFont(self.font, self.font_size)
-                canvas.drawString(x + left_margin + 25, y - self.row_height * 2, self.event_name)                                 # Event name
-                str_width = shapes.stringWidth(self.event_date, self.font, self.font_size)
-                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 2, self.event_date)       # Event date
-
-                canvas.setFont(self.font, 25)
-                str_width = shapes.stringWidth(str(post_id), self.font, 25)
-                canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 4, str(post_id))          # Post id
-
-                canvas.setFont(self.font, self.font_size)
-                canvas.drawString(x + left_margin, y - self.row_height * 4, "{}".format(self.truncate_str("{}: {}".format(seller_id, seller_name), 40 * mm)))  # Seller Name
-                canvas.drawString(x + left_margin + 25, y - self.row_height * 3, self.truncate_str(seller_society, 30 * mm))      # Seller society
-                canvas.drawString(x + left_margin, y - self.row_height * 5, "Tel: {}".format(seller_phone))                       # Seller phone number
                 if post_type == "fixed_price":
                     msg = u"Fastpris: "
                     if post_fixed_price is not None:
                         if len(str(post_fixed_price)) > 0:
-                            msg += "{} kr".format(post_fixed_price)
-                    str_width = shapes.stringWidth(msg, self.font, self.font_size)
-                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 5, msg)               # Fleamarket price
+                            msg += "{} kr".format(int(post_fixed_price))
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2, msg)  # Fleamarket price
                 if post_type == "auction":
                     msg = u"Auktion"
                     if post_min_price is not None:
                         if len(str(post_min_price)) > 0:
-                            msg += ": {} kr".format(post_min_price)
-                    str_width = shapes.stringWidth(msg, self.font, self.font_size)
-                    canvas.drawString(x + self.label_width - str_width - left_margin, y - self.row_height * 5, msg)               # Auction price
+                            msg += " min: {} kr".format(int(post_min_price))
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2, msg)  # Auction price
 
-                canvas.drawString(x + left_margin, y - self.row_height * 6, "{}".format(self.truncate_str(sci_name, 150)))        # Scientific name
-                canvas.drawString(x + left_margin, y - self.row_height * 7, "{}".format(self.truncate_str(pop_name, 150)))        # Popular name
-                canvas.drawString(x + left_margin, y - self.row_height * 8, "{}".format(self.truncate_str(post_quantity_description, 55 * mm)))  # Quantity and description
+                # popular and scientific names
+                if sci_name != "" and pop_name != "":
+                    names = self.make_multiline("{} - {}".format(sci_name, pop_name), self.text_width, self.bold_font, self.font_size)
+                elif sci_name != "":
+                    names = self.make_multiline(sci_name, self.text_width, self.bold_font, self.font_size)
+                elif pop_name != "":
+                    names = self.make_multiline(pop_name, self.text_width, self.bold_font, self.font_size)
+                else:
+                    names = []
+                canvas.setFont(self.bold_font, self.font_size)
+                if len(names) > 0:
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3, names[0])
+                if len(names) > 1:
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 4, names[1])
+                canvas.setFont(self.font, self.font_size)
+
+                # Description
+                comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                for idx, comment in enumerate(comments):
+                    if idx < 2:
+                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
+                    if idx == 2 and self.label_type == ZLabels.with_margins_24:  # One extra row of comments on labels with margins
+                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
+
+                #Seller name and phone
+                if self.label_type == ZLabels.with_margins_24:
+                    row = 8
+                else:
+                    row = 7
+                canvas.setFont(self.font, 7)
+                canvas.drawString(label_text_x, label_y_top - self.row_height * row, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
+
+
+
                 count += 1
 
             # if new seller add an empty row and empty labels on current row
@@ -157,13 +301,47 @@ class ZLabels(object):
 
 
 if __name__ == "__main__":
-    MK = ZLabels("test", "Uppsala Storauktion", "2016-11-27")
-    test_data = [[1, u'Kristian Persson', u'0733-505932', u'UAF',
-                  [[1, u'Afrikansk bandbarb Barbus fasciolatus', u'5', None], [3, u'Neontetra Paracheirodon innesi', u'10', None], [5, u'Vinkeltetra Thayeria boehlkei', u'5', None], [9, u'Guppy Poecilia reticulata', u'25', None],
-                   [10, u'Tigerbarb Puntigrus tetrazona', u'5', None], [11, u'Pump ', u'1', 70.0]]], [2, u'Olle Karlsson', u'0730-421587', u'\xd6rebro',
-                                                                                                      [[2, u'Kuhlii-\xe5l Pangio kuhlii', u'4', None], [4, u'Odessabarb Pethia padamya', u'5', None], [7, u'Skalar Pterophyllum scalare', u'5', None],
-                                                                                                       [12, u'Ledramp ', u'1', 100.0], [13, u'Vattenpest Egeria densa', u'5', 20.0]]],
-                 [3, u'Lena Svensson', u'0733-954321', u'Haninge AF', [[8, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'7', None]]],
-                 [4, u'Pia Larsson', u'0733-987632', u'Malm\xf6 AF', [[6, u'Kilfl\xe4cksrasbora Trigonostigma heteromorpha', u'3', None]]]]
+    # MK = ZLabels("test", "UAF Storauktion", "2016-11-27", "Uppsala Akvarierförening", ZLabels.with_margins_24)
+    # MK = ZLabels("test", "UAF Storauktion", "2016-11-27", "Uppsala Akvarierförening", ZLabels.without_margins_24)
+    MK = ZLabels("test", "UAF Storauktion", "2016-11-27", ZLabels.with_top_margin_24)
 
-    MK.make_pdf(test_data)
+
+
+    test_data = [
+        [4, 'Bengt Bengtsson', '018-0123456', 'UAF', [
+            [888, 'Ancistrus', 'Ancistrus sp Super Red', 180.0, '', 'fixed_price', 2, 'Troligen 2 honor'],
+            [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
+            [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5, 'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
+            [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
+            [888, 'Ancistrus', 'Ancistrus sp Super Red', 180.0, '', 'fixed_price', 2, 'Troligen 2 honor'],
+            [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
+            [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
+             'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
+            [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
+            [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
+             'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
+            [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
+            [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
+             'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
+            [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, '']
+        ]]
+    ]
+
+
+    pdf = MK.make_pdf(test_data, True)
+    pdf_temp = "temp_pdf.pdf"
+    f = open(pdf_temp, "wb")
+    f.write(pdf)
+    f.close()
