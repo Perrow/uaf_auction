@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.78"
+VERSION = "0.79"
 
 # For flask-login
 lm = LoginManager()
@@ -288,18 +288,17 @@ def admin_register_many_posts():
         types = request.form.getlist('type')
         scinames = request.form.getlist('sciname')
         popnames = request.form.getlist('popname')
-        quantity = request.form.getlist('quantity')
         min_prices = request.form.getlist('min_price')
         fixed_prices = request.form.getlist('fixed_price')
         descriptions = request.form.getlist('description')
         seller_id = request.form['seller_select']
 
-        new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
+        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
+            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
 
             flash("Posterna registrerade.")
 
@@ -424,7 +423,7 @@ def list_my_posts():
             if row[1] == "fixed_price":
                 nr_posts.append("Fastpris: {}".format(row[0]))
 
-        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, IFNULL(posts.quantity, '') as quant, posts.minimum_price, fixed_price, posts.description, used_types.description
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.minimum_price, fixed_price, posts.description, used_types.description
         FROM posts
         INNER JOIN used_types
         ON posts.type=used_types.type_id
@@ -500,7 +499,6 @@ def edit_post(post_id=None):
         popname = request.form['popname']
         min_price = request.form['min_price']
         fixed_price = request.form['fixed_price']
-        quantity = request.form['quantity']
         description = request.form['description']
         with conn:
             cur = conn.cursor()
@@ -510,8 +508,8 @@ def edit_post(post_id=None):
             cur.execute(check_user_sql, [post_id])
             owner_id = str(cur.fetchone()[0])
             if cur_id == owner_id or current_user.is_admin:  # Admins may edit all posts
-                edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, quantity=?, description=?, type=?, minimum_price=?, fixed_price=?, label_printed=? WHERE obj_id=?; "
-                cur.execute(edit_posts_sql, [sciname, popname, quantity, description, post_type, min_price, fixed_price, "no", post_id])
+                edit_posts_sql = "UPDATE posts SET scientific_name=?, plain_name=?, description=?, type=?, minimum_price=?, fixed_price=?, label_printed=? WHERE obj_id=?; "
+                cur.execute(edit_posts_sql, [sciname, popname, description, post_type, min_price, fixed_price, "no", post_id])
                 flash("Posten uppdaterad")
                 if current_user.is_admin:
                     return redirect(url_for('list_posts'))
@@ -535,12 +533,12 @@ def edit_post(post_id=None):
                 owner_id = str(cur.fetchone()[0])
                 if cur_id == owner_id or current_user.is_admin:  # Admins may edit all posts
                     # Get the postdata
-                    edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, quantity, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
+                    edit_posts_sql = 'SELECT obj_id, scientific_name, plain_name, description, type, COALESCE(minimum_price, ""), COALESCE(fixed_price, "") FROM posts WHERE obj_id=?'
                     cur.execute(edit_posts_sql, [post_id])
                     data = cur.fetchone()
 
                     # make the selectinput
-                    cur_type = int(data[5])
+                    cur_type = int(data[4])
                     cur.execute("SELECT type_id, description FROM used_types ORDER BY type_id")
                     result = cur.fetchall()
                     select = '<select  class="selectpicker form-control" id="master_type" name="master_type">'
