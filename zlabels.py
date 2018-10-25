@@ -31,11 +31,11 @@ class ZLabels(object):
         self.paper_width, self.paper_height = A4
 
         if label_type == ZLabels.with_margins_24:
-            self.label_width = mm * 63.5  # mm
+            self.label_width = mm * 64  # mm
             self.label_height = mm * 33.9  # mm
             self.paper_left_right_margin = mm * 7  # mm
             self.paper_top_bottom_margin = mm * 12  # mm
-            self.label_spacing = mm * 2  # mm
+            self.label_spacing = mm * 2.5  # mm
             self.printer_margin = mm *0  # mm Not used if paper has enough margins round the labels
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
@@ -89,6 +89,8 @@ class ZLabels(object):
         :param font_size: font size
         :return: list of strings
         """
+        if text is None:
+            return [""]
         parts = text.split(" ")
         lines = []  # Resulting list of lines
         line = []  # current line

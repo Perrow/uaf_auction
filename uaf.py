@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.77"
+VERSION = "0.78"
 
 # For flask-login
 lm = LoginManager()
@@ -334,26 +334,27 @@ def register_many_posts():
         types = request.form.getlist('type')
         scinames = request.form.getlist('sciname')
         popnames = request.form.getlist('popname')
-        quantity = request.form.getlist('quantity')
+        # quantity = request.form.getlist('quantity')
         min_prices = request.form.getlist('min_price')
         fixed_prices = request.form.getlist('fixed_price')
         descriptions = request.form.getlist('description')
 
-        new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
+        new_items = zip(scinames, popnames, descriptions, types, min_prices, fixed_prices)
+        # new_items = zip(scinames, popnames, quantity, descriptions, types, min_prices, fixed_prices)
 
         seller_id = current_user.get_id()
         conn = sqlite3.connect(DATABASE)
         nr_posts = 0
         with conn:
             cur = conn.cursor()
-            for scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price in new_items:
+            for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
                 if scientific_name == "" and plain_name == "":
                     pass
                 else:
                     nr_posts += 1
-                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, quantity, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name,  description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
 
-            flash("Posterna registrerade.")
+            flash("{} poster registrerade.".format(nr_posts))
             send_email("uaf_auction: posts registered", 'Seller no {} registered {} posts.\n {}\n {}'.format(seller_id, nr_posts, scinames, popnames))
 
     # Fetch sale types from database, generate a select for the default sale type
@@ -1057,7 +1058,8 @@ def setup_labels():
             cur = conn.cursor()
             cur.execute("DELETE FROM label_type")
             cur.execute("INSERT INTO label_type (label_type) VALUES (?)", [label_type])
-        return render_template('setup_labels.html', label_type=label_type)
+        flash("Etikettformat ändrat.")
+        return redirect(url_for('index'))
     else:
         conn = sqlite3.connect(DATABASE)
         with conn:
@@ -1528,7 +1530,7 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             cur.execute(update_sql)
             conn.commit()
 
-    pdf = labels.make_pdf(data, border=False)
+    pdf = labels.make_pdf(data, border=True)
     return pdf
 
 

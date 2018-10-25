@@ -1,3 +1,15 @@
+Version 0.78 2018-10-25
+    Removed quantity from register posts.
+    Minor tweaks to labels.
+
+Version 0.77 2018-10-23
+    Issue 63. Changed seller to buyer in text at the fleamarket page.
+    Issue 64. Added total mount to pay at the bottom of the fleamarket page.
+
+Version 0.76 2018-10-23
+    New label design.
+    Support for three different 3 by 8 lable types. Admin can select label type on a new label type admin page.
+
 Version 0.75 2018-03-19
     Added quantity and price columns to "list my own posts" page.
     Added information about checked in posts on seller receipt.

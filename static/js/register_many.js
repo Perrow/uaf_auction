@@ -221,13 +221,10 @@ $(document).ready(function () {
                 '</div>' +
                 '</div>' + // end row
                 '<div class="row">' +
-                '<div class="col-sm-2">' +
-                '<label class="control-label" for="' + quantity_id + '">Antal:</label><br>' +
-                '<input class="form-control" id="' + quantity_id + '" name="quantity" type="text" value=""> <br>' +  
-                '</div>' + 
-                '<div class="col-sm-10">' +
-                '<label class="control-label" for="' + description_id + '">Beskrivning, färg eller annat intressant. Max 40 tecken:</label><br>' +
-                '<input class="form-control" id="' + description_id + '" name="description" type="text" value="" maxlength="40"> <br>' +
+
+                '<div class="col-sm-12">' +
+                '<label class="control-label" for="' + description_id + '">Beskrivning, färg eller annat intressant. Max ca 100 tecken:</label><br>' +
+                '<input class="form-control" id="' + description_id + '" name="description" type="text" value="" maxlength="100"> <br>' +
                 '</div>' + 
                 '</div>' + // end row
                 '</div>'

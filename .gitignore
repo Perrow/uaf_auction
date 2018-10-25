@@ -15,3 +15,4 @@ templates/.new_seller.html.swp
 templates/.register.html.swp
 templates/.register_many_posts.html.swp
 *.cfg
+uaf_docker/

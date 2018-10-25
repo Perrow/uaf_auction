@@ -10,7 +10,7 @@ import sys
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
 
-conn = sqlite3.connect("auktion.db3")
+conn = sqlite3.connect("auktion_generated.db3")
 # conn.text_factory = str
 
 F = faker.Faker()
@@ -79,6 +79,7 @@ with conn:
     cur.execute("DROP TABLE IF EXISTS auction_info")
     cur.execute("DROP TABLE IF EXISTS printers")
     cur.execute("DROP TABLE IF EXISTS notification_email")
+    cur.execute("DROP TABLE IF EXISTS label_type")
 
     cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT)')
@@ -87,6 +88,7 @@ with conn:
     cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
     cur.execute('CREATE TABLE printers (purpose TEXT, cups_name TEXT)')
     cur.execute('CREATE TABLE notification_email (email TEXT)')
+    cur.execute('CREATE TABLE label_type (label_type TEXT )')
 
     password_file = open("sellers.txt", "w")  # Textfile to be able to log in with the passwords.
     for seller in sellers:
@@ -105,6 +107,7 @@ with conn:
     cur.executemany("INSERT INTO all_types (type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input) VALUES(?, ?, ?, ?, ?)", all_types)
     cur.executemany("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
     cur.executemany("INSERT INTO printers (purpose, cups_name) VALUES (?, ?)", printers)
+    cur.execute("INSERT INTO label_type (label_type) VALUES ('without_margins_24')")
     # cur.executemany("INSERT INTO notification_email (email) VALUES (?)", notification_email)
 
     # To add new column to existing database table:
