@@ -1,3 +1,9 @@
+Version 0.80 2018-11-18
+    Added a new label format 65 * 34 mm.
+    Added border / no border options in the label setup and a corresponding border collumn in the label_type table.
+    Added option to list sellers posts on "show info about seller" page.
+    Made a new logo image to the labels, better resolution 250 * 250 pixels instead of 64 * 64.
+
 Version 0.79 2018-10-25
     Removed quantity from some other places as edit posts, list my posts, register posts for other seller.
 

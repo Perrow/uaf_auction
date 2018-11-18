@@ -17,6 +17,8 @@
                 <th>Telefon</th>
                 <th>Förening</th>
                 <th>Nr poster</th>
+                <th>Visa poster</th>
+
             </tr>
             </thead>
             <tbody>
@@ -29,6 +31,11 @@
                     <td> {{ row[3] }}</td>
                     <td> {{ row[4] }}</td>
                     <td> {{ row[5] }}</td>
+                    <td>
+                        <a class="btn btn-default" href=" {{ url_for('list_seller_posts') }}/{{ row[8] }} "> Poster
+                            <span class="glyphicon glyphicon-check"></span>
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>

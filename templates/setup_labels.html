@@ -11,9 +11,15 @@
         <form action="" method="POST">
             <div class="form-group">
                 {% if label_type == "with_margins_24" %}
-                    <input type="radio" name="label" value="with_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, 64 * 34 mm   <br>
+                    <input type="radio" name="label" value="with_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt och mellan ettiketkolumnerna, 64 * 34 mm   <br>
                 {% else %}
-                    <input type="radio" name="label" value="with_margins_24"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, 64 * 34 mm   <br>
+                    <input type="radio" name="label" value="with_margins_24"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt och mellan ettiketkolumnerna, 64 * 34 mm   <br>
+                {% endif %}
+                <br>
+                {% if label_type == "with_margins_24_typ_2" %}
+                    <input type="radio" name="label" value="with_margins_24_typ_2" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_65_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 * 34 mm   <br>
+                {% else %}
+                    <input type="radio" name="label" value="with_margins_24_typ_2"> <img src="{{ url_for('static', filename = 'img/24_label_65_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 * 34 mm  <br>
                 {% endif %}
                 <br>
                 {% if label_type == "with_topmargin_24" %}
@@ -28,10 +34,24 @@
                 {% else %}
                     <input type="radio" name="label" value="without_margins_24""> <img src="{{ url_for('static', filename = 'img/24_label_70_37.jpg') }}" alt="etiketter" height="100"> 24 etiketter utan marginaler runt, 70 * 37 mm<br>
                 {% endif %}
+
+            </div>
+            <div class="form-group">
+                {% if border == "yes" %}
+                    <input type="radio" name="border" value="yes" checked="checked"> Skriv ut kanter <br>
+                {% else %}
+                    <input type="radio" name="border" value="yes" > Skriv ut kanter <br>
+                {% endif %}
+                {% if border == "no" %}
+                    <input type="radio" name="border" value="no" checked="checked"> Skriv inte ut kanter <br>
+                {% else %}
+                    <input type="radio" name="border" value="no" > Skriv inte ut kanter <br>
+                {% endif %}
                 <br>
+            </div>
+            <br>
                 <input type="submit" value="spara" class="btn btn-primary">
                 <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
-            </div>
         </form>
 
     </div>

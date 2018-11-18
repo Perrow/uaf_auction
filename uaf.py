@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.79"
+VERSION = "0.80"
 
 # For flask-login
 lm = LoginManager()
@@ -429,7 +429,48 @@ def list_my_posts():
         ON posts.type=used_types.type_id
         WHERE seller_id = ?""", [cur_id])
         result = cur.fetchall()
-        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id, registration_open=is_registration_open())
+        return render_template('list_my_posts.html', heading="Mina anmälda poster", nr_posts=nr_posts, data=result, user=cur_id, registration_open=is_registration_open(), print_labels=True)
+
+@app.route('/list_seller_posts')
+@app.route('/list_seller_posts/<seller_id>')
+@admin_required
+def list_seller_posts(seller_id=None):
+    """
+    Page for listing a sellers posts in the database
+    """
+    if seller_id == None:
+        print("ingen säljar id")
+        return
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+
+        print("seller id", seller_id)
+        nr_posts = []
+        cur.execute("SELECT  COUNT(*) FROM posts WHERE seller_id=?", [seller_id])
+        res = cur.fetchone()
+        nr_posts.append("Antal poster: {}".format(res[0]))
+
+        cur.execute("SELECT name FROM sellers WHERE seller_id = ?", [seller_id])
+        res = cur.fetchone()
+        seller_name = res[0]
+
+        cur.execute("SELECT COUNT(posts.type), used_types.sale_type from posts LEFT JOIN used_types ON posts.type = used_types.type_id WHERE seller_id = ? GROUP BY used_types.sale_type", [seller_id])
+        res = cur.fetchall()
+
+        for row in res:
+            if row[1] == "auction":
+                nr_posts.append("Auktion: {}".format(row[0]))
+            if row[1] == "fixed_price":
+                nr_posts.append("Fastpris: {}".format(row[0]))
+
+        cur.execute("""SELECT  posts.obj_id, posts.scientific_name, posts.plain_name, posts.minimum_price, fixed_price, posts.description, used_types.description
+        FROM posts
+        INNER JOIN used_types
+        ON posts.type=used_types.type_id
+        WHERE seller_id = ?""", [seller_id])
+        result = cur.fetchall()
+        return render_template('list_my_posts.html', heading="{} anmälda poster".format(seller_name), nr_posts=nr_posts, data=result, user=seller_id, registration_open=is_registration_open(), print_labels=False)
 
 
 @app.route('/list_post_checkin')
@@ -1050,24 +1091,28 @@ def send_test_mail():
 def setup_labels():
     if request.method == "POST":
         label_type = request.form['label']
-        print("selected label_type", label_type)
+        border = request.form['border']
+        print("selected label_type", label_type, border)
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
             cur.execute("DELETE FROM label_type")
-            cur.execute("INSERT INTO label_type (label_type) VALUES (?)", [label_type])
+            cur.execute("INSERT INTO label_type (label_type, border) VALUES (?, ? )", [label_type, border])
         flash("Etikettformat ändrat.")
         return redirect(url_for('index'))
     else:
+        label_type = ""
+        border = "no"
         conn = sqlite3.connect(DATABASE)
         with conn:
             cur = conn.cursor()
-            cur.execute("SELECT label_type FROM label_type")
-            label_type = cur.fetchone()
-            if label_type is not None:
-                label_type = label_type[0]
-            print(label_type)
-        return render_template('setup_labels.html', label_type=label_type)
+            cur.execute("SELECT label_type, border FROM label_type")
+            data = cur.fetchone()
+            if data is not None:
+                label_type = data[0]
+                border = data[1]
+            #print(data)
+        return render_template('setup_labels.html', label_type=label_type, border=border)
 
 
 @app.route('/setup_printer', methods=['GET', 'POST'])
@@ -1492,11 +1537,14 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
         auction_name = auction_info[0]
         auction_date = auction_info[1]
         conn = sqlite3.connect(DATABASE)
-        cur.execute("SELECT label_type FROM label_type")
-        label_type = cur.fetchone()
-        if label_type is not None:
-            label_type = label_type[0]
-        labels = zlabels.ZLabels("mypdf", auction_name, auction_date, label_type)
+        cur.execute("SELECT label_type, border FROM label_type")
+        data = cur.fetchone()
+        label_type = "without_margins_24"
+        border = "no"
+        if data is not None:
+            label_type = data[0]
+            border = data[1]
+        labels = zlabels.ZLabels("mypdf", auction_name, auction_date, label_type, border)
         if selected_id:
             cur.execute("SELECT seller_id, name, phone, aquarium_club FROM sellers WHERE seller_id=?", [selected_id])
         else:
@@ -1528,7 +1576,7 @@ def get_labels_pdf(selected_id=None, only_printed=False, mark_printed=False):
             cur.execute(update_sql)
             conn.commit()
 
-    pdf = labels.make_pdf(data, border=True)
+    pdf = labels.make_pdf(data)
     return pdf
 
 

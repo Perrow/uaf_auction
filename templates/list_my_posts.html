@@ -13,11 +13,14 @@
             {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
         </p>
 
+        {% if print_labels == True %}
         <p>
+
             <a class="btn btn-link" href=" {{ url_for('my_labels') }}/{{ user }} ">
                 <i class="fa fa-file-pdf-o"></i> Skapa en pdf med etiketter för utskrift.
             </a>
         </p>
+        {% endif %}
 
         <table style="width:100%" class="table table-hover" id="sorted_table">
             <thead>

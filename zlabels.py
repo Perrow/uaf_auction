@@ -10,11 +10,12 @@ from reportlab.lib.units import mm
 
 class ZLabels(object):
 
-    with_margins_24 = "with_margins_24"  # 24 labels with margin around, labels 64 * 34 mm
+    with_margins_24 = "with_margins_24"  # 24 labels with margin around, and between label columns, labels ~ 64 * 34 mm
+    with_margins_24_typ_2 = "with_margins_24_typ_2"  # 24 labels with margins around not between label columns, labels ~ 65 * 34 mm
     without_margins_24 = "without_margins_24"  # 24 labels without margins, labels 70 * 37 mm, but printers can not print all the way to the edge but leave ca 5 mm
     with_top_margin_24 = "with_topmargin_24"  # 24 labels wit top and bottom marging, labels 70 * 36 mm, but printers can not print all the way to the edge but leave ca 5 mm
 
-    def __init__(self, pdf_name, event_name, event_date, label_type):
+    def __init__(self, pdf_name, event_name, event_date, label_type, border):
         """
         Class for generating labels in the size 70*37 mm in a 3 by 8 grid on A4 paper
         :param pdf_name: Name of pdf file without extension
@@ -25,6 +26,7 @@ class ZLabels(object):
         self.event_date = event_date
         self.pdf_name = pdf_name
         self.label_type = label_type
+        self.border = border
 
         # Label setup
         # https://www.officedepot.se/ecommerce/sortiment/etiketter--markning-c2477/etiketter-till-skrivare-c2431/etikett-l4773-63-5x33-9-480-fp-5922080/
@@ -36,7 +38,7 @@ class ZLabels(object):
             self.paper_left_right_margin = mm * 7  # mm
             self.paper_top_bottom_margin = mm * 12  # mm
             self.label_spacing = mm * 2.5  # mm
-            self.printer_margin = mm *0  # mm Not used if paper has enough margins round the labels
+            self.printer_margin = mm * 0  # mm Not used if paper has enough margins round the labels
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
             self.left_margin = 13 * mm
@@ -44,7 +46,24 @@ class ZLabels(object):
             self.font = 'Helvetica'
             self.bold_font = 'Helvetica-Bold'
             self.row_height = mm * 4
-            self.text_width = mm * 47
+            self.text_width = self.label_width - self.left_margin - 1.5 * mm - 1.5 * mm  # label width - left margin - left text margin - right text margin
+
+        elif label_type == ZLabels.with_margins_24_typ_2:
+            self.label_width = mm * 64.6  # mm
+            self.label_height = mm * 33.8  # mm
+            self.paper_left_right_margin = mm * 8  # mm
+            self.paper_top_bottom_margin = mm * 13  # mm
+            self.label_spacing = mm * 0  # mm
+            self.printer_margin = mm * 0  # mm Not used if paper has enough margins round the labels
+            self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
+            self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
+            self.left_margin = 13 * mm
+            self.font_size = 9
+            self.font = 'Helvetica'
+            self.bold_font = 'Helvetica-Bold'
+            self.row_height = mm * 4
+            self.text_width = self.label_width - self.left_margin - 1.5 * mm - 1.5 * mm  # label width - left margin - left text margin - right text margin
+            print("text width", self.text_width)
 
         elif label_type == ZLabels.without_margins_24:
             self.label_width = mm * 70  # mm
@@ -126,7 +145,7 @@ class ZLabels(object):
         else:
             return text
 
-    def make_pdf(self, data, border=True, debug=False):
+    def make_pdf(self, data, debug=False):
         """
         Make the label pdf
         :param data: the data to generate labels from
@@ -188,7 +207,7 @@ class ZLabels(object):
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
 
                 # Border
-                if border:
+                if self.border == "yes":
                     canvas.setLineWidth(.3)
                     canvas.line(x + label_space, y, x + label_space + self.label_width, y)  # upper line
                     canvas.line(x + label_space + self.label_width, y, x + label_space + self.label_width, y - self.label_height)  # right line
@@ -220,7 +239,7 @@ class ZLabels(object):
 
                 # Add logo
                 center = (self.left_margin - 25) / 2
-                canvas.drawInlineImage("static/img/logo_64.jpg", label_x_left + center, label_y_top - 30, 25, 25)
+                canvas.drawInlineImage("static/img/logo_250.jpg", label_x_left + center, label_y_top - 30, 25, 25)
                 canvas.setLineWidth(1)
                 canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
                 canvas.setLineWidth(.3)
@@ -271,11 +290,11 @@ class ZLabels(object):
                 for idx, comment in enumerate(comments):
                     if idx < 2:
                         canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
-                    if idx == 2 and self.label_type == ZLabels.with_margins_24:  # One extra row of comments on labels with margins
+                    if idx == 2 and (self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2):  # One extra row of comments on labels with margins
                         canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
 
                 #Seller name and phone
-                if self.label_type == ZLabels.with_margins_24:
+                if self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2:
                     row = 8
                 else:
                     row = 7

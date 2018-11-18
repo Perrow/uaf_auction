@@ -16,3 +16,4 @@ templates/.register.html.swp
 templates/.register_many_posts.html.swp
 *.cfg
 uaf_docker/
+backup.sh
