@@ -82,13 +82,13 @@ with conn:
     cur.execute("DROP TABLE IF EXISTS label_type")
 
     cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT)')
-    cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT)')
+    cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT, is_closed TEXT)')
     cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
     cur.execute('CREATE TABLE all_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
     cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
     cur.execute('CREATE TABLE printers (purpose TEXT, cups_name TEXT)')
     cur.execute('CREATE TABLE notification_email (email TEXT)')
-    cur.execute('CREATE TABLE label_type (label_type TEXT )')
+    cur.execute('CREATE TABLE label_type (label_type TEXT, border TEXT)')
 
     password_file = open("sellers.txt", "w")  # Textfile to be able to log in with the passwords.
     for seller in sellers:

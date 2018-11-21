@@ -216,7 +216,7 @@ class Faker:
         phone_number = self.get_phone()
         password = self.get_password()
         club = self.get_aquarium_club()
-        return name, address, email, phone_number, club, admin, password, time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes", "no"
+        return name, address, email, phone_number, club, admin, password, time.strftime("%Y-%m-%d %H:%M:%S"), "yes", "yes", "no", "no"
 
     def get_fish_name(self):
         return random.choice(self.fish_names)

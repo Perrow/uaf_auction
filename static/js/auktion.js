@@ -18,6 +18,7 @@ $(document).ready(function () {
                     $('#type').html("").fadeIn();
                     $('#sold').html("").fadeIn();
                     $('#checked_in').html("").fadeIn();
+                    $('#closed').html("").fadeIn();
                     $('#error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
                 } else {
                     console.log("Found");
@@ -37,6 +38,11 @@ $(document).ready(function () {
                     } else {
                         $('#checked_in').html("").fadeIn();
                     }                    
+                    if (data.is_closed == "yes") {
+                        $('#closed').html("Säljaren är stängd").fadeIn();
+                    } else {
+                        $('#closed').html("").fadeIn();
+                    }
                     if (data.sold_on !== null) {
                         $('#sold').html("Redan sålt").fadeIn();
                         document.getElementById("price").value = data.sold_price;
@@ -59,6 +65,7 @@ $(document).ready(function () {
                 $('#type').html("").fadeIn();
                 $('#sold').html("").fadeIn();
                 $('#checked_in').html("").fadeIn();
+                $('#closed').html("").fadeIn();
                 $('#error').html("INGET POST ID GAVS").fadeIn();
                 console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
             },
@@ -69,8 +76,8 @@ $(document).ready(function () {
     $("#submit").click(function () {
         var all_ok = true;
         console.log("checking prices");
-        var price_id = "#price"
-        var post_id = "#post_id"
+        var price_id = "#price";
+        var post_id = "#post_id";;
 
         if ($(post_id).val() != "") {
             if ($.isNumeric($(price_id).val())) {

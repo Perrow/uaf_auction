@@ -82,6 +82,7 @@ $(document).ready(function () {
                         $('#type').html("").fadeIn();
                         $('#sold').html("").fadeIn();
                         $('#checked_in').html("").fadeIn();
+                        $('#closed').html("").fadeIn();
                         $('#error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
                     } else {
                         console.log("Found");
@@ -102,6 +103,11 @@ $(document).ready(function () {
                             $('#checked_in').html("Ej incheckad post").fadeIn();
                         } else {
                             $('#checked_in').html("").fadeIn();
+                        }
+                        if (data.is_closed == "yes") {
+                            $('#closed').html("Säljaren är stängd").fadeIn();
+                        } else {
+                            $('#closed').html("").fadeIn();
                         }
                         if (data.sold_on !== null) {
                             $('#sold').html("Redan sålt").fadeIn();
@@ -125,6 +131,7 @@ $(document).ready(function () {
                     $('#type').html("").fadeIn();
                     $('#sold').html("").fadeIn();
                     $('#checked_in').html("").fadeIn();
+                    $('#closed').html("").fadeIn();
                     $('#error').html("INGET POST ID GAVS").fadeIn();
                     console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
                 }

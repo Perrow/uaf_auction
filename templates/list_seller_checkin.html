@@ -16,6 +16,7 @@
                 <th>In checkad</th>
                 <th>Checka in</th>
                 <th>Check in/ut poster</th>
+                <th>Stäng säljare</th>
             </tr>
             </thead>
             <tbody>
@@ -52,6 +53,20 @@
                         </td>
                         {% else %}
                         <td></td>
+                    {% endif %}
+                    <!--Close or unclose seller-->
+                    {% if row[4] == "no" %}
+                        <td>
+                            <a class="btn btn-warning" href=" {{ url_for('close_seller') }}/{{ row[0] }} "> Stäng säljare
+                                <span class="glyphicon glyphicon-arrow-down"></span>
+                            </a>
+                        </td>
+                    {% else %}
+                        <td>
+                            <a class="btn btn-success" href=" {{ url_for('unclose_seller') }}/{{ row[0] }} "> Öppna säljare
+                                <span class="glyphicon glyphicon-arrow-up"></span>
+                            </a>
+                        </td>
                     {% endif %}
                 </tr>
             {% endfor %}

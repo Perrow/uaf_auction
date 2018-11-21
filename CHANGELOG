@@ -1,3 +1,9 @@
+Version 0.81 2018-11-21
+    Added the possibility to "close" a seller that want to leave early. The seller and all posts are marked as closed
+    and a warning is shown in auction and fleamarket pages when trying to buy objects from the seller. Admin can print
+    economic compilation reports for indiviual sellers in the handle sellers page. This needed the addition of the field
+    "is_closed" to tables posts and sellers.
+
 Version 0.80 2018-11-18
     Added a new label format 65 * 34 mm.
     Added border / no border options in the label setup and a corresponding border collumn in the label_type table.

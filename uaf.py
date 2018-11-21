@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.80"
+VERSION = "0.81"
 
 # For flask-login
 lm = LoginManager()
@@ -298,7 +298,7 @@ def admin_register_many_posts():
         with conn:
             cur = conn.cursor()
             for scientific_name, plain_name, description, post_type, minimum_price, fixed_price in new_items:
-                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
+                cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name, description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in, is_closed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no", "no"))
 
             flash("Posterna registrerade.")
 
@@ -351,7 +351,7 @@ def register_many_posts():
                     pass
                 else:
                     nr_posts += 1
-                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name,  description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no"))
+                    cur.execute("INSERT INTO posts (seller_id, scientific_name, plain_name,  description, type, minimum_price, fixed_price, time_stamp_registration, label_printed, is_checked_in, is_closed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (seller_id, scientific_name, plain_name, description, post_type, minimum_price, fixed_price, time.strftime("%Y-%m-%d %H:%M:%S"), "no", "no", "no"))
 
             flash("{} poster registrerade.".format(nr_posts))
             send_email("uaf_auction: posts registered", 'Seller no {} registered {} posts.\n {}\n {}'.format(seller_id, nr_posts, scinames, popnames))
@@ -633,7 +633,8 @@ def list_seller_checkin():
 
     with conn:
         cur = conn.cursor()
-        sql = """SELECT cast(sellers.seller_id as text), sellers.name, count(posts.obj_id) as num_posts, has_checked_in FROM sellers
+        sql = """SELECT cast(sellers.seller_id as text), sellers.name, count(posts.obj_id) as num_posts, 
+                    has_checked_in, sellers.is_closed FROM sellers
                  LEFT JOIN posts ON sellers.seller_id=posts.seller_id GROUP BY sellers.seller_id;"""
         cur.execute(sql)
         result = cur.fetchall()
@@ -709,6 +710,42 @@ def check_out_seller(seller_id=None):
             checkin_posts_sql = 'UPDATE posts SET is_checked_in = "no" WHERE seller_id=?'
             cur.execute(checkin_posts_sql, [seller_id])
     return redirect(url_for('list_seller_checkin'))
+
+
+@app.route('/close_seller')
+@app.route('/close_seller/<seller_id>')
+@admin_required
+def close_seller(seller_id=None):
+    """
+    Marks a seller as closed at the event. ie left early for some reason,
+    """
+    print("Close seller")
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            checkin_posts_sql = 'UPDATE posts SET is_closed = "yes" WHERE seller_id=?'
+            cur.execute(checkin_posts_sql, [seller_id])
+            checkin_seller_sql = 'UPDATE sellers SET is_closed = "yes" WHERE seller_id=?'
+            cur.execute(checkin_seller_sql, [seller_id])
+    return redirect(request.referrer)
+
+@app.route('/unclose_seller')
+@app.route('/unclose_seller/<seller_id>')
+@admin_required
+def unclose_seller(seller_id=None):
+    """
+    Marks a seller as not closed at the event. FOr correcting closed sellers.
+    """
+    conn = sqlite3.connect(DATABASE)
+    with conn:
+        cur = conn.cursor()
+        if seller_id:
+            checkin_posts_sql = 'UPDATE posts SET is_closed = "no" WHERE seller_id=?'
+            cur.execute(checkin_posts_sql, [seller_id])
+            checkin_seller_sql = 'UPDATE sellers SET is_closed = "no" WHERE seller_id=?'
+            cur.execute(checkin_seller_sql, [seller_id])
+    return redirect(request.referrer)
 
 
 @app.route('/check_in_post')
@@ -910,7 +947,7 @@ def create_event():
 
             cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT)')
-            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT)')
+            cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT, is_closed TEXT)')
             # cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
             # cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
             cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
@@ -1292,7 +1329,10 @@ def get_json(post_id):
     with conn:
         cur = conn.cursor()
 
-        cur.execute(""" SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, posts.sold_on, posts.fixed_price, posts.sold_price, used_types.sale_type as type, posts.minimum_price, posts.is_checked_in
+        cur.execute(""" 
+        SELECT posts.obj_id, sellers.name, posts.description, posts.scientific_name, posts.plain_name, 
+            posts.sold_on, posts.fixed_price, posts.sold_price, used_types.sale_type as type, posts.minimum_price, 
+            posts.is_checked_in, posts.is_closed
         FROM sellers
         INNER JOIN posts
         ON sellers.seller_id=posts.seller_id
@@ -1886,14 +1926,17 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
         club_name, club_short_name, event_name, event_date, event_city, commision = get_auction_info()
         comp_pdf = make_compilation_pdf.Compilation(club_name, event_name, event_date, event_city, commision)
 
-        # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
-        # seller_ids = cur.fetchall()
-        if only_checked:
-            seller_sql = 'SELECT DISTINCT seller_id FROM sellers WHERE has_checked_in="yes"'
+        if selected_id:
+            seller_ids = [selected_id]
         else:
-            seller_sql = 'SELECT DISTINCT seller_id FROM sellers'
-        cur.execute(seller_sql)
-        seller_ids = cur.fetchall()
+            # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
+            # seller_ids = cur.fetchall()
+            if only_checked:
+                seller_sql = 'SELECT DISTINCT seller_id FROM sellers WHERE has_checked_in="yes"'
+            else:
+                seller_sql = 'SELECT DISTINCT seller_id FROM sellers'
+            cur.execute(seller_sql)
+            seller_ids = cur.fetchall()
 
         for seller_id in seller_ids:
             seller_id = seller_id[0]
