@@ -15,7 +15,7 @@ conn = sqlite3.connect("auktion_generated.db3")
 
 F = faker.Faker()
 
-sellers = [[u"Kalle Persson", u"Tallmon 1, 54878 Näppeby", u"kalle.persson@mail.com".lower(), u"051-25468", u"UAF", u"yes", u"password", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes", u"no"]]
+sellers = [[u"Kalle Persson", u"Tallmon 1, 54878 Näppeby", u"kalle.persson@mail.com".lower(), u"051-25468", u"UAF", u"yes", u"password", time.strftime("%Y-%m-%d %H:%M:%S"), u"yes", u"yes", u"no", u"no"]]
 for n in range(5):
     sellers.append(F.generate_seller())
 
@@ -81,7 +81,7 @@ with conn:
     cur.execute("DROP TABLE IF EXISTS notification_email")
     cur.execute("DROP TABLE IF EXISTS label_type")
 
-    cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT)')
+    cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT, is_closed TEXT)')
     cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT, is_closed TEXT)')
     cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
     cur.execute('CREATE TABLE all_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
@@ -99,7 +99,7 @@ with conn:
         seller_data = list(seller)
         seller_data[6] = password
         print(seller_data)
-        cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database, has_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
+        cur.execute("INSERT INTO sellers (name, address, email, phone, aquarium_club, isAdmin, password, time_stamp, accepts_cookies, accepts_database, has_checked_in, is_closed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", seller_data)
     password_file.close()
 
     cur.executemany("INSERT INTO posts (seller_id, scientific_name, plain_name, quantity, description, type, time_stamp_registration, minimum_price, fixed_price, label_printed, is_checked_in) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", posts)
