@@ -7,6 +7,7 @@ from reportlab.lib.units import mm
 # from reportlab.lib.colors import red, blueviolet, yellowgreen, lawngreen, black
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER, TA_JUSTIFY
 from reportlab.lib.styles import ParagraphStyle
+import os
 
 from PdfLine import LeftLine, CenterLine
 
@@ -57,7 +58,8 @@ class Receipt(object):
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
         normal_center = styles['Center']
 
-        logo = "static/img/logo_for_pdf.jpg"
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        logo = os.path.join(basedir, "static/img/logo_for_pdf.jpg")
         im = Image(logo, 30 * mm, 30 * mm)
         im.hAlign = "LEFT"
         # Start document

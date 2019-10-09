@@ -6,6 +6,7 @@ from reportlab.graphics import shapes
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+import os
 
 
 class ZLabels(object):
@@ -239,7 +240,11 @@ class ZLabels(object):
 
                 # Add logo
                 center = (self.left_margin - 25) / 2
-                canvas.drawInlineImage("static/img/logo_250.jpg", label_x_left + center, label_y_top - 30, 25, 25)
+
+                basedir = os.path.abspath(os.path.dirname(__file__))
+                img_file = os.path.join(basedir, "static/img/logo_250.jpg")
+                canvas.drawInlineImage(img_file, label_x_left + center, label_y_top - 30, 25, 25)
+
                 canvas.setLineWidth(1)
                 canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
                 canvas.setLineWidth(.3)

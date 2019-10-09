@@ -1,6 +1,6 @@
 # coding=utf-8
 import time
-
+import os
 from reportlab.platypus import PageBreak
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
@@ -58,7 +58,9 @@ class make_clerk_receipt_pdf(object):
         # Make a centered paragraph style
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
         normal_center = styles['Center']
-        logo = "static/img/logo_for_pdf.jpg"
+
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        logo = os.path.join(basedir, "static/img/logo_for_pdf.jpg")
         im = Image(logo, 30 * mm, 30 * mm)
         im.hAlign = "LEFT"
 
