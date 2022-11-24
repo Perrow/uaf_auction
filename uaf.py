@@ -34,7 +34,7 @@ DATABASE = app.config['DATABASE']
 GMAILUSER = app.config['GMAILUSER']
 GMAILPASSWORD = app.config['GMAILPASSWORD']
 
-VERSION = "0.84"
+VERSION = "0.85"
 
 # For flask-login
 lm = LoginManager()

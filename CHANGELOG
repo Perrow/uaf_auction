@@ -1,3 +1,14 @@
+Version 0.85 2022-11-22
+    Updated the README.md to get a working install on Raspbian 11 (Bullseye).
+    Added a uaf.conf for apache2.
+
+Version 0.84 2019-11-02
+    Fixed bug when admin registered posts for another user. Causing 500 error.
+    Fixed typo in welcome screen.
+
+Version 0.83 2019-10-09
+    Wrong path to images for pdf generation, causing server error 500.
+
 Version 0.82 2019-10-02
     Fixed bug when generating individual sales reports.
     Fixed bugs when generating database.
