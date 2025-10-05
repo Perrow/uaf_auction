@@ -16,7 +16,7 @@
             <label class="control-label col-sm-3" for="hosting_association">Föreningens namn:</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" id="hosting_association" name="hosting_association"
-                       placeholder="Föreningens namn">
+                       placeholder="Föreningens namn" value="{{ hosting_association }}">
             </div>
         </div>
 
@@ -24,21 +24,21 @@
             <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens förkortning:</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" id="hosting_association_abrv" name="hosting_association_abrv"
-                       placeholder="Föreningens förkortning">
+                       placeholder="Föreningens förkortning" value="{{ hosting_association_abrv }}">
             </div>
         </div>
 
         <div class="form-group">
             <label class="control-label col-sm-3" for="city">Stad där eventet äger rum:</label>
             <div class="col-sm-9">
-                <input type="text" class="form-control" id="city" name="city" placeholder="Stad">
+                <input type="text" class="form-control" id="city" name="city" placeholder="Stad" value="{{ city }}">
             </div>
         </div>
 
         <div class="form-group">
             <label class="control-label col-sm-3" for="event_name">Namn på eventet:</label>
             <div class="col-sm-9">
-                <input type="text" class="form-control" id="event_name" name="event_name" placeholder="Namn på eventet">
+                <input type="text" class="form-control" id="event_name" name="event_name" placeholder="Namn på eventet" value="{{ event_name }}">
             </div>
         </div>
 
@@ -52,7 +52,7 @@
         <div class="form-group">
             <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens andel:</label>
             <div class="col-sm-9">
-                <input type="text" class="form-control" id="commission" name="commission" placeholder="0-100%">
+                <input type="text" class="form-control" id="commission" name="commission" placeholder="0-100%" value="{{ commission }}">
             </div>
         </div>
 
@@ -60,7 +60,7 @@
             <label class="control-label col-sm-3" for="event_description">Beskrivning av eventet:</label>
             <div class="col-sm-9">
                 <textarea class="form-control" rows="10" id="event_description" name="event_description"
-                          placeholder=""></textarea>
+                          placeholder="Beskrivning av eventet">{{ event_description }}</textarea>
             </div>
         </div>
 
