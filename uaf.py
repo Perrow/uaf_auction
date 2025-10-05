@@ -1933,8 +1933,6 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
         if selected_id:
             seller_ids = [[selected_id]]
         else:
-            # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
-            # seller_ids = cur.fetchall()
             if only_checked:
                 seller_sql = 'SELECT DISTINCT seller_id FROM sellers WHERE has_checked_in="yes"'
             else:
@@ -1956,8 +1954,9 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
                 tot_sold = int(sold_for)
             except TypeError:
                 tot_sold = 0
-            
-            if tot_sold <= 0:
+
+            if tot_sold <= 0 and (selected_id is None):  # Only include sellers that actually sold something unless a specific seller is requested
+                print("Skipping seller {} with no sales".format(seller_id))
                 continue
 
             # cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
