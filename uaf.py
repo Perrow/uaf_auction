@@ -972,7 +972,24 @@ def create_event():
             cur = conn.cursor()
             cur.execute(""" SELECT type_id, description FROM all_types""")
             all_types = cur.fetchall()
-        return render_template('create_event.html', all_types=all_types)
+            # Fetch association information
+            cur.execute("SELECT hosting_association, hosting_association_abrv, city, event_name, commission, description FROM auction_info")
+            association_info = cur.fetchone()
+            if association_info:
+                hosting_association = association_info[0]
+                hosting_association_abrv = association_info[1]
+                city = association_info[2]
+                event_name = association_info[3]
+                commission = association_info[4] * 100
+                event_description = association_info[5]
+            else:
+                hosting_association = None
+                hosting_association_abrv = None
+                city = None
+                event_name = None
+                commission = 20
+                event_description = None
+        return render_template('create_event.html', all_types=all_types, hosting_association=hosting_association, hosting_association_abrv=hosting_association_abrv, city=city, event_name=event_name, commission=commission, event_description=event_description)
 
 
 @app.route("/edit_event", methods=['GET', 'POST'])
