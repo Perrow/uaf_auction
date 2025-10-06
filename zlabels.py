@@ -102,7 +102,7 @@ class ZLabels(object):
 
     def make_multiline(self, text, max_length, font, font_size):
         """
-        Takes aline of text and constructs a list of line fragments where each fragment do not exceed the maximum length of a line
+        Takes a line of text and constructs a list of line fragments where each fragment do not exceed the maximum length of a line
         :param text: Text to split into lines
         :param max_length: max length of a line
         :param font: font name

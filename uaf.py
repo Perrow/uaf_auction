@@ -1686,6 +1686,10 @@ def get_economic_report_pdf():
                 tot_sold = 0
             count_sold = sold[1]
 
+             # Only include sellers that actually sold something
+            if tot_sold <= 0:
+                continue
+
             to_society = tot_sold * commision
             to_society = int(to_society + 0.5)
             to_seller = int(tot_sold - to_society)
@@ -1710,7 +1714,7 @@ def get_economic_report_pdf():
             data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
 
         # Summation for the whole auction and flea market
-        # GEt the total number of registered posts and for auction and fleamarket
+        # Get the total number of registered posts and for auction and fleamarket
         cur.execute(""" SELECT used_types.sale_type, count(posts.obj_id) as antal FROM posts
                         LEFT JOIN used_types
                         ON posts.type=used_types.type_id
@@ -1929,8 +1933,6 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
         if selected_id:
             seller_ids = [[selected_id]]
         else:
-            # cur.execute("SELECT DISTINCT seller_id FROM posts WHERE sold_price > 0")
-            # seller_ids = cur.fetchall()
             if only_checked:
                 seller_sql = 'SELECT DISTINCT seller_id FROM sellers WHERE has_checked_in="yes"'
             else:
@@ -1947,6 +1949,15 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
             # Get sold total sum
             cur.execute("SELECT sum(sold_price) FROM posts WHERE seller_id=? and sold_price>0", [seller_id])
             sold_for = cur.fetchone()[0]
+
+            try:
+                tot_sold = int(sold_for)
+            except TypeError:
+                tot_sold = 0
+
+            if tot_sold <= 0 and (selected_id is None):  # Only include sellers that actually sold something unless a specific seller is requested
+                print("Skipping seller {} with no sales".format(seller_id))
+                continue
 
             # cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
             cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on, posts.is_checked_in FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ?", [seller_id])

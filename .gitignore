@@ -8,7 +8,7 @@ python/
 *pyc
 *.swp
 *.db3
-
+venv/
 templates/.flea_market.html.swp
 templates/.login.html.swp
 templates/.new_seller.html.swp
