@@ -21,68 +21,70 @@ $(document).ready(function () {
     });
 
     var select_change = function () {
-        var rownr = $(this).attr("id").substring(4);
-            console.log("rownr_select_change_" + rownr);
-            var type_id = "#type" + rownr;
-            var min_price_div_id = "#min_price_div" + rownr;
-            var min_price_id = "#min_price" + rownr;
-            var fixed_price_div_id = "#fixed_price_div" + rownr;
-            var fixed_price_id = "#fixed_price" + rownr;
-            var sciname_div_id = "#sciname_div_id" + rownr;
-            var type_id_val = $(type_id).val();
-            console.log(type_id_val);
-            var min_price_div = $(min_price_div_id);
-            var fixed_price_div = $(fixed_price_div_id);
-            var sciname_div = $(sciname_div_id);
-            var sciname = $("#sciname" + rownr);
+    var rownr = $(this).attr("id").substring(4);
+    console.log("rownr_select_change_" + rownr);
+    var type_id = "#type" + rownr;
+    var popname_label_id = "#popname_label" + rownr; // ID for the popname label
+    var min_price_div_id = "#min_price_div" + rownr;
+    var min_price_id = "#min_price" + rownr;
+    var fixed_price_div_id = "#fixed_price_div" + rownr;
+    var fixed_price_id = "#fixed_price" + rownr;
+    var sciname_div_id = "#sciname_div_id" + rownr;
+    var type_id_val = $(type_id).val();
+    console.log(type_id_val);
+    var min_price_div = $(min_price_div_id);
+    var fixed_price_div = $(fixed_price_div_id);
+    var sciname_div = $(sciname_div_id);
+    var sciname = $("#sciname" + rownr);
 
-            $.ajax({
-                url: 'json_get_type/' + type_id_val,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.hasOwnProperty('error')) {
-                        console.log("Not found");
-                    } else {
-                        console.log("Found");
-                        console.log(data.sale_type);
-                        if (data.sale_type == "auction") {
-                            fixed_price_div.hide();
-                            min_price_div.show();
-                            $(fixed_price_id).val("");
-                            console.log("fixed_price_id ", fixed_price_id);
-                            console.log("hide fixed, show min");
-                        } else {
-                            fixed_price_div.show();
-                            min_price_div.hide();
-                            $(min_price_id).val("");
-                            console.log("min_price_id ", min_price_id);
-                            console.log("hide min, show fixed");
-                        }
-                        if (data.display_scientific_name_input == "yes") {
-                            sciname_div.show();
-                            console.log("show scientific name div", sciname_div_id);
-                        } else {
-                            sciname_div.hide();
-                            sciname.val("");  // Empty the scientific input when changing to an auction type that do not have scientific name.
-                            console.log("hide scientific name div", sciname_div_id);
-                        }
-                        if (data.scientific_name_obligatory == "yes") {
-                            sciname.addClass("check_sciname");
-                            console.log("check scientific name ", sciname_div_id);
-                        } else {
-                            sciname.removeClass("check_sciname");
-                            console.log("do not check scientific name", sciname_div_id);
-                        }
-                    }
-
-                    console.log('.ajax() request returned successfully.');
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
+    $.ajax({
+        url: 'json_get_type/' + type_id_val,
+        dataType: 'json',
+        success: function (data) {
+            if (data.hasOwnProperty('error')) {
+                console.log("Not found");
+            } else {
+                console.log("Found");
+                console.log(data.sale_type);
+                if (data.sale_type == "auction") {
+                    fixed_price_div.hide();
+                    min_price_div.show();
+                    $(fixed_price_id).val("");
+                    console.log("fixed_price_id ", fixed_price_id);
+                    console.log("hide fixed, show min");
+                } else {
+                    fixed_price_div.show();
+                    min_price_div.hide();
+                    $(min_price_id).val("");
+                    console.log("min_price_id ", min_price_id);
+                    console.log("hide min, show fixed");
                 }
-            });
+                if (data.display_scientific_name_input == "yes") {
+                    sciname_div.show();
+                    console.log("show scientific name div", sciname_div_id);
+                    $(popname_label_id).text("Populärnamn:"); // Change label text
+                } else {
+                    sciname_div.hide();
+                    sciname.val(""); // Empty the scientific input when changing to an auction type that does not have scientific name.
+                    console.log("hide scientific name div", sciname_div_id);
+                    $(popname_label_id).text("Vad:"); // Change label text
+                }
+                if (data.scientific_name_obligatory == "yes") {
+                    sciname.addClass("check_sciname");
+                    console.log("check scientific name ", sciname_div_id);
+                } else {
+                    sciname.removeClass("check_sciname");
+                    console.log("do not check scientific name", sciname_div_id);
+                }
+            }
 
-    }
+            console.log('.ajax() request returned successfully.');
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
+        }
+    });
+};
 
     
     // Toggles the fixed price, minimum price boxes and the scientific name box according to the select status
@@ -183,6 +185,7 @@ $(document).ready(function () {
             var fixed_price_div_id = "fixed_price_div" + i;
             var min_price_error_id = "min_price_error" + i;
             var fixed_price_error_id = "fixed_price_error" + i;
+            var popname_label_id = "popname_label" + i;
             var quantity_id = "quantity" + i;
             var description_id = "description" + i;
             var copybutton_id = "copybutton" + i;
@@ -205,7 +208,7 @@ $(document).ready(function () {
                 '<div id="' + sciname_id_error + ' " class="error"></div>' +
                 '</div>' +
                 '<div class="col-sm-5">' +
-                '<label class="control-label" for="' + popname_id + '">Namn:</label><br>' +
+                '<label class="control-label" id="'+ popname_label_id +'" for="' + popname_id + '">Populärnamn:</label><br>' +
                 '<input class="form-control" id="' + popname_id + '" name="popname" type="text" value=""> <br>' +
                 '</div>' +
                 '<div class="col-sm-2"  id="' + min_price_div_id + '">' +
