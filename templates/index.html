@@ -15,26 +15,24 @@
     </section>
 
     {% if event_description %}
-        <section class="mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    {{ event_description|safe }}
-                </div>
-            </div>
+        <section class="mb-4 px-1">
+            {{ event_description|safe }}
         </section>
     {% endif %}
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <section class="h-100 py-2">
-                <h2 class="h4 mb-3">Kort handledning</h2>
-                <ul class="mb-0 ps-3">
-                    <li class="mb-2">Skapa en ny användare via <strong>Registrera säljare</strong>. E-postadressen är ditt användarnamn.</li>
-                    <li class="mb-2">Logga in.</li>
-                    <li class="mb-2">Registrera de poster du vill sälja. Du kan komma tillbaka senare och anmäla fler poster.</li>
-                    <li class="mb-2">Under <strong>Poster → Visa mina anmälda poster</strong> kan du titta på, ändra eller ta bort dina poster.</li>
-                    <li>Du kan ladda ner en PDF med dina etiketter om du vill märka posterna hemma. Etiketter finns även på plats.</li>
-                </ul>
+            <section class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h4 card-title mb-3">Kort handledning</h2>
+                    <ul class="mb-0 ps-3">
+                        <li class="mb-2">Skapa en ny användare via <strong>Registrera säljare</strong>. E-postadressen är ditt användarnamn.</li>
+                        <li class="mb-2">Logga in.</li>
+                        <li class="mb-2">Registrera de poster du vill sälja. Du kan komma tillbaka senare och anmäla fler poster.</li>
+                        <li class="mb-2">Under <strong>Poster → Visa mina anmälda poster</strong> kan du titta på, ändra eller ta bort dina poster.</li>
+                        <li>Du kan ladda ner en PDF med dina etiketter om du vill märka posterna hemma. Etiketter finns även på plats.</li>
+                    </ul>
+                </div>
             </section>
         </div>
 
