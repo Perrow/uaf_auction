@@ -1,81 +1,47 @@
 {% extends "base.html" %}
-{% block title %} Index {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
+{% from "components/forms.html" import input_field, checkbox_field %}
+{% block title %} Registrera säljare {% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Registrera dig som användare för att kunna förhandsanmäla.</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-3">Registrera dig som användare</h1>
+            <p class="text-body-secondary mb-4">Registrera dig för att kunna förhandsanmäla poster.</p>
 
-    {% if (registration_open == True) or (current_user.is_admin == True) %}
-    <br>
-    <form id="register_seller" class="form-horizontal" action="/register_seller" method="POST">
+            {% if (registration_open == True) or (current_user.is_admin == True) %}
+                <form id="create_event_form" action="{{ url_for('register_seller') }}" method="POST">
+                    {{ input_field('name', 'Namn:', placeholder='Förnamn Efternamn', autocomplete='name') }}
+                    {{ input_field('address', 'Adress:', placeholder='Gatuadress, postnummer ort', autocomplete='street-address') }}
+                    {{ input_field('email', 'Email:', type='email', placeholder='nnn@nn.nn', autocomplete='email') }}
+                    {{ input_field('phone', 'Telefonnummer:', type='tel', placeholder='012-3456789', autocomplete='tel') }}
+                    {{ input_field('aquarium_club', 'Akvarieförening:', placeholder='Akvarieförening') }}
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="name">Namn:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="name" name="name" placeholder="Förnamn Efternamn">
-            </div>
-        </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Lösenord:</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Lösenord" autocomplete="new-password">
+                            <button type="button" class="btn btn-outline-secondary" data-password-toggle="password" aria-pressed="false">Visa</button>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="address">Adress:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="address" name="address" placeholder="Gatuadress, postnummer ort">
-            </div>
-        </div>
+                    <div id="message" class="text-danger fw-semibold mb-3" role="alert"></div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="email">Email:</label>
-            <div class="col-sm-9">
-                <input type="email" class="form-control" id="email" name="email" placeholder="nnn@nn.nn">
-            </div>
-        </div>
+                    <div class="mb-3">
+                        {{ checkbox_field('cookies', 'Jag accepterar att denna tjänst använder cookies för att hantera inloggning.') }}
+                        {{ checkbox_field('database', 'Jag accepterar att denna tjänst lagrar mina uppgifter i en databas.') }}
+                        <div id="checkbox_message" class="text-danger fw-semibold mt-2" role="alert"></div>
+                    </div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="phone">Telefonnummer:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="phone" name="phone" placeholder="012-3456789">
-            </div>
+                    <button type="submit" name="submit" class="btn btn-primary">Skicka</button>
+                </form>
+            {% else %}
+                <div class="alert alert-warning" role="alert">Du kan inte registrera dig då föranmälan är stängd.</div>
+            {% endif %}
         </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="aquarium_club">Akvarieförening:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="aquarium_club" name="aquarium_club" placeholder="Akvarieförening">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="password">Lösenord:</label>
-            <div class="col-sm-9">
-                <input type="password" class="form-control" id="password" name="password" placeholder="lösenord" data-toggle="password">
-              </div>
-        </div>
-        <div id="message" class="bg-danger"></div>
-
-        <div class="checkbox">
-            <label class="control-label"><input type="checkbox" id="cookies" name="cookies" value="yes">Jag accepterar att denna tjänst använder cookies för att hantera inloggning.</label>
-        </div>
-        <div class="checkbox">
-            <label class="control-label"><input type="checkbox" id="database" name="database" value="yes">Jag accepterar att denna tjänst lagrar mina uppgifter i en databas.</label>
-        </div>
-        <br>
-        <div id="checkbox_message" class="bg-danger"></div>
-        <br>
-        <!--Send button-->
-        <div class="form-group">
-            <div class="col-sm-offset-3 col-sm-9">
-                <input type="submit" value="Skicka" name="submit" class="btn btn-primary">
-
-            </div>
-        </div>
-    </form>
-    {%  else %}
-    <p>Du kan inte registrera dig då föranmälan är stängd.</p>
-    {% endif %}
+    </div>
 </div>
-
+{% endblock %}
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/create_event.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/password_toggle.js') }}"></script>
 {% endblock %}
