@@ -1,101 +1,80 @@
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    $('#post_id').blur(function () {
-        var post_id = $('#post_id').val();
+    const postIdInput = document.getElementById('post_id');
+    const priceInput = document.getElementById('price');
+    const submitButton = document.getElementById('submit');
 
-        $.ajax({
-            url: 'json/' + post_id,
-            dataType: 'json',
-            success: function (data) {
-                if (data.hasOwnProperty('error')) {
-                    console.log("Not found");
-                    $('#scientific_name').html("").fadeIn();
-                    $('#min_price').html("").fadeIn();
-                    $('#plain_name').html("").fadeIn();
-                    $('#description').html("").fadeIn();
-                    $('#seller_name').html("").fadeIn();
-                    $('#type').html("").fadeIn();
-                    $('#sold').html("").fadeIn();
-                    $('#checked_in').html("").fadeIn();
-                    $('#closed').html("").fadeIn();
-                    $('#error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
-                } else {
-                    console.log("Found");
-                    $('#scientific_name').html(data.scientific_name).fadeIn();
-                    $('#min_price').html(data.minimum_price).fadeIn();
-                    $('#plain_name').html(data.plain_name).fadeIn();
-                    $('#description').html(data.description).fadeIn();
-                    $('#seller_name').html(data.name).fadeIn()
-//          Warning for posts not registrated for auction
-                    if (data.type != "auction") {
-                        $('#type').html("Ej registrerad som auktionsgods").fadeIn();
-                    } else {
-                        $('#type').html("").fadeIn();
-                    }
-                    if (data.is_checked_in != "yes") {
-                        $('#checked_in').html("Ej incheckad post").fadeIn();
-                    } else {
-                        $('#checked_in').html("").fadeIn();
-                    }                    
-                    if (data.is_closed == "yes") {
-                        $('#closed').html("Säljaren är stängd").fadeIn();
-                    } else {
-                        $('#closed').html("").fadeIn();
-                    }
-                    if (data.sold_on !== null) {
-                        $('#sold').html("Redan sålt").fadeIn();
-                        document.getElementById("price").value = data.sold_price;
-                    } else {
-                        $('#sold').html("").fadeIn();
-                        document.getElementById("price").value = "";
-                    }
-                    $('#error').html("").fadeIn();
-                }
-                ;
+    function setHtml(id, value) {
+        document.getElementById(id).innerHTML = value == null ? '' : value;
+    }
 
-                console.log('.ajax() request returned successfully.');
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                $('#scientific_name').html("").fadeIn();
-                $('#min_price').html("").fadeIn();
-                $('#plain_name').html("").fadeIn();
-                $('#description').html("").fadeIn();
-                $('#seller_name').html("").fadeIn();
-                $('#type').html("").fadeIn();
-                $('#sold').html("").fadeIn();
-                $('#checked_in').html("").fadeIn();
-                $('#closed').html("").fadeIn();
-                $('#error').html("INGET POST ID GAVS").fadeIn();
-                console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-            },
+    function clearPostDetails() {
+        ['scientific_name', 'min_price', 'plain_name', 'description', 'seller_name',
+            'type', 'sold', 'checked_in', 'closed'].forEach(function (id) {
+            setHtml(id, '');
         });
-    });
+    }
 
-    // Check that all posts has a price before submitting
-    $("#submit").click(function () {
-        var all_ok = true;
-        console.log("checking prices");
-        var price_id = "#price";
-        var post_id = "#post_id";;
+    postIdInput.addEventListener('blur', async function () {
+        const postId = postIdInput.value;
 
-        if ($(post_id).val() != "") {
-            if ($.isNumeric($(price_id).val())) {
-                $('#error').html("").fadeIn();
-            } else {
-                $('#error').html("Pris måste ges").fadeIn();
-                all_ok = false;
+        try {
+            const response = await fetch('json/' + encodeURIComponent(postId), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
             }
-        }
 
-        if (all_ok) {
-            return true;
-        } else {
-            return false;
+            const data = await response.json();
+
+            if (Object.prototype.hasOwnProperty.call(data, 'error')) {
+                clearPostDetails();
+                setHtml('error', 'POSTEN FINNS INTE I DATABASEN');
+                return;
+            }
+
+            setHtml('scientific_name', data.scientific_name);
+            setHtml('min_price', data.minimum_price);
+            setHtml('plain_name', data.plain_name);
+            setHtml('description', data.description);
+            setHtml('seller_name', data.name);
+            setHtml('type', data.type !== 'auction' ? 'Ej registrerad som auktionsgods' : '');
+            setHtml('checked_in', data.is_checked_in !== 'yes' ? 'Ej incheckad post' : '');
+            setHtml('closed', data.is_closed === 'yes' ? 'Säljaren är stängd' : '');
+
+            if (data.sold_on !== null) {
+                setHtml('sold', 'Redan sålt');
+                priceInput.value = data.sold_price;
+            } else {
+                setHtml('sold', '');
+                priceInput.value = '';
+            }
+
+            setHtml('error', '');
+        } catch (error) {
+            clearPostDetails();
+            setHtml('error', 'INGET POST ID GAVS');
+            console.error('Postuppslag misslyckades:', error);
         }
     });
 
-    console.log('Everything is ready.');
+    submitButton.addEventListener('click', function (event) {
+        if (postIdInput.value === '') {
+            return;
+        }
+
+        const price = priceInput.value.trim();
+        const isNumeric = price !== '' && Number.isFinite(Number(price));
+
+        if (isNumeric) {
+            setHtml('error', '');
+            return;
+        }
+
+        setHtml('error', 'Pris måste ges');
+        event.preventDefault();
+    });
 });
-
-
