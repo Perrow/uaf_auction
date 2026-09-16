@@ -62,7 +62,7 @@
                         <label class="form-check-label" for="border_yes">Skriv ut kanter</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="border" id="border_no" value="no" {% if border == 'no' %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="border" id="border_no" value="no" {% if border != 'yes' %}checked{% endif %}>
                         <label class="form-check-label" for="border_no">Skriv inte ut kanter</label>
                     </div>
                 </section>
