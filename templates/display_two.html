@@ -2,110 +2,69 @@
 <html lang="sv">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% block head %}
-        <title>{% block title %}{% endblock %}</title>
-
-    {% endblock %}
-    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap-show-password.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+    <title>Display</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9oFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
-    <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
-
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
 </head>
-
-<body>
-<div class="container">
-    <br>
-    <div class=row>
-        <div class="col-sm-6">
-            <h3>Antal sålda auktionsposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:0%">
-                    <div id="sold_auction_text"></div>
+<body class="bg-body-tertiary">
+<main class="container-fluid px-4 py-3">
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="small fw-semibold mb-1">Sålda auktionsposter</div>
+            <div class="progress" role="progressbar" aria-label="Sålda auktionsposter">
+                <div class="progress-bar bg-success" id="sold_auction" style="width:0%">
+                    <span id="sold_auction_text"></span>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <h3>Antal sålda fastabordetposter</h3>
-            <div class="progress">
-                <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:0%">
-                    <div id="sold_fleamarket_text"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="current">
-        <div class="jumbotron">
-            <div class="row">
-                <div class="col-sm-5">
-                    <h1>
-                        <div id="current_post_id"></div>
-                    </h1>
-                </div>
-                <div class="col-sm-6">
-                    <h1>
-                        <div id="current_min_price"></div>
-                    </h1>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-12">
-                    <h1>
-                        <div id="current_plain_name"></div>
-                    </h1>
-                </div>
-            </div>
-            <div class="col-sm-12">
-                <div class="row">
-                    <h1>
-                        <span id="current_scientific_name"></span>
-                    </h1>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12">
-                    <h2>
-                        <span id="current_description"></span>
-                    </h2>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12">
-                    <h2>
-                        <span id="current_seller_name"></span>
-                    </h2>
+        <div class="col-md-6">
+            <div class="small fw-semibold mb-1">Sålda fastaprisposter</div>
+            <div class="progress" role="progressbar" aria-label="Sålda fastaprisposter">
+                <div class="progress-bar bg-warning text-dark" id="sold_fleamarket" style="width:0%">
+                    <span id="sold_fleamarket_text"></span>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <div id="next">
-        <div class="well">
-        <h1> Nästa auktionspost: <span id="next_post_id"></span></h1>
+    <section id="current" class="bg-white rounded-3 shadow-sm p-4 p-lg-5 mb-3">
+        <div class="row align-items-baseline g-3 mb-3">
+            <div class="col-md-6">
+                <div id="current_post_id" class="display-3 fw-bold"></div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div id="current_min_price" class="display-5 fw-semibold"></div>
+            </div>
         </div>
-    </div>
+        <div id="current_plain_name" class="display-4 fw-semibold mb-2"></div>
+        <div id="current_scientific_name" class="display-5 fst-italic mb-3"></div>
+        <div id="current_description" class="fs-2 mb-3"></div>
+        <div id="current_seller_name" class="fs-3 text-body-secondary"></div>
+        <div id="current_type" class="alert alert-warning mt-3 mb-0 d-none"></div>
+        <div id="current_sold" class="alert alert-danger mt-3 mb-0 d-none"></div>
+        <div id="error" class="alert alert-danger mt-3 mb-0 d-none"></div>
+    </section>
 
-    <form action="">
-        <div class="row">
-            <div class="col-sm-1">
-                <label for="postid">Nästa id: </label>
-            </div>
-            <div class="col-sm-1">
-                <input type="text" name="post_id" id="post_id" class="form-control">
-            </div>
-            <div class="col-sm-1">
-                <input type="submit" id="submit" name="submit" value="Skicka" class="btn btn-primary">
-            </div>
+    <section id="next" class="bg-secondary-subtle rounded-3 p-3 p-lg-4 mb-4">
+        <div class="fs-2">Nästa auktionspost: <strong id="next_post_id"></strong></div>
+    </section>
+
+    <form id="display_form" class="row g-2 align-items-end" autocomplete="off">
+        <div class="col-auto">
+            <label class="form-label" for="post_id">Nästa id</label>
+            <input type="text" name="post_id" id="post_id" class="form-control" autofocus>
+        </div>
+        <div class="col-auto">
+            <button type="submit" id="submit" name="submit" class="btn btn-primary d-none">Skicka</button>
         </div>
     </form>
-</div>
+</main>
 
 <script src="{{ url_for('static', filename='js/display_two.js') }}"></script>
-
+</body>
+</html>
