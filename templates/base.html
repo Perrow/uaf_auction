@@ -2,165 +2,149 @@
 <html lang="sv">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
         <title>{% block title %}{% endblock %}</title>
-
     {% endblock %}
-    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap-show-password.min.js') }}"></script>
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
-    <link rel="shortcut icon" type="image/png" href=" {{ url_for('static', filename='img/favicon.png') }} "/>
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
 
+    {# jQuery remains temporarily for existing page scripts and DataTables. Bootstrap 5 itself does not require it. #}
+    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-show-password.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
 </head>
 
 <body>
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
     <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
-        </div>
-        <ul class="nav navbar-nav">
-            {% if not current_user.is_authenticated %}
-                <li><a href="{{ url_for('login') }}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-                <li><a href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
-                    säljare</a></li>
-            {% endif %}
-            {% if current_user.is_admin %}
-                <li><a href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera
-                    säljare</a></li>
-            {% endif %}
+        <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="Visa eller dölj navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="{{ url_for('list_posts') }}"><i class="fa fa-cubes" aria-hidden="true"></i> Poster<span
-                        class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa alla
-                        anmälda
-                        poster</a></li>
-                    {% if current_user.is_authenticated %}
-                        {% if not current_user.is_admin %}
-                            <li><a href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i><i
-                                    class="fa fa-plus" aria-hidden="true"></i> Registrera poster</a></li>
-                        {% endif %}
-                        <li><a href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina
-                            anmälda poster</a></li>
-                    {% endif %}
-                    {% if current_user.is_admin %}
-                        <li><a href="{{ url_for('admin_register_many_posts') }}"><i class="fa fa-plus"
-                                                                                    aria-hidden="true"></i><i
-                                class="fa fa-plus" aria-hidden="true"></i> Registrera poster för annan användare</a></li>
-                    {% endif %}
-                </ul>
-            </li>
-            {% if current_user.is_authenticated %}
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if not current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a>
+                    </li>
+                {% endif %}
                 {% if current_user.is_admin %}
-                    <li class="dropdown">
-                        <a class="dropdown-toggle"
-                           data-toggle="dropdown"
-                           href="{{ url_for('list_seller_actions') }}"><i class="fa fa-users" aria-hidden="true"></i> Säljare<span
-                                class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('list_seller_info') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa info om säljare</a>
-                            <li><a href="{{ url_for('list_seller_actions') }}"><i class="fa fa-users" aria-hidden="true"></i> Hantera säljare</a>
-                            <li><a href="{{ url_for('list_seller_checkin') }}"><i class="fa fa-users" aria-hidden="true"></i> Checka in och stänga säljare</a>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a>
                     </li>
-                    <li><a href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
-                    <li><a href="{{ url_for('auction') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
-                    <li><a href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>
-                        Loppis</a></li>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle"
-                           data-toggle="dropdown"
-                           href="{{ url_for('display_two') }}"><i class="fa fa-video-camera" aria-hidden="true"></i> Display<span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('display_one') }}"><i class="fa fa-video-camera" aria-hidden="true"></i> Display en post</a>
-                            <li><a href="{{ url_for('display_two') }}"><i class="fa fa-video-camera" aria-hidden="true"></i> Display två poster</a>
-                        </ul>
-                    </li>
+                {% endif %}
 
-
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ url_for('create_event') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i>
-                            Administration</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="postsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-cubes" aria-hidden="true"></i> Poster
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="postsDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('list_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa alla anmälda poster</a></li>
+                        {% if current_user.is_authenticated %}
+                            {% if not current_user.is_admin %}
+                                <li><a class="dropdown-item" href="{{ url_for('register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i> Registrera poster</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('list_my_posts') }}"><i class="fa fa-list" aria-hidden="true"></i> Visa mina anmälda poster</a></li>
+                        {% endif %}
+                        {% if current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin_register_many_posts') }}"><i class="fa fa-plus" aria-hidden="true"></i> Registrera poster för annan användare</a></li>
+                        {% endif %}
                     </ul>
+                </li>
 
-                    <li class="dropdown">
-                        <a class="dropdown-toggle"
-                           data-toggle="dropdown"
-                           href="{{ url_for('create_event') }}"><i class="fa fa-cog" aria-hidden="true"></i> Administration<span
-                                class="caret"></span>
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="sellersDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-users" aria-hidden="true"></i> Säljare
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('create_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Skapa nytt
-                                event</a></li>
-                            <li><a href="{{ url_for('edit_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Ändra på
-                                eventet</a></li>
-                            <li><a href="{{ url_for('open_close_registration') }}"><i class="fa fa-toggle-on" aria-hidden="true"></i> Öppna - stäng föranmälan</a></li>
-                            <li><a href="{{ url_for('plot_registration') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot anmälningar per dag</a></li>
-                            <li><a href="{{ url_for('plot_sales') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot försäljning</a></li>
-                            <li><a href="{{ url_for('download_database') }}"><i class="fa fa-download" aria-hidden="true"></i>
-                                Ladda ner databasen</a></li>
-                            <li><a href="{{ url_for('setup_printer') }}"><i class="fa fa-print" aria-hidden="true"></i>
-                                Skrivarinställningar</a></li>
-                            <li><a href="{{ url_for('setup_labels') }}"><i class="fa fa-tags" aria-hidden="true"></i>
-                                Etikett typ</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="sellersDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('list_seller_info') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa info om säljare</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('list_seller_actions') }}"><i class="fa fa-users" aria-hidden="true"></i> Hantera säljare</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('list_seller_checkin') }}"><i class="fa fa-users" aria-hidden="true"></i> Checka in och stänga säljare</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auction') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
 
-                            <li><a href="{{ url_for('set_notification_address') }}"><i class="fa fa-envelope-open" aria-hidden="true"></i>
-                                E-mail för notifieringar</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="displayDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-video-camera" aria-hidden="true"></i> Display
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="displayDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('display_one') }}"><i class="fa fa-video-camera" aria-hidden="true"></i> Display en post</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('display_two') }}"><i class="fa fa-video-camera" aria-hidden="true"></i> Display två poster</a></li>
+                        </ul>
+                    </li>
 
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog" aria-hidden="true"></i> Administration
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('create_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Skapa nytt event</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Ändra på eventet</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('open_close_registration') }}"><i class="fa fa-toggle-on" aria-hidden="true"></i> Öppna - stäng föranmälan</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('plot_registration') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot anmälningar per dag</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('plot_sales') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot försäljning</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('download_database') }}"><i class="fa fa-download" aria-hidden="true"></i> Ladda ner databasen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('setup_printer') }}"><i class="fa fa-print" aria-hidden="true"></i> Skrivarinställningar</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('setup_labels') }}"><i class="fa fa-tags" aria-hidden="true"></i> Etikett typ</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('set_notification_address') }}"><i class="fa fa-envelope-open" aria-hidden="true"></i> E-mail för notifieringar</a></li>
                         </ul>
                     </li>
                 {% endif %}
-            {% endif %}
-            <li><a href="{{ url_for('about') }}"><span class="fa fa-info"></span> Om</a></li>
-        </ul>
-        {% if current_user.is_authenticated %}
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-            </ul>
-        {% endif %}
-    </div>
 
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}"><i class="fa fa-info" aria-hidden="true"></i> Om</a></li>
+            </ul>
+
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+                <span class="navbar-text">
+                    {% if current_user.is_authenticated %}
+                        Inloggad som {{ current_user.name }}
+                    {% else %}
+                        Inte inloggad
+                    {% endif %}
+                </span>
+                {% if current_user.is_authenticated %}
+                    <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </nav>
 
-<div align="right">
-    {% if current_user.is_authenticated %}
-        Inloggad som {{ current_user.name }}!
-    {% else %}
-        Inte inloggad
-    {% endif %}
-</div>
-<div id="main">
-    {% block body %}
-    {% endblock %}
-    <div class="container">
+<main id="main">
+    {% block body %}{% endblock %}
+
+    <div class="container mt-3">
         {% with messages=get_flashed_messages() %}
             {% if messages %}
-                <ul class="list-group">
+                <div class="list-group mb-3">
                     {% for message in messages %}
-                        <li class="list-group-item">{{ message }}</li>
+                        <div class="list-group-item">{{ message }}</div>
                     {% endfor %}
-                </ul>
+                </div>
             {% endif %}
         {% endwith %}
     </div>
-</div>
-<!--main-->
+</main>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 </body>
 </html>
