@@ -1,134 +1,97 @@
+'use strict';
 
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('edit_post_form');
+    const typeSelect = document.getElementById('master_type');
+    const minPriceDiv = document.getElementById('min_price_div_id');
+    const fixedPriceDiv = document.getElementById('fixed_price_div_id');
+    const minPriceInput = document.getElementById('min_price_id');
+    const fixedPriceInput = document.getElementById('fixed_price_id');
+    const minPriceError = document.getElementById('min_price_error_id');
+    const fixedPriceError = document.getElementById('fixed_price_error_id');
+    const message = document.getElementById('msg');
 
-$(document).ready(function(){
-    'use strict';
+    if (!form || !typeSelect) {
+        return;
+    }
 
-    // TEst function for development
-    var func_test = function(post_id, price_id) {
-//        $("#form_elements").append('<label for="' + post_id + '">Post nr:</label> <input class="loppis" id="' + post_id + '" name="post_id" type="text" value=""> <label for="' + price_id + '">Pris:</label>  <input class="loppis price" id="' + price_id + '" name="price" type="text" value="">');
-        var jq_post_id = "#" + post_id;
-        var jq_price_id = "#" + price_id;
-        console.log("func_test");
+    typeSelect.classList.remove('form-control');
+    typeSelect.classList.add('form-select');
 
-        $(jq_post_id).blur(function() {
-            $(jq_price_id).val($(jq_post_id).val());
-        });
-    };
-
-    // Stop sending form with enter
-    $("form").bind("keypress", function (e) {
-        if (e.keyCode == 13) {
-            return false;
+    form.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+            event.preventDefault();
         }
     });
 
-    // Toggles the fixed price and minimum price boxes according to the select status
-    var add_toggler_func = function() {
-        var type_id = "#master_type";
-        var fixed_price_div_id = "#fixed_price_div_id";
-        $(fixed_price_div_id).hide();
-
-        $(type_id).change(function(){
-            toggle();
-        });
-
-        var toggle = function() {
-            var type_id = "#master_type";
-            var min_price_div_id = "#min_price_div_id";
-            var fixed_price_div_id = "#fixed_price_div_id";
-            var min_price_id = "#min_price_id";
-            var fixed_price_id = "#fixed_price_id";
-            var type_id_val = $(type_id).val();
-            console.log(type_id_val);
-            var min_price_div = $(min_price_div_id);
-            var fixed_price_div = $(fixed_price_div_id);
-
-            $.ajax({
-                url: '/json_get_type/' + type_id_val,
-                dataType: 'json',
-                success: function(data){
-                    if(data.hasOwnProperty('error')){
-                        console.log("Not found");
-                    } else {
-                        console.log("Found");
-                        console.log(data.sale_type);
-                        if (data.sale_type == "auction") {
-                            fixed_price_div.hide();
-                            min_price_div.show();
-                            $(fixed_price_id).val("");
-                            console.log("hide fixed, show min");
-                        } else {
-                            fixed_price_div.show();
-                            min_price_div.hide();
-                            $(min_price_id).val("");
-                            console.log("hide min, show fixed");
-                        }
-                    };
-
-                    console.log('.ajax() request returned successfully.');
-                },
-                error: function(jqXHR, textStatus, errorThrown){
-                    console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-                },
+    async function updatePriceFields() {
+        const typeId = typeSelect.value;
+        try {
+            const response = await fetch(`/json_get_type/${encodeURIComponent(typeId)}`, {
+                headers: { Accept: 'application/json' }
             });
-        };
-
-        toggle();
-
-    ;}
-
-
-  
-  // Check if all flea_market objects has got a price, else show error text and cancel submit
-  // Check that if auction objects have price it is numeric
-//  $( "#register_form" ).submit(function( event ) {
-  $( "#submit" ).click(function() {
-     var all_ok = true;
-     console.log("checking prices");
-     $( ".fixed_price_input:visible" ).each(function( index ) {  // if visible its a flea market object
-        if ($.isNumeric( $(this).val() )) {
-            $(this).removeClass("error_border");
-            $(this).siblings('div').text("");
-            $( "#msg" ).text("OK");
-        } else {
-            $(this).siblings('div').text(" Du måste fylla i ett pris");
-            $(this).addClass("error_border");
-            all_ok = false;
-        }         
-     });
-     $( ".min_price_input:visible" ).each(function( index ) {  // if visible its a auction object
-        if ($.isNumeric( $(this).val() )) {
-            $(this).removeClass("error_border");
-            $(this).siblings('div').text("");
-            $( "#msg" ).text("OK");
-            console.log("price ok");
-        } else {
-            if ($(this).val() == "") {
-                // Empty min price which is ok
-                $(this).removeClass("error_border");
-                $(this).siblings('div').text("");                
-                console.log("Empty price");
-            } else {
-                $(this).siblings('div').text(" Du måste fylla i en siffra");
-                $(this).addClass("error_border");
-                all_ok = false;
-                console.log("Non numeric price");
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
+            const data = await response.json();
+            if (Object.prototype.hasOwnProperty.call(data, 'error')) {
+                return;
+            }
+
+            const auction = data.sale_type === 'auction';
+            minPriceDiv.classList.toggle('d-none', !auction);
+            fixedPriceDiv.classList.toggle('d-none', auction);
+
+            if (auction) {
+                fixedPriceInput.value = '';
+            } else {
+                minPriceInput.value = '';
+            }
+        } catch (error) {
+            console.error('Kunde inte hämta godstyp:', error);
         }
-     });
-     if (all_ok) {
-        return true;
-     } else {
-        return false;
-     }
-  });
+    }
 
-    var option_values = "";
-    var sale_type = "error";
-    add_toggler_func();
+    function isNumeric(value) {
+        return value.trim() !== '' && Number.isFinite(Number(value));
+    }
 
+    function setFieldState(input, errorElement, errorText) {
+        input.classList.toggle('is-invalid', Boolean(errorText));
+        errorElement.textContent = errorText || '';
+    }
 
-    console.log('Everything is ready.');
+    function validate() {
+        let valid = true;
+
+        if (!fixedPriceDiv.classList.contains('d-none')) {
+            const fixedValid = isNumeric(fixedPriceInput.value);
+            setFieldState(fixedPriceInput, fixedPriceError, fixedValid ? '' : 'Du måste fylla i ett pris');
+            valid = valid && fixedValid;
+        } else {
+            setFieldState(fixedPriceInput, fixedPriceError, '');
+        }
+
+        if (!minPriceDiv.classList.contains('d-none')) {
+            const value = minPriceInput.value.trim();
+            const minValid = value === '' || isNumeric(value);
+            setFieldState(minPriceInput, minPriceError, minValid ? '' : 'Du måste fylla i en siffra');
+            valid = valid && minValid;
+        } else {
+            setFieldState(minPriceInput, minPriceError, '');
+        }
+
+        message.textContent = valid ? '' : 'Kontrollera de markerade fälten.';
+        message.className = valid ? 'mb-3' : 'alert alert-danger mb-3';
+        return valid;
+    }
+
+    typeSelect.addEventListener('change', updatePriceFields);
+    form.addEventListener('submit', function (event) {
+        if (!validate()) {
+            event.preventDefault();
+        }
+    });
+
+    updatePriceFields();
 });
-
-
