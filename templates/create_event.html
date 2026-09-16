@@ -1,150 +1,69 @@
 {% extends "base.html" %}
+{% from "components/forms.html" import input_field, textarea_field, checkbox_field %}
 {% block title %} Skapa event {% endblock %}
 {% block head %}
-{{ super() }}
+    {{ super() }}
 {% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Skapa auktion och eller loppis</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-9">
+            <h1 class="mb-3">Skapa auktion och eller loppis</h1>
 
-    <p>När en ny databas skapas raderas den gamla databasen och all information i den. Gör en kopia av den gamla
-        databasen innan du skapar en ny.</p>
-
-
-    <form id="create_event_form" class="form-horizontal" action="/create_event" method="POST">
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association">Föreningens namn:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="hosting_association" name="hosting_association"
-                       placeholder="Föreningens namn" value="{{ hosting_association }}">
+            <div class="alert alert-warning" role="alert">
+                När en ny databas skapas raderas den gamla databasen och all information i den. Gör en kopia av den gamla databasen innan du skapar en ny.
             </div>
-        </div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens förkortning:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="hosting_association_abrv" name="hosting_association_abrv"
-                       placeholder="Föreningens förkortning" value="{{ hosting_association_abrv }}">
-            </div>
-        </div>
+            <form id="create_event_form" action="{{ url_for('create_event') }}" method="POST">
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Eventinformation</h2>
+                    {{ input_field('hosting_association', 'Föreningens namn:', hosting_association, placeholder='Föreningens namn') }}
+                    {{ input_field('hosting_association_abrv', 'Föreningens förkortning:', hosting_association_abrv, placeholder='Föreningens förkortning') }}
+                    {{ input_field('city', 'Stad där eventet äger rum:', city, placeholder='Stad') }}
+                    {{ input_field('event_name', 'Namn på eventet:', event_name, placeholder='Namn på eventet') }}
+                    {{ input_field('date', 'Datum då eventet äger rum:', type='date') }}
+                    {{ input_field('commission', 'Föreningens andel:', commission, type='number', placeholder='0-100',) }}
+                    {{ textarea_field('event_description', 'Beskrivning av eventet:', event_description, rows=8, placeholder='Beskrivning av eventet') }}
+                </section>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="city">Stad där eventet äger rum:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="city" name="city" placeholder="Stad" value="{{ city }}">
-            </div>
-        </div>
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Typer av poster</h2>
+                    <p>Kryssa för de typer av poster som ska användas.</p>
+                    {% for row in all_types %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" value="{{ row[0] }}" name="type" id="type_{{ row[0] }}">
+                            <label class="form-check-label" for="type_{{ row[0] }}">{{ row[1] }}</label>
+                        </div>
+                    {% endfor %}
+                </section>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="event_name">Namn på eventet:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="event_name" name="event_name" placeholder="Namn på eventet" value="{{ event_name }}">
-            </div>
-        </div>
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Administratör</h2>
+                    {{ input_field('admin_name', 'Administratörens namn:', placeholder='Förnamn Efternamn', autocomplete='name') }}
+                    {{ input_field('admin_address', 'Administratörens adress:', placeholder='Adress', autocomplete='street-address') }}
+                    {{ input_field('admin_email', 'Administratörens email:', type='email', placeholder='nnn@nn.nn', autocomplete='email') }}
+                    {{ input_field('admin_phone', 'Administratörens telefonnummer:', type='tel', placeholder='012-3456789', autocomplete='tel') }}
+                    {{ input_field('admin_aquarium_club', 'Administratörens akvarieförening:', placeholder='Akvarieförening') }}
+                    {{ input_field('admin_password', 'Administratörens lösenord:', type='password', placeholder='Lösenord', autocomplete='new-password') }}
+                </section>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="date">Datum då eventet äger rum:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="date" name="date" placeholder="YYYY-MM-DD">
-            </div>
-        </div>
+                <div id="message" class="alert alert-danger d-none" role="alert"></div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens andel:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="commission" name="commission" placeholder="0-100%" value="{{ commission }}">
-            </div>
-        </div>
+                <section class="mb-4">
+                    {{ checkbox_field('cookies', 'Jag accepterar att denna tjänst använder cookies för att hantera inloggning.') }}
+                    {{ checkbox_field('database', 'Jag accepterar att denna tjänst lagrar mina uppgifter i en databas.') }}
+                    <div id="checkbox_message" class="alert alert-danger d-none mt-3" role="alert"></div>
+                </section>
 
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="event_description">Beskrivning av eventet:</label>
-            <div class="col-sm-9">
-                <textarea class="form-control" rows="10" id="event_description" name="event_description"
-                          placeholder="Beskrivning av eventet">{{ event_description }}</textarea>
-            </div>
+                <div class="d-flex gap-2">
+                    <input type="submit" value="Skicka" class="btn btn-primary">
+                    <a id="inp" class="btn btn-outline-danger" href="{{ url_for('index') }}">Avbryt</a>
+                </div>
+            </form>
         </div>
-
-        <!--Type of posts-->
-        <hr>
-        <div class="container">
-            <h2>Kryssa för de typer av poster som ska användas.</h2>
-
-            {% for row in all_types %}
-            <div class="checkbox">
-                <label><input type="checkbox" value="{{ row[0] }}" name="type">{{ row[1] }}</label>
-            </div>
-            {% endfor %}
-        </div>
-
-
-        <!--Admin info-->
-        <hr>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_name">Administratörens namn:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="admin_name" name="admin_name"
-                       placeholder="Förnamn Efternamn">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_address">Administratörens adress:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="admin_address" name="admin_address" placeholder="Adress">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_email">Administratörens email:</label>
-            <div class="col-sm-9">
-                <input type="email" class="form-control" id="admin_email" name="admin_email" placeholder="nnn@nn.nn">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_phone">Administratörens telefonnummer:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="admin_phone" name="admin_phone" placeholder="012-3456789">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_aquarium_club">Administratörens akvarieförening:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="admin_aquarium_club" name="admin_aquarium_club"
-                       placeholder="Akvarieförening">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="admin_password">Administratörens lösenord:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="admin_password" name="admin_password"
-                       placeholder="lösenord">
-            </div>
-        </div>
-        <div id="message" class="bg-danger"></div>
-
-        <div class="checkbox">
-            <label class="control-label"><input type="checkbox" id="cookies" name="cookies" value="yes">Jag accepterar
-                att denna tjänst använder cookies för att hantera inloggning.</label>
-        </div>
-        <div class="checkbox">
-            <label class="control-label"><input type="checkbox" id="database" name="database" value="yes">Jag accepterar
-                att denna tjänst lagrar mina uppgifter i en databas.</label>
-        </div>
-        <br>
-        <div id="checkbox_message" class="bg-danger"></div>
-        <br>
-        <!--Send button-->
-        <div class="form-group">
-            <input type="submit" value="Skicka" class="btn btn-primary">
-            <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
-        </div>
-    </form>
+    </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/create_event.js') }}"></script>
-
+{% endblock %}
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/create_event.js') }}"></script>
 {% endblock %}
