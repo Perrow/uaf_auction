@@ -1,169 +1,146 @@
 {% extends "base.html" %}
 {% block title %} Loppis {% endblock %}
-{% block head %}
-    {{ super() }}
 
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1>Loppis</h1>
-        <div class=row>
-            <!--sold_statistic = total, total_auction, sold_auction, sold_auction_percent, total_fleamarket, sold_fleamarket, sold_fleamarket_percent-->
-            <div class="col-sm-6">
-                <h3>Antal sålda auktionsposter</h3>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-success" role="progressbar" id="sold_auction" style="width:{{ sold_statistic[3] }}%">
-                        <div id="sold_auction_text">{{ sold_statistic[2] }} av {{ sold_statistic[1] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <h3>Antal sålda fastabordetposter</h3>
-                <div class="progress">
-                    <div class="progress-bar progress-bar-warning" role="progressbar" id="sold_fleamarket" style="width:{{ sold_statistic[6] }}%">
-                        <div id="sold_fleamarket_text">{{ sold_statistic[5] }} av {{ sold_statistic[4] }}</div>
-                    </div>
-                </div>
-            </div>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h1 class="mb-1">Loppis</h1>
+            <p class="text-body-secondary mb-0">Fyll i postens nummer och lämna fältet med TAB för att hämta postinformationen.</p>
         </div>
-        <p> Fyll i postens nummer, tryck TAB. </p>
-
-        <div id="sum" class="well">Att betala:</div>
-
-        <form action="/loppis" method="POST">
-            <div id="form_elements">
-                <div class="row">
-                    <div class="col-sm-2">
-                        <label for="post1">Post nr:</label>
-                    </div>
-                    <div class="col-sm-2">
-                        <label for="price1">Pris:</label>
-                    </div>
-                    <div class="col-sm-2">
-                        <label for="info1">Namn:</label>
-                    </div>
-                </div>
-                <div id="row1">
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <!--<label for="post1">Post nr:</label>-->
-                            <input class="loppis post_id form-control" id="post1" name="post_id" type="text" value="">
-                        </div>
-                        <div class="col-sm-2">
-                            <!--<label for="price1">Pris:</label>-->
-                            <input class="loppis price form-control" id="price1" name="price" type="text" value="">
-                        </div>
-                        <div class="col-sm-6">
-                            <!--<label for="info1"></label><br>-->
-                            <div class="form-control" id="info1">
-                            </div>
-                        </div>
-                        <div class="col-sm-2">
-                            <button type="button" id="remove1" class="btn btn-danger btn-block" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>
-                        </div>
-                    </div>
-                    <br>
-                </div>
-
-            </div>
-            <div class="row">
-                <div class="col-sm-2">
-                    <button id="addbutton" type="button" class="btn btn-primary btn-block">Extra säljrad</button>
-                </div>
-                <div class="col-sm-2">
-                    <button id="sumbutton" type="button" class="btn btn-primary btn-block">Beräkna summa</button>
-                </div>
-                {#                <div class="col-sm-2">#}
-                {#                    <input id="submit" name="submit" type="submit" class="btn btn-primary" value="Skicka">#}
-                {#                </div>#}
-            </div>
-            {#            Calculate change to seller#}
-            <br>
-            <div class="well">
-                <div class="row">
-                    <div class="col-sm-2">
-                        <label for="sum2">Att betala</label>
-                    </div>
-                    <div class="col-sm-2">
-                        <label for="from_seller">Från säljaren</label>
-                    </div>
-                    <div class="col-sm-2">
-
-                    </div>
-                    <div class="col-sm-2">
-                        <label for="to_seller">Växel till köparen</label>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">
-                        <div id="sum2" class="form-control uneditable-input"></div>
-                    </div>
-                    <div class="col-sm-2">
-                        <input class="form-control" id="from_seller" name="from_seller" type="text" value="">
-                    </div>
-                    <div class="col-sm-2">
-                        <button id="changebutton" type="button" class="btn btn-primary  btn-block">Beräkna växel</button>
-                    </div>
-                    <div class="col-sm-2">
-                        <input class="form-control" id="to_seller" name="to_seller" type="text" value="">
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col-sm-2">
-                    <input id="submit" name="submit" type="submit" class="btn btn-primary btn-block" value="Skicka">
-                </div>
-            </div>
-        </form>
-        <br>
-
-        <div class="warning" id="type"></div>
-        <div class="warning" id="sold"></div>
-        <div class="error" id="closed"></div>
-        <div class="warning" id="checked_in"></div>
-        <div class="error" id="error"></div>
-        <br>
-
-        <div class="well">
-
-            <div class="row">
-                <div class="col-sm-2">
-                    Namn:
-                </div>
-                <div class="col-sm-10">
-                    <div id="plain_name"></div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-2">
-                    Vetenskapligt namn:
-                </div>
-                <div class="col-sm-10">
-                    <span id="scientific_name"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-2">
-                    Beskrivning:
-                </div>
-                <div class="col-sm-10">
-                    <span id="description"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-2">
-                    Säljare:
-                </div>
-                <div class="col-sm-10">
-                    <span id="seller_name"></span>
-                </div>
-            </div>
-        </div>
+        <div id="sum" class="fs-4 fw-semibold">Att betala: 0</div>
     </div>
 
+    <section class="row g-3 mb-4" aria-label="Försäljningsstatistik">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h5">Sålda auktionsposter</h2>
+                    <div class="progress" role="progressbar" aria-label="Sålda auktionsposter"
+                         aria-valuenow="{{ sold_statistic[3] }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-success" id="sold_auction" style="width: {{ sold_statistic[3] }}%">
+                            <span id="sold_auction_text">{{ sold_statistic[2] }} av {{ sold_statistic[1] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h5">Sålda fastabordetposter</h2>
+                    <div class="progress" role="progressbar" aria-label="Sålda fastabordetposter"
+                         aria-valuenow="{{ sold_statistic[6] }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar bg-warning text-dark" id="sold_fleamarket" style="width: {{ sold_statistic[6] }}%">
+                            <span id="sold_fleamarket_text">{{ sold_statistic[5] }} av {{ sold_statistic[4] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <form action="{{ url_for('flea_market') }}" method="POST" id="flea_market_form">
+        <section class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0">Poster</h2>
+                    <button id="addbutton" type="button" class="btn btn-outline-primary">Extra säljrad</button>
+                </div>
+
+                <div id="form_elements">
+                    <div class="row g-2 align-items-end mb-2 d-none d-md-flex" aria-hidden="true">
+                        <div class="col-md-2"><span class="form-label">Post nr</span></div>
+                        <div class="col-md-2"><span class="form-label">Pris</span></div>
+                        <div class="col-md-6"><span class="form-label">Namn</span></div>
+                        <div class="col-md-2"></div>
+                    </div>
+
+                    <div id="row1" class="sale-row mb-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-2">
+                                <label class="form-label d-md-none" for="post1">Post nr</label>
+                                <input class="loppis post_id form-control" id="post1" name="post_id" type="text" autocomplete="off">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label d-md-none" for="price1">Pris</label>
+                                <input class="loppis price form-control" id="price1" name="price" type="text" inputmode="decimal" autocomplete="off">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label d-md-none" for="info1">Namn</label>
+                                <div class="form-control bg-body-tertiary" id="info1" aria-live="polite">&nbsp;</div>
+                            </div>
+                            <div class="col-md-2 d-grid">
+                                <button type="button" id="remove1" class="btn btn-outline-danger" tabindex="-1">
+                                    <i class="fa fa-trash" aria-hidden="true"></i> Ta bort
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="sumbutton" type="button" class="btn btn-outline-primary">Beräkna summa</button>
+            </div>
+        </section>
+
+        <section class="card mb-4">
+            <div class="card-body">
+                <h2 class="h4 mb-3">Betalning och växel</h2>
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label" for="sum2">Att betala</label>
+                        <div id="sum2" class="form-control bg-body-tertiary">0</div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label" for="from_seller">Från köparen</label>
+                        <input class="form-control" id="from_seller" name="from_seller" type="text" inputmode="decimal" autocomplete="off">
+                    </div>
+                    <div class="col-sm-6 col-lg-3 d-grid">
+                        <button id="changebutton" type="button" class="btn btn-outline-primary">Beräkna växel</button>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label" for="to_seller">Växel till köparen</label>
+                        <input class="form-control" id="to_seller" name="to_seller" type="text" readonly>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="d-grid d-sm-block mb-4">
+            <input id="submit" name="submit" type="submit" class="btn btn-primary px-4" value="Registrera försäljning">
+        </div>
+    </form>
+
+    <section aria-live="polite" class="mb-4">
+        <div class="text-warning-emphasis fw-semibold" id="type"></div>
+        <div class="text-warning-emphasis fw-semibold" id="sold"></div>
+        <div class="text-danger fw-semibold" id="closed"></div>
+        <div class="text-warning-emphasis fw-semibold" id="checked_in"></div>
+        <div class="text-danger fw-semibold" id="error"></div>
+    </section>
+
+    <section class="card">
+        <div class="card-body">
+            <h2 class="h4 mb-3">Postinformation</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-3 col-lg-2">Namn</dt>
+                <dd class="col-sm-9 col-lg-10" id="plain_name"></dd>
+
+                <dt class="col-sm-3 col-lg-2">Vetenskapligt namn</dt>
+                <dd class="col-sm-9 col-lg-10" id="scientific_name"></dd>
+
+                <dt class="col-sm-3 col-lg-2">Beskrivning</dt>
+                <dd class="col-sm-9 col-lg-10" id="description"></dd>
+
+                <dt class="col-sm-3 col-lg-2">Säljare</dt>
+                <dd class="col-sm-9 col-lg-10" id="seller_name"></dd>
+            </dl>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
     <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
 {% endblock %}
