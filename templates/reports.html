@@ -1,78 +1,73 @@
 {% extends "base.html" %}
 {% block title %} Rapporter {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Rapporter </h1>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
+        <div>
+            <h1 class="mb-1">Rapporter</h1>
+            <p class="text-body-secondary mb-0">Skapa PDF-filer eller skicka rapporter direkt till konfigurerad skrivare.</p>
+        </div>
+    </div>
 
-    <table class="table-hover">
-        <tr>
-            <td>Etiketter för alla säljare:</td>
-   
-                            
-                    <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('labels_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Outskrivna etiketter för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('unprinted_labels') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('unprinted_labels_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>       
-        <tr>
-            <td>Markera etiketter för alla säljare som ej utskrivna:</td>
-            <td></td>
-            <td><a class="btn btn-default" href=" {{ url_for('reset_printed_labels') }} ">
-                <span class="glyphicon glyphicon-refresh"></span> Reset </a>
-            </td>
-        </tr>           
-        <tr>
-            <td>Sammanställning för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Sammanställning för alla incheckade säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('compilation_view_checked') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print_checked') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>        
-        <tr>
-            <td>Inlämningskvitton för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('receipt_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Ekonomisk rapport:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('economic_report_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Fastabordet säljarkvitto:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('clerk_receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('clerk_receipt_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>        
-        <tr>
-            <td>Auktionslista:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-    </table>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th scope="col">Rapport</th>
+                    <th scope="col" class="text-nowrap">PDF</th>
+                    <th scope="col" class="text-nowrap">Skriv ut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Etiketter för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('labels_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Outskrivna etiketter för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('unprinted_labels') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('unprinted_labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Markera etiketter för alla säljare som ej utskrivna</td>
+                    <td></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reset_printed_labels') }}"><i class="fa fa-refresh" aria-hidden="true"></i> Återställ</a></td>
+                </tr>
+                <tr>
+                    <td>Sammanställning för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('compilation_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('compilation_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Sammanställning för alla incheckade säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('compilation_view_checked') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('compilation_server_print_checked') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Inlämningskvitton för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('receipt_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Ekonomisk rapport</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('economic_report_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('economic_report_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Fastabordet säljarkvitto</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('clerk_receipt_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clerk_receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Auktionslista</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('wall_list_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('wall_list_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

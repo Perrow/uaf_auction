@@ -1,36 +1,43 @@
 {% extends "base.html" %}
 {% block title %} Setup skrivare {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Skrivare </h1>
-        {% if printers_found == False %}
-            <h2>Inga skrivare hittades.</h2>
-        {% else %}
-            <p>Välj skrivare för utskrift på etiketter och för utskrifter på vanligt papper.</p>
-            <form action="" method="POST">
-                <div class="form-group">
-                    <label for="label_printer">Skrivare för etiketter:</label>
-                    <select name="label_printer" id="label_printer" class="form-control">
-                        {% for item in printers %}
-                            <option value="{{ item }}">{{ item }}</option>
-                        {% endfor %}
-                    </select>
-                    <br>
-                    <label for="paper_printer">Skrivare för papper:</label>
-                    <select name="paper_printer" id="paper_printer" class="form-control">
-                        {% for item in printers %}
-                            <option value="{{ item }}">{{ item }}</option>
-                        {% endfor %}
-                    </select>
-                    <br>
-                    <input type="submit" value="spara" class="btn btn-primary">
-                    <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
-                </div>
-            </form>
-        {% endif %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-2">Skrivare</h1>
+            <p class="text-body-secondary mb-4">Välj skrivare för etiketter och vanliga pappersutskrifter.</p>
 
+            {% if printers_found == False %}
+                <div class="alert alert-warning" role="alert">Inga skrivare hittades.</div>
+            {% else %}
+                <form action="" method="POST" class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="label_printer">Skrivare för etiketter</label>
+                            <select name="label_printer" id="label_printer" class="form-select">
+                                {% for item in printers %}
+                                    <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label" for="paper_printer">Skrivare för papper</label>
+                            <select name="paper_printer" id="paper_printer" class="form-select">
+                                {% for item in printers %}
+                                    <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Spara</button>
+                            <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Avbryt</a>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
     </div>
+</div>
 {% endblock %}
