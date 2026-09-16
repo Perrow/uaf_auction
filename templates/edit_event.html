@@ -1,99 +1,46 @@
 {% extends "base.html" %}
-{% block title %} Skapa event {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
+{% from "components/forms.html" import input_field, textarea_field %}
+{% block title %} Redigera event {% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Skapa auktion och eller loppis</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-9">
+            <h1 class="mb-3">Redigera auktion och loppis</h1>
+            <p class="text-body-secondary mb-4">Ändra informationen för det aktuella eventet och vilka posttyper som ska användas.</p>
 
-    <p>När en ny databas skapas raderas den gamla databasen och all information i den. Gör en kopia av den gamla
-        databasen innan du skapar en ny.</p>
+            <form id="edit_event_form" action="{{ url_for('edit_event') }}" method="POST">
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Eventinformation</h2>
+                    {{ input_field('hosting_association', 'Föreningens namn:', auction_info[0], placeholder='Föreningens namn') }}
+                    {{ input_field('hosting_association_abrv', 'Föreningens förkortning:', auction_info[1], placeholder='Föreningens förkortning') }}
+                    {{ input_field('city', 'Stad där eventet äger rum:', auction_info[2], placeholder='Stad') }}
+                    {{ input_field('event_name', 'Namn på eventet:', auction_info[3], placeholder='Namn på eventet') }}
+                    {{ input_field('date', 'Datum då eventet äger rum:', auction_info[4], type='date') }}
+                    {{ input_field('commission', 'Föreningens andel (%):', auction_info[5], type='number', placeholder='0-100') }}
+                    {{ textarea_field('event_description', 'Beskrivning av eventet:', auction_info[6], rows=8) }}
+                </section>
 
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Typer av poster</h2>
+                    <p class="text-body-secondary">Kryssa för de typer av poster som ska användas.</p>
+                    <div class="row row-cols-1 row-cols-md-2 g-2">
+                        {% for row in all_types %}
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="{{ row[0] }}" name="type" id="type_{{ row[0] }}" {% if row[0] in used_types %}checked{% endif %}>
+                                    <label class="form-check-label" for="type_{{ row[0] }}">{{ row[1] }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
 
-    <form id="create_event_form" class="form-horizontal" action="/edit_event" method="POST">
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association">Föreningens namn:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="hosting_association" name="hosting_association"
-                       placeholder="Föreningens namn" value="{{ auction_info[0] }}">
-            </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Spara</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Avbryt</a>
+                </div>
+            </form>
         </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens förkortning:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="hosting_association_abrv" name="hosting_association_abrv"
-                       placeholder="Föreningens förkortning" value="{{ auction_info[1] }}">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="city">Stad där eventet äger rum:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="city" name="city" placeholder="Stad"
-                       value="{{ auction_info[2] }}">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="event_name">Namn på eventet:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="event_name" name="event_name" placeholder="Namn på eventet"
-                       value="{{ auction_info[3] }}">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="date">Datum då eventet äger rum:</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="date" name="date" placeholder="YYYY-MM-DD"
-                       value="{{ auction_info[4] }}">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="hosting_association_abrv">Föreningens andel (%):</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" id="commission" name="commission" placeholder="0-100%"
-                       value="{{ auction_info[5] }}">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="control-label col-sm-3" for="event_description">Beskrivning av eventet:</label>
-            <div class="col-sm-9">
-                <textarea class="form-control" rows="10" id="event_description" name="event_description" placeholder="">{{ auction_info[6] }}</textarea>
-            </div>
-        </div>
-
-        <!--Type of posts-->
-        <hr>
-        <div class="container">
-            <h2>Kryssa för de typer av poster som ska användas.</h2>
-
-            {% for row in all_types %}
-            <div class="checkbox">
-                {% if row[0] in used_types %}
-                <label><input type="checkbox" value="{{ row[0] }}" name="type" checked="checked">{{ row[1] }}</label>
-                {% else %}
-                <label><input type="checkbox" value="{{ row[0] }}" name="type">{{ row[1] }}</label>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-
-
-        <br>
-        <!--Send button-->
-        <div class="form-group">
-            <input type="submit" value="Skicka" class="btn btn-primary">
-            <input id="inp" type="button" value="Avbryt" class="btn btn-danger"
-                   onclick="location.href='{{ url_for('index') }}';"/>
-        </div>
-    </form>
+    </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/create_event.js') }}"></script>
-
 {% endblock %}
