@@ -22,7 +22,7 @@
                     {{ input_field('city', 'Stad där eventet äger rum:', city, placeholder='Stad') }}
                     {{ input_field('event_name', 'Namn på eventet:', event_name, placeholder='Namn på eventet') }}
                     {{ input_field('date', 'Datum då eventet äger rum:', type='date') }}
-                    {{ input_field('commission', 'Föreningens andel:', commission, type='number', placeholder='0-100',) }}
+                    {{ input_field('commission', 'Föreningens andel:', commission, type='number', placeholder='0-100') }}
                     {{ textarea_field('event_description', 'Beskrivning av eventet:', event_description, rows=8, placeholder='Beskrivning av eventet') }}
                 </section>
 
@@ -47,12 +47,12 @@
                     {{ input_field('admin_password', 'Administratörens lösenord:', type='password', placeholder='Lösenord', autocomplete='new-password') }}
                 </section>
 
-                <div id="message" class="alert alert-danger d-none" role="alert"></div>
+                <div id="message" class="text-danger fw-semibold mb-3" role="alert"></div>
 
                 <section class="mb-4">
                     {{ checkbox_field('cookies', 'Jag accepterar att denna tjänst använder cookies för att hantera inloggning.') }}
                     {{ checkbox_field('database', 'Jag accepterar att denna tjänst lagrar mina uppgifter i en databas.') }}
-                    <div id="checkbox_message" class="alert alert-danger d-none mt-3" role="alert"></div>
+                    <div id="checkbox_message" class="text-danger fw-semibold mt-3" role="alert"></div>
                 </section>
 
                 <div class="d-flex gap-2">
