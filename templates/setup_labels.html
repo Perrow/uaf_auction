@@ -1,5 +1,31 @@
 {% extends "base.html" %}
 {% block title %} Setup etiketter {% endblock %}
+{% block styles %}
+<style>
+    .label-format-option {
+        cursor: pointer;
+        border-width: 1px;
+        transition: border-color .15s ease, border-width .15s ease, background-color .15s ease;
+    }
+
+    .label-format-option:has(.label-format-radio:checked) {
+        border-width: 3px;
+        background-color: var(--bs-secondary-bg);
+    }
+
+    .label-format-radio {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .label-format-image {
+        width: 25%;
+        min-width: 90px;
+        max-width: 150px;
+    }
+</style>
+{% endblock %}
 {% block body %}
 <div class="container py-4">
     <div class="row justify-content-center">
@@ -10,7 +36,7 @@
             <form action="" method="POST">
                 <section class="mb-4">
                     <h2 class="h4 mb-3">Etikettformat</h2>
-                    <div class="row g-3">
+                    <div class="d-grid gap-2">
                         {% set formats = [
                             ('with_margins_24', '24_label_64_34.jpg', '24 etiketter med marginaler runt och mellan etikettkolumnerna, 64 × 34 mm'),
                             ('with_margins_24_typ_2', '24_label_65_34.jpg', '24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 × 34 mm'),
@@ -18,15 +44,13 @@
                             ('without_margins_24', '24_label_70_37.jpg', '24 etiketter utan marginaler runt, 70 × 37 mm')
                         ] %}
                         {% for value, image, text in formats %}
-                            <div class="col-md-6">
-                                <label class="card h-100 shadow-sm p-3" for="label_{{ value }}">
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="radio" name="label" id="label_{{ value }}" value="{{ value }}" {% if label_type == value %}checked{% endif %}>
-                                        <span class="form-check-label fw-semibold">{{ text }}</span>
-                                    </div>
-                                    <img class="img-fluid rounded border align-self-start" style="max-width: 50%;" src="{{ url_for('static', filename='img/' + image) }}" alt="Exempel på etikettformat">
-                                </label>
-                            </div>
+                            <label class="label-format-option card shadow-sm p-3" for="label_{{ value }}">
+                                <input class="label-format-radio" type="radio" name="label" id="label_{{ value }}" value="{{ value }}" {% if label_type == value %}checked{% endif %}>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img class="label-format-image img-fluid rounded border flex-shrink-0" src="{{ url_for('static', filename='img/' + image) }}" alt="Exempel på etikettformat">
+                                    <div class="fw-semibold">{{ text }}</div>
+                                </div>
+                            </label>
                         {% endfor %}
                     </div>
                 </section>
