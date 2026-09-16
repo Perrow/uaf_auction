@@ -1,0 +1,11 @@
+{% with messages=get_flashed_messages() %}
+    {% if messages %}
+        <div class="container mt-3">
+            <div class="list-group mb-3">
+                {% for message in messages %}
+                    <div class="list-group-item">{{ message }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endwith %}
