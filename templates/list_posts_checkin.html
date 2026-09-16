@@ -1,55 +1,48 @@
 {% extends "base.html" %}
 {% block title %} Postlista {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Checka in / ut poster</h1>
-
-
-        <table style="width:100%" class="table table-hover" id="sorted_table">
-            <thead>
+<div class="container py-4">
+    <h1 class="mb-4">Checka in / ut poster</h1>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="sorted_table" data-sortable>
+            <thead class="table-light">
             <tr>
-                <th>Nr&nbsp;&nbsp;</th>
-                <th>Vetenskapligt namn&nbsp;</th>
-                <th>Namn&nbsp;</th>
-                <th>Beskrivning av posten&nbsp;</th>
-                <th>Checked in</th>
-                <th>Toggle check in</th>
+                <th>Nr</th>
+                <th>Vetenskapligt namn</th>
+                <th>Namn</th>
+                <th>Beskrivning</th>
+                <th>Incheckad</th>
+                <th data-sort="none">Åtgärd</th>
             </tr>
             </thead>
             <tbody>
             {% for row in data %}
                 <tr>
-                    <td> {{ row[0] }}</td>
-                    <td> {{ row[1] }}</td>
-                    <td> {{ row[2] }}</td>
-                    <td> {{ row[3] }}</td>
-                    {% if row[4] == "yes" %}
-                        <td><span class="btn btn-success glyphicon glyphicon-ok-circle"></span></td>
-                    {% else %}
-                        <td><span class="btn btn-danger glyphicon glyphicon-ban-circle"></span></td>
-                    {% endif %}
-
-                    {% if row[4] == "yes" %}
-                        <td>
-                            <a class="btn btn-warning" href=" {{ url_for('check_out_post') }}/{{ row[0] }} "> Check ut
-                                <span class="glyphicon glyphicon-check"></span>
-                            </a>
-                        </td>
-                    {% else %}
-                        <td>
-                            <a class="btn btn-success" href=" {{ url_for('check_in_post') }}/{{ row[0] }} "> Check in
-                                <span class="glyphicon glyphicon-check"></span>
-                            </a>
-                        </td>
-                    {% endif %}
-
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>
+                        {% if row[4] == "yes" %}
+                            <span class="badge text-bg-success"><i class="fa fa-check-circle" aria-hidden="true"></i> Ja</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary"><i class="fa fa-ban" aria-hidden="true"></i> Nej</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row[4] == "yes" %}
+                            <a class="btn btn-sm btn-warning" href="{{ url_for('check_out_post') }}/{{ row[0] }}">Checka ut</a>
+                        {% else %}
+                            <a class="btn btn-sm btn-success" href="{{ url_for('check_in_post') }}/{{ row[0] }}">Checka in</a>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-    <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
 {% endblock %}
