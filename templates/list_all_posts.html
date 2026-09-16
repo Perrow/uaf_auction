@@ -1,72 +1,55 @@
 {% extends "base.html" %}
 {% block title %} Postlista {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> {{ heading }}</h1>
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+            <h1 class="mb-1">{{ heading }}</h1>
+            <div class="text-body-secondary">{{ nr_posts[0] }} · {{ nr_posts[1] }} · {{ nr_posts[2] }}</div>
+        </div>
+    </div>
 
-        <h2>{{ nr_posts[0] }}</h2>
-
-        <p>
-            {{ nr_posts[1] }} <br> {{ nr_posts[2] }}
-        </p>
-
-        <table style="width:100%" class="table table-hover" id="sorted_table">
-            <thead>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="sorted_table" data-sortable>
+            <thead class="table-light">
             <tr>
-                <th>Nr&nbsp;&nbsp;</th>
-                <th>Vetenskapligt namn&nbsp;</th>
-                <th>Namn&nbsp;</th>
-                <th>Beskrivning av posten&nbsp;</th>
-                <th>Godstyp&nbsp;</th>
-                <th>Google bildsök&nbsp;</th>
+                <th>Nr</th>
+                <th>Vetenskapligt namn</th>
+                <th>Namn</th>
+                <th>Beskrivning</th>
+                <th>Godstyp</th>
+                <th data-sort="none">Bildsök</th>
                 {% if current_user.is_admin %}
-                    <th>Editera&nbsp;</th>
-                    <th>Ta bort&nbsp;</th>
+                    <th data-sort="none">Editera</th>
+                    <th data-sort="none">Ta bort</th>
                 {% endif %}
             </tr>
             </thead>
             <tbody>
             {% for row in data %}
                 <tr>
-                    <td> {{ row[0] }}</td>
-                    <td> {{ row[1] }}</td>
-                    <td> {{ row[2] }}</td>
-                    <td> {{ row[3] }}</td>
-                    <td> {{ row[4] }}</td>
-                    <!--<td> {{ row[5] }} </td>-->
-                    {% if row[1] !="" %}
-                        <td>
-                            <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[1] }}">
-                                <span class="glyphicon glyphicon-picture"></span> Bildsök
-                            </a>
-                        </td>
-                    {% else %}
-                        <td>
-                            <a target="_blank" rel="noreferrer" href="http://www.google.com/images?q={{ row[2] }}">
-                                <span class="glyphicon glyphicon-picture"></span> Bildsök
-                            </a>
-                        </td>
-                    {% endif %}
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noreferrer"
+                           href="https://www.google.com/images?q={% if row[1] != '' %}{{ row[1] }}{% else %}{{ row[2] }}{% endif %}">
+                            <i class="fa fa-picture-o" aria-hidden="true"></i> Bildsök
+                        </a>
+                    </td>
                     {% if current_user.is_admin %}
-                        <td>
-                            <a class="btn btn-warning" href=" {{ url_for('edit_post') }}/{{ row[0] }} "> Editera
-                                <span class="glyphicon glyphicon-edit"></span>
-                            </a>
-                        </td>
-                        <td>
-                            <a class="btn btn-danger" href=" {{ url_for('delete_post') }}/{{ row[0] }} "> Ta bort
-                                <span class="glyphicon glyphicon-remove"></span>
-                            </a>
-                        </td>
+                        <td><a class="btn btn-sm btn-warning" href="{{ url_for('edit_post') }}/{{ row[0] }}"><i class="fa fa-pencil" aria-hidden="true"></i> Editera</a></td>
+                        <td><a class="btn btn-sm btn-danger" href="{{ url_for('delete_post') }}/{{ row[0] }}"><i class="fa fa-trash" aria-hidden="true"></i> Ta bort</a></td>
                     {% endif %}
-
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-    <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
 {% endblock %}

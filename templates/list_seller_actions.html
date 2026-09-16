@@ -1,122 +1,66 @@
 {% extends "base.html" %}
 {% block title %} Säljare {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Säljare </h1>
-
-        <table style="width:100%" class="table table-hover" id="sorted_table">
-            <thead>
+<div class="container-fluid py-4 px-3 px-lg-4">
+    <h1 class="mb-4">Säljare</h1>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle text-nowrap" id="sorted_table" data-sortable>
+            <thead class="table-light">
             <tr>
                 <th>Id</th>
                 <th>Namn</th>
                 <th>Nr poster</th>
-                <th>Alla etiketter pdf</th>
-                <th>Outskrivna etiketter pdf</th>
-                <th>Etiketter print</th>
-                <th>Outskrivna etiketter print</th>
-                <th>Markera som outskrivna</th>
-                <th>Kvitto pdf</th>
-                <th>Kvitto print</th>
-                <th>Resultat pdf</th>
-                <th>Resultat print</th>
-                <th>Ändra lösenord</th>
-                <th>Ta bort</th>
-                <th>Admin</th>
+                <th data-sort="none">Alla etiketter</th>
+                <th data-sort="none">Outskrivna etiketter</th>
+                <th data-sort="none">Etiketter print</th>
+                <th data-sort="none">Outskrivna print</th>
+                <th data-sort="none">Reset etiketter</th>
+                <th data-sort="none">Kvitto PDF</th>
+                <th data-sort="none">Kvitto print</th>
+                <th data-sort="none">Resultat PDF</th>
+                <th data-sort="none">Resultat print</th>
+                <th data-sort="none">Lösenord</th>
+                <th data-sort="none">Ta bort</th>
+                <th data-sort="none">Admin</th>
             </tr>
             </thead>
             <tbody>
             {% for row in data %}
                 <tr>
-                    <td> {{ row[8] }}</td>
-                    <td> {{ row[0] }}</td>
-                    <td> {{ row[5] }}</td>
+                    <td>{{ row[8] }}</td>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[5] }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('labels_view') }}/{{ row[6] }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('unprinted_labels') }}/{{ row[6] }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('labels_server_print') }}/{{ row[6] }}"><i class="fa fa-print" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('unprinted_labels_server_print') }}/{{ row[6] }}"><i class="fa fa-print" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reset_printed_labels') }}/{{ row[6] }}"><i class="fa fa-refresh" aria-hidden="true"></i> Reset</a></td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('receipt_view') }}/{{ row[6] }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('receipt_server_print') }}/{{ row[6] }}"><i class="fa fa-print" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('compilation_view') }}/{{ row[6] }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('compilation_server_print') }}/{{ row[6] }}"><i class="fa fa-print" aria-hidden="true"></i></a></td>
+                    <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_password') }}/{{ row[6] }}"><i class="fa fa-lock" aria-hidden="true"></i></a></td>
                     <td>
-                        <a class="btn btn-link" href=" {{ url_for('labels_view') }}/{{ row[6] }} ">
-                            <i class="fa fa-file-pdf-o"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <a class="btn btn-link" href=" {{ url_for('unprinted_labels') }}/{{ row[6] }} ">
-                            <i class="fa fa-file-pdf-o"></i>
-                        </a>
-                    </td>
-
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('labels_server_print') }}/{{ row[6] }} ">
-                            <span class="glyphicon glyphicon-print"></span>
-                        </a>
-                    </td>
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('unprinted_labels_server_print') }}/{{ row[6] }} ">
-                            <span class="glyphicon glyphicon-print"></span>
-                        </a>
-                    </td>
-                    <td><a class="btn btn-default" href=" {{ url_for('reset_printed_labels') }}/{{ row[6] }}  ">
-                        <span class="glyphicon glyphicon-refresh"></span> Reset </a>
-                    </td>
-                    <!--Recipt for checking in-->
-                    <td>
-                        <a class="btn btn-link" href=" {{ url_for('receipt_view') }}/{{ row[6] }} ">
-                            <i class="fa fa-file-pdf-o"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('receipt_server_print') }}/{{ row[6] }} ">
-                            <span class="glyphicon glyphicon-print"></span>
-                        </a>
-                    </td>
-                    <!--Compilation receipt -->
-                    <td>
-                        <a class="btn btn-link" href=" {{ url_for('compilation_view') }}/{{ row[6] }} ">
-                            <i class="fa fa-file-pdf-o"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('compilation_server_print') }}/{{ row[6] }} ">
-                            <span class="glyphicon glyphicon-print"></span>
-                        </a>
-                    </td>
-                    <!--Change password-->
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('edit_password') }}/{{ row[6] }} ">
-                            <span class="glyphicon glyphicon-lock"></span>
-                        </a>
-                    </td>
-                    <!--Delete current user-->
-                    {% if current_user.get_id() == row[6] %}
-                        <td></td>
-                    {% else %}
-                        <td>
-                            <a class="btn btn-danger" href=" {{ url_for('delete_seller') }}/{{ row[6] }} "> Ta bort
-                                <span class="glyphicon glyphicon-remove"></span>
-                            </a>
-                        </td>
-                    {% endif %}
-                    <!--Make or demote admin-->
-                    {% if row[7] == "yes" %}
-                        {% if current_user.get_id() == row[6] %}
-                            <td></td>
-                        {% else %}
-                            <td>
-                                <a class="btn btn-warning" href=" {{ url_for('demote_admin') }}/{{ row[6] }} "> Gör vanlig
-                                    <span class="glyphicon glyphicon-arrow-down"></span>
-                                </a>
-                            </td>
+                        {% if current_user.get_id() != row[6] %}
+                            <a class="btn btn-sm btn-danger" href="{{ url_for('delete_seller') }}/{{ row[6] }}"><i class="fa fa-trash" aria-hidden="true"></i> Ta bort</a>
                         {% endif %}
-                    {% else %}
-                        <td>
-                            <a class="btn btn-success" href=" {{ url_for('make_admin') }}/{{ row[6] }} "> Gör admin
-                                <span class="glyphicon glyphicon-arrow-up"></span>
-                            </a>
-                        </td>
-                    {% endif %}
+                    </td>
+                    <td>
+                        {% if row[7] == "yes" %}
+                            {% if current_user.get_id() != row[6] %}
+                                <a class="btn btn-sm btn-warning" href="{{ url_for('demote_admin') }}/{{ row[6] }}"><i class="fa fa-arrow-down" aria-hidden="true"></i> Gör vanlig</a>
+                            {% endif %}
+                        {% else %}
+                            <a class="btn btn-sm btn-success" href="{{ url_for('make_admin') }}/{{ row[6] }}"><i class="fa fa-arrow-up" aria-hidden="true"></i> Gör admin</a>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-    <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
 {% endblock %}

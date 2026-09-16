@@ -1,25 +1,33 @@
 {% extends "base.html" %}
-{% block title %} Öppna - stäng föranmälan {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
+{% block title %} Öppna eller stäng föranmälan {% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Öppna eller stäng föranmälan </h1>
-        {% if registration_open == True %}
-            <h2>Föranmälan är öppen.</h2>
-            <form action="" method="POST">
-                <div class="form-group">
-                    <input type="submit" name="close_registration_button" value="Stäng föranmälan" class="btn btn-danger">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <h1 class="mb-4">Föranmälan</h1>
+
+            {% if registration_open == True %}
+                <div class="card border-success shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h4 text-success">Föranmälan är öppen</h2>
+                        <p class="text-body-secondary">Säljare kan registrera sig och föranmäla poster.</p>
+                        <form action="" method="POST">
+                            <button type="submit" name="close_registration_button" value="Stäng föranmälan" class="btn btn-danger">Stäng föranmälan</button>
+                        </form>
+                    </div>
                 </div>
-            </form>
-        {% else %}
-            <h2>Föranmälan är stängd.</h2>
-            <form action="" method="POST">
-                <div class="form-group">
-                    <input type="submit" name="open_registration_button" value="Öppna föranmälan" class="btn btn-primary">
+            {% else %}
+                <div class="card border-secondary shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h4">Föranmälan är stängd</h2>
+                        <p class="text-body-secondary">Nya föranmälningar är för närvarande inte tillåtna.</p>
+                        <form action="" method="POST">
+                            <button type="submit" name="open_registration_button" value="Öppna föranmälan" class="btn btn-success">Öppna föranmälan</button>
+                        </form>
+                    </div>
                 </div>
-            </form>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
+</div>
 {% endblock %}

@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% block title %} Säljare {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Säljare </h1>
-
-        <table style="width:100%" class="table table-hover" id="sorted_table">
-            <thead>
+<div class="container py-4">
+    <h1 class="mb-4">Säljare</h1>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="sorted_table" data-sortable>
+            <thead class="table-light">
             <tr>
                 <th>Id</th>
                 <th>Namn</th>
@@ -17,29 +14,27 @@
                 <th>Telefon</th>
                 <th>Förening</th>
                 <th>Nr poster</th>
-                <th>Visa poster</th>
-
+                <th data-sort="none">Poster</th>
             </tr>
             </thead>
             <tbody>
             {% for row in data %}
                 <tr>
-                    <td> {{ row[8] }}</td>
-                    <td> {{ row[0] }}</td>
-                    <td> {{ row[1] }}</td>
-                    <td> {{ row[2] }}</td>
-                    <td> {{ row[3] }}</td>
-                    <td> {{ row[4] }}</td>
-                    <td> {{ row[5] }}</td>
-                    <td>
-                        <a class="btn btn-default" href=" {{ url_for('list_seller_posts') }}/{{ row[8] }} "> Poster
-                            <span class="glyphicon glyphicon-check"></span>
-                        </a>
-                    </td>
+                    <td>{{ row[8] }}</td>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                    <td>{{ row[5] }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('list_seller_posts') }}/{{ row[8] }}"><i class="fa fa-list" aria-hidden="true"></i> Poster</a></td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-    <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
 {% endblock %}

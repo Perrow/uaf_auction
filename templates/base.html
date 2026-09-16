@@ -15,12 +15,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
     <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     {% block styles %}{% endblock %}
-
-    {# jQuery remains temporarily for existing page scripts and DataTables. Bootstrap 5 itself does not require it. #}
-    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap-show-password.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
 </head>
 
 <body>
