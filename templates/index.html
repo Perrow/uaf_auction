@@ -4,25 +4,55 @@
     {{ super() }}
 {% endblock %}
 {% block body %}
+<div class="container py-4">
+    <section class="p-4 p-md-5 mb-4 rounded-3 bg-body-tertiary">
+        <div class="container-fluid py-2">
+            <h1 class="display-6 fw-semibold mb-3">Välkommen till {{ event_name }}</h1>
+            <p class="lead mb-0">
+                {{ event_date }} · {{ club_name }}
+            </p>
+        </div>
+    </section>
 
-    <div class="container">
-        <h1> Välkommen till registreringen inför {{ event_name }} som anordnas <br> {{ event_date }} av {{ club_name }}</h1>
+    {% if event_description %}
+        <section class="mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {{ event_description|safe }}
+                </div>
+            </div>
+        </section>
+    {% endif %}
 
-        {{ event_description|safe }}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <section class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h4 card-title mb-3">Kort handledning</h2>
+                    <ol class="list-group list-group-numbered list-group-flush">
+                        <li class="list-group-item px-0">Skapa en ny användare via <strong>Registrera säljare</strong>. E-postadressen är ditt användarnamn.</li>
+                        <li class="list-group-item px-0">Logga in.</li>
+                        <li class="list-group-item px-0">Registrera de poster du vill sälja. Du kan komma tillbaka senare och anmäla fler poster.</li>
+                        <li class="list-group-item px-0">Under <strong>Poster → Visa mina anmälda poster</strong> kan du titta på, ändra eller ta bort dina poster.</li>
+                        <li class="list-group-item px-0">Du kan ladda ner en PDF med dina etiketter om du vill märka posterna hemma. Etiketter finns även på plats.</li>
+                    </ol>
+                </div>
+            </section>
+        </div>
 
-        <br>
-        <h3>Kort handledning</h3>
-        <ul>
-            <li>Skapa en ny användare, fliken <i>Registera säljare</i>. E-postadressen är ditt användarnamn.</li>
-            <li>Logga in.</li>
-            <li>Registera de poster du vill sälja. Du kan komma tillbaka senare och anmäla fler poster.</li>
-            <li>I fliken <i>Poster -> Visa mina anmälda poster</i> kan nu titta på, ändra eller ta bort dina poster.</li>
-            <li>Om du vill kan du ladda ner en pdf med dina etiketter. Men alla kommer att få etiketter på plats. Detta är bara om du vill klistra etiketter hemma i lugn och ro.</li>
-        </ul>
-        <p>
-            Alla kan se listan över anmälda poster, utan att ha konto eller logga in.
-        </p>
-        <h4>I enlighet med kraven från Jordbruksverket måste vetenskapligt namn anges på fiskar.</h4>
+        <div class="col-lg-4">
+            <aside class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h5 card-title">Bra att veta</h2>
+                    <p class="card-text mb-0">Alla kan se listan över anmälda poster utan att ha konto eller vara inloggade.</p>
+                </div>
+            </aside>
 
+            <aside class="alert alert-info mb-0" role="alert">
+                <h2 class="h5 alert-heading">Vetenskapligt namn</h2>
+                <p class="mb-0">I enlighet med kraven från Jordbruksverket måste vetenskapligt namn anges på fiskar.</p>
+            </aside>
+        </div>
     </div>
+</div>
 {% endblock %}
