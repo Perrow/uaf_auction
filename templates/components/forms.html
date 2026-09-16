@@ -1,0 +1,37 @@
+{% macro input_field(name, label, value='', type='text', placeholder='', required=false, autocomplete=None) -%}
+<div class="mb-3">
+    <label class="form-label" for="{{ name }}">{{ label }}</label>
+    <input type="{{ type }}"
+           class="form-control"
+           id="{{ name }}"
+           name="{{ name }}"
+           value="{{ value|default('', true) }}"
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}>
+</div>
+{%- endmacro %}
+
+{% macro textarea_field(name, label, value='', rows=5, placeholder='', required=false) -%}
+<div class="mb-3">
+    <label class="form-label" for="{{ name }}">{{ label }}</label>
+    <textarea class="form-control"
+              id="{{ name }}"
+              name="{{ name }}"
+              rows="{{ rows }}"
+              {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+              {% if required %}required{% endif %}>{{ value|default('', true) }}</textarea>
+</div>
+{%- endmacro %}
+
+{% macro checkbox_field(name, label, value='yes', checked=false) -%}
+<div class="form-check mb-2">
+    <input class="form-check-input"
+           type="checkbox"
+           id="{{ name }}"
+           name="{{ name }}"
+           value="{{ value }}"
+           {% if checked %}checked{% endif %}>
+    <label class="form-check-label" for="{{ name }}">{{ label }}</label>
+</div>
+{%- endmacro %}
