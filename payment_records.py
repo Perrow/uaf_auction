@@ -177,6 +177,7 @@ def _confirm_flea_market_payment(payment_id, expected_signature):
 
     total = sum((price for _, price in items), Decimal('0')).quantize(Decimal('0.01'))
     sold_at = _timestamp()
+    sold_by = current_user.get_id()
 
     conn = sqlite3.connect(_database_path(), timeout=30, isolation_level=None)
     try:
@@ -216,11 +217,11 @@ def _confirm_flea_market_payment(payment_id, expected_signature):
                 SET sold_price = ?,
                     sold_on = ?,
                     time_stamp_sold = ?,
-                    sold_by = NULL,
+                    sold_by = ?,
                     payment_id = ?
                 WHERE obj_id = ?
                 ''',
-                [format(price, 'f'), 'fasta bordet', sold_at, payment_id, post_id],
+                [format(price, 'f'), 'fasta bordet', sold_at, sold_by, payment_id, post_id],
             )
 
         cur.execute(
