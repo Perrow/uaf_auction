@@ -3,16 +3,18 @@
 """Payment records for flea-market sales."""
 
 import datetime
+import hashlib
 import sqlite3
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 
-from flask import current_app, flash, redirect, request, url_for
+from flask import current_app, flash, redirect, request, session, url_for
 from flask_login import current_user, login_required
 
 
 PAYMENT_TABLE = 'payments'
 PAYMENT_ID_COLUMN = 'payment_id'
+SESSION_KEY = 'pending_flea_market_payment'
 
 
 def _database_path():
@@ -53,6 +55,51 @@ def ensure_schema(conn):
 def _timestamp(now=None):
     value = now or datetime.datetime.now()
     return value.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def normalize_items(items):
+    """Normalize (post_id, price) pairs for stable comparison and hashing."""
+    normalized = []
+    seen = set()
+
+    for post_id, price_value in items:
+        post_id = str(post_id).strip()
+        if not post_id.isdigit():
+            raise ValueError('Ogiltigt postnummer.')
+        post_id = str(int(post_id))
+        if post_id in seen:
+            raise ValueError('Samma postnummer kan inte registreras flera gånger.')
+        seen.add(post_id)
+
+        try:
+            price = Decimal(str(price_value).strip()).quantize(Decimal('0.01'))
+        except (InvalidOperation, ValueError):
+            raise ValueError('Alla poster måste ha ett giltigt pris.')
+        if not price.is_finite() or price <= 0:
+            raise ValueError('Alla poster måste ha ett pris större än noll.')
+
+        normalized.append((post_id, price))
+
+    if not normalized:
+        raise ValueError('Inga poster angavs för betalningen.')
+
+    return normalized
+
+
+def items_signature(items):
+    normalized = normalize_items(items)
+    canonical = '|'.join(
+        '{}:{}'.format(post_id, format(price, '.2f'))
+        for post_id, price in normalized
+    )
+    return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+
+
+def remember_pending_payment(payment_id, items):
+    session[SESSION_KEY] = {
+        'payment_id': int(payment_id),
+        'items_signature': items_signature(items),
+    }
 
 
 def create_pending_payment(amount):
@@ -105,45 +152,29 @@ def create_pending_payment(amount):
 
 
 def _parse_sale_items():
-    post_ids = request.form.getlist('post_id')
-    prices = request.form.getlist('price')
-    items = []
-    seen = set()
-
-    for post_id, price_text in zip(post_ids, prices):
-        post_id = post_id.strip()
-        if not post_id:
-            continue
-        if not post_id.isdigit():
-            raise ValueError('Ogiltigt postnummer.')
-
-        normalized_id = str(int(post_id))
-        if normalized_id in seen:
-            raise ValueError('Samma postnummer kan inte registreras flera gånger.')
-        seen.add(normalized_id)
-
-        try:
-            price = Decimal(price_text.strip()).quantize(Decimal('0.01'))
-        except (InvalidOperation, ValueError):
-            raise ValueError('Alla poster måste ha ett giltigt pris.')
-        if not price.is_finite() or price <= 0:
-            raise ValueError('Alla poster måste ha ett pris större än noll.')
-
-        items.append((normalized_id, price))
-
-    if not items:
-        raise ValueError('Inga poster angavs för betalningen.')
-
-    return items
+    pairs = zip(
+        request.form.getlist('post_id'),
+        request.form.getlist('price'),
+    )
+    return normalize_items(
+        (post_id, price)
+        for post_id, price in pairs
+        if str(post_id).strip()
+    )
 
 
-def _confirm_flea_market_payment(payment_id):
+def _confirm_flea_market_payment(payment_id, expected_signature):
     try:
         payment_id = int(payment_id)
     except (TypeError, ValueError):
         raise ValueError('Ogiltig betalningsreferens.')
 
     items = _parse_sale_items()
+    if items_signature(items) != expected_signature:
+        raise ValueError(
+            'Posterna eller priserna har ändrats sedan QR-koden skapades. Skapa en ny QR-kod.'
+        )
+
     total = sum((price for _, price in items), Decimal('0')).quantize(Decimal('0.01'))
     sold_at = _timestamp()
 
@@ -213,17 +244,24 @@ def _wrap_flea_market(original_view):
             flash('Du måste vara administratör för att komma åt sidan.')
             return redirect(url_for('index'))
 
-        if request.method != 'POST' or not request.form.get('payment_id'):
+        if request.method != 'POST':
             return original_view(*args, **kwargs)
+
+        pending = session.get(SESSION_KEY)
+        if not isinstance(pending, dict) or not pending.get('payment_id'):
+            flash('Skapa en Swish-QR innan betalningen bekräftas.')
+            return redirect(url_for('flea_market'))
 
         try:
             reference, item_count = _confirm_flea_market_payment(
-                request.form.get('payment_id')
+                pending.get('payment_id'),
+                pending.get('items_signature', ''),
             )
         except ValueError as exc:
             flash(str(exc))
             return redirect(url_for('flea_market'))
 
+        session.pop(SESSION_KEY, None)
         flash(
             'Betalning {} bekräftad. {} poster registrerades som sålda.'.format(
                 reference,
@@ -245,6 +283,7 @@ def _wrap_create_event(original_view):
             with conn:
                 ensure_schema(conn)
                 conn.execute('DELETE FROM payments')
+            session.pop(SESSION_KEY, None)
 
         return response
 
