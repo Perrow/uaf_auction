@@ -62,13 +62,13 @@ thead .sorting_desc {
 }
 
 .app-navbar,
-.app-navbar .container-fluid,
+.app-navbar .container,
 .app-navbar .navbar-collapse,
 .app-navbar .navbar-nav {
     max-width: 100%;
 }
 
-.app-navbar .container-fluid,
+.app-navbar .container,
 .app-navbar .navbar-collapse,
 .app-navbar .navbar-nav,
 .app-navbar .nav-item,
@@ -87,14 +87,15 @@ thead .sorting_desc {
 }
 
 .app-navbar .dropdown-menu {
+    width: max-content;
+    min-width: 10rem;
     max-width: calc(100vw - 2rem);
-    min-width: 0;
 }
 
 .app-navbar .dropdown-item {
     max-width: 100%;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .app-navbar .navbar-text {
@@ -122,6 +123,12 @@ thead .sorting_desc {
 @media (max-width: 991.98px) {
     .app-navbar .dropdown-menu {
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .app-navbar .dropdown-item {
+        overflow-wrap: anywhere;
     }
 }
 
