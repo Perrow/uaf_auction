@@ -301,10 +301,12 @@ class ZLabels(object):
                 canvas.setLineWidth(.3)
 
                 # Post id
-                canvas.setFont(self.font, 20)
-                str_width = shapes.stringWidth(str(post_id), self.font, 20)
+                post_id_text = str(post_id)
+                post_id_font_size = 18 if len(post_id_text) >= 4 else 20
+                canvas.setFont(self.font, post_id_font_size)
+                str_width = shapes.stringWidth(post_id_text, self.font, post_id_font_size)
                 center = (self.left_margin - str_width) / 2
-                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, str(post_id))          # Post id
+                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, post_id_text)          # Post id
 
                 # Sale type and price below the post id in the left column
                 left_column_center = label_x_left + self.left_margin / 2
