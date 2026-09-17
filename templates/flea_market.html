@@ -103,6 +103,17 @@
                         <input class="form-control" id="to_seller" name="to_seller" type="text" readonly>
                     </div>
                 </div>
+
+                {% if config.get('SWISH_NUMBER') %}
+                <div class="mt-4">
+                    <button id="swishbutton" type="button" class="btn btn-success">Visa Swish-QR</button>
+                    <div id="swish_qr_container" class="d-none mt-3 text-center" aria-live="polite">
+                        <p class="mb-2">Skanna QR-koden med Swish. Belopp och meddelande är låsta.</p>
+                        <img id="swish_qr_image" class="img-fluid border rounded" style="max-width: 500px" alt="Swish QR-kod">
+                        <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </section>
 
