@@ -306,26 +306,26 @@ class ZLabels(object):
                 center = (self.left_margin - str_width) / 2
                 canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, str(post_id))          # Post id
 
+                # Sale type and price below the post id in the left column
+                left_column_center = label_x_left + self.left_margin / 2
+                canvas.setFont(self.font, 7)
+                if post_type == "fixed_price":
+                    canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
+                    if post_fixed_price is not None and len(str(post_fixed_price)) > 0:
+                        canvas.setFont(self.font, 6)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "{} kr".format(int(post_fixed_price)))
+                if post_type == "auction":
+                    canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Auktion")
+                    if post_min_price is not None and len(str(post_min_price)) > 0:
+                        canvas.setFont(self.font, 6)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "min: {} kr".format(int(post_min_price)))
+
                 # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
                 canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset, "{} - {}".format(self.event_name, self.event_date))
 
-                # Fixed price or auction
-                canvas.setFont(self.font, self.font_size)
-                if post_type == "fixed_price":
-                    msg = u"Fastpris: "
-                    if post_fixed_price is not None:
-                        if len(str(post_fixed_price)) > 0:
-                            msg += "{} kr".format(int(post_fixed_price))
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset, msg)  # Fleamarket price
-                if post_type == "auction":
-                    msg = u"Auktion"
-                    if post_min_price is not None:
-                        if len(str(post_min_price)) > 0:
-                            msg += " min: {} kr".format(int(post_min_price))
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset, msg)  # Auction price
-
-                # popular and scientific names
+                # popular and scientific names; moved up one row now that sale type
+                # is displayed in the left column.
                 if sci_name != "" and pop_name != "":
                     names = self.make_multiline("{} - {}".format(sci_name, pop_name), self.text_width, self.bold_font, self.font_size)
                 elif sci_name != "":
@@ -336,9 +336,9 @@ class ZLabels(object):
                     names = []
                 canvas.setFont(self.bold_font, self.font_size)
                 if len(names) > 0:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset, names[0])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset, names[0])
                 if len(names) > 1:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 4 + upper_text_offset, names[1])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
                 # Barcode for the zero-padded four digit post id. Keep it in the
