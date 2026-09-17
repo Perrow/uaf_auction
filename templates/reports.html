@@ -22,12 +22,12 @@
                 <tbody>
                 <tr>
                     <td>Etiketter för alla säljare</td>
-                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('labels_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-primary btn-sm js-label-pdf" data-label-kind="alla etiketter" href="{{ url_for('labels_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
                 </tr>
                 <tr>
                     <td>Outskrivna etiketter för alla säljare</td>
-                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('unprinted_labels') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-primary btn-sm js-label-pdf" data-label-kind="outskrivna etiketter" href="{{ url_for('unprinted_labels') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('unprinted_labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
                 </tr>
                 <tr>
@@ -69,5 +69,115 @@
             </table>
         </div>
     </div>
+
+    <div id="label-print-confirmation" class="alert alert-secondary mt-3 d-none" role="status">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div id="label-print-confirmation-text"></div>
+            <button id="mark-labels-printed" type="button" class="btn btn-primary text-nowrap">Markera som utskrivna</button>
+        </div>
+    </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+
+    const confirmation = document.getElementById('label-print-confirmation');
+    const confirmationText = document.getElementById('label-print-confirmation-text');
+    const markButton = document.getElementById('mark-labels-printed');
+    let markUrl = null;
+
+    function showStatus(message, style) {
+        confirmation.classList.remove('d-none', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-info');
+        confirmation.classList.add(style);
+        confirmationText.textContent = message;
+    }
+
+    async function downloadLabelPdf(link) {
+        const response = await fetch(link.href, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/pdf' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const maxId = response.headers.get('X-Label-Max-Id');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = objectUrl;
+        downloadLink.download = 'labels.pdf';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(objectUrl);
+
+        if (!maxId) {
+            markUrl = null;
+            markButton.classList.add('d-none');
+            showStatus('PDF-filen hämtades, men den innehöll inga etiketter att markera som utskrivna.', 'alert-info');
+            return;
+        }
+
+        const separator = link.href.includes('?') ? '&' : '?';
+        markUrl = `${link.href}${separator}mark_printed_through=${encodeURIComponent(maxId)}`;
+        markButton.classList.remove('d-none');
+        markButton.disabled = false;
+        showStatus(
+            `PDF med ${link.dataset.labelKind} har hämtats. Vill du markera etikett ${maxId} och alla etiketter med lägre nummer som utskrivna?`,
+            'alert-secondary'
+        );
+    }
+
+    document.querySelectorAll('.js-label-pdf').forEach(function (link) {
+        link.addEventListener('click', async function (event) {
+            event.preventDefault();
+            link.classList.add('disabled');
+            link.setAttribute('aria-disabled', 'true');
+
+            try {
+                await downloadLabelPdf(link);
+            } catch (error) {
+                console.error('Kunde inte hämta etikett-PDF:', error);
+                markUrl = null;
+                markButton.classList.add('d-none');
+                showStatus('Kunde inte hämta etikett-PDF:en.', 'alert-danger');
+            } finally {
+                link.classList.remove('disabled');
+                link.removeAttribute('aria-disabled');
+            }
+        });
+    });
+
+    markButton.addEventListener('click', async function () {
+        if (!markUrl) {
+            return;
+        }
+
+        markButton.disabled = true;
+        try {
+            const response = await fetch(markUrl, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { Accept: 'application/pdf' }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            markUrl = null;
+            markButton.classList.add('d-none');
+            showStatus('Etiketterna har markerats som utskrivna.', 'alert-success');
+        } catch (error) {
+            console.error('Kunde inte markera etiketterna som utskrivna:', error);
+            markButton.disabled = false;
+            showStatus('Kunde inte markera etiketterna som utskrivna.', 'alert-danger');
+        }
+    });
+});
+</script>
 {% endblock %}
