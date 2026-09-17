@@ -441,4 +441,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     bindRow(1);
     calculateSum();
+
+    const firstPostInput = document.getElementById('post1');
+    if (firstPostInput) {
+        firstPostInput.focus();
+    }
 });
