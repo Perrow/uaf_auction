@@ -61,6 +61,64 @@ thead .sorting_desc {
     float: right;
 }
 
+.app-navbar,
+.app-navbar .container-fluid,
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav {
+    max-width: 100%;
+}
+
+.app-navbar .container-fluid,
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav,
+.app-navbar .nav-item {
+    min-width: 0;
+}
+
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav {
+    flex-wrap: wrap;
+}
+
+.app-navbar .dropdown-menu {
+    max-width: calc(100vw - 2rem);
+    min-width: 0;
+}
+
+.app-navbar .dropdown-item {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.app-navbar .navbar-text {
+    overflow-wrap: anywhere;
+}
+
+.app-navbar-brand {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    max-width: min(12rem, 45vw);
+    margin-right: 1rem;
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+}
+
+.app-navbar-logo {
+    display: block;
+    width: auto;
+    height: 40px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 991.98px) {
+    .app-navbar .dropdown-menu {
+        width: 100%;
+    }
+}
+
 /*
  * Temporary Bootstrap 3 compatibility helpers.
  * These keep existing templates usable while they are migrated to Bootstrap 5
