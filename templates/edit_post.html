@@ -46,7 +46,14 @@
                 </div>
 
                 <div id="msg" class="mb-3" aria-live="polite"></div>
-                <button id="submit" name="submit" type="submit" class="btn btn-primary">Spara ändringar</button>
+                <div class="d-flex flex-wrap gap-2 justify-content-between">
+                    <button id="submit" name="submit" type="submit" class="btn btn-primary">Spara ändringar</button>
+                    <a class="btn btn-danger"
+                       href="{{ url_for('delete_post') }}/{{ data[0] }}"
+                       onclick="return confirm('Vill du verkligen ta bort post {{ data[0] }}?');">
+                        <i class="fa fa-trash" aria-hidden="true"></i> Ta bort
+                    </a>
+                </div>
             </form>
         </div>
     </div>
