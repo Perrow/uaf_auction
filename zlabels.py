@@ -344,7 +344,7 @@ class ZLabels(object):
                 canvas.setFont(self.font, self.font_size)
 
                 # Prepare barcode coordinates. The barcode itself is drawn last so
-                # its white background can cover any text that happens to overlap.
+                # its background can cover any text that happens to overlap.
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
@@ -375,16 +375,15 @@ class ZLabels(object):
                 seller_offset = self.row_height * 0.5
                 canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
-                # Keep a clean area behind the barcode. Draw this after all label
-                # text so nothing can be rendered over the barcode bars.
-                barcode_background_margin_y = 0.6 * mm
+                # Draw a light-blue background exactly matching the barcode area.
+                # It is rendered after all text so nothing can show through the bars.
                 canvas.saveState()
-                canvas.setFillColorRGB(1, 1, 1)
+                canvas.setFillColorRGB(0.88, 0.94, 1.0)
                 canvas.rect(
                     barcode_x,
-                    barcode_y - barcode_background_margin_y,
+                    barcode_y,
                     post_barcode.width,
-                    post_barcode.height + 2 * barcode_background_margin_y,
+                    post_barcode.height,
                     stroke=0,
                     fill=1
                 )
