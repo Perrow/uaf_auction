@@ -80,41 +80,9 @@
                 </div>
 
                 <button id="sumbutton" type="button" class="btn btn-outline-primary">Beräkna summa</button>
+                <button id="changebutton" type="button" hidden aria-hidden="true" tabindex="-1"></button>
             </div>
         </section>
-
-        <section class="card mb-4">
-            <div class="card-body">
-                <h2 class="h4 mb-3">Betalning och växel</h2>
-                <div class="row g-3 align-items-end">
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="sum2">Att betala</label>
-                        <div id="sum2" class="form-control bg-body-tertiary">0</div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="from_seller">Från köparen</label>
-                        <input class="form-control" id="from_seller" name="from_seller" type="text" inputmode="decimal" autocomplete="off">
-                    </div>
-                    <div class="col-sm-6 col-lg-3 d-grid">
-                        <button id="changebutton" type="button" class="btn btn-outline-primary">Beräkna växel</button>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="to_seller">Växel till köparen</label>
-                        <input class="form-control" id="to_seller" name="to_seller" type="text" readonly>
-                    </div>
-                </div>
-
-                {% if config.get('SWISH_NUMBER') %}
-                <div class="mt-4">
-                    <button id="swishbutton" type="button" class="btn btn-success">Visa Swish-QR</button>
-                </div>
-                {% endif %}
-            </div>
-        </section>
-
-        <div class="d-grid d-sm-block mb-4">
-            <input id="submit" name="submit" type="submit" class="btn btn-primary px-4" value="Registrera försäljning">
-        </div>
     </form>
 
     <section aria-live="polite" class="mb-4">
@@ -153,12 +121,8 @@
      aria-labelledby="swish_qr_title"
      style="position: fixed; inset: 0; z-index: 1080; background: rgba(0, 0, 0, 0.55); display: grid; place-items: center; padding: 1rem;">
     <div class="card shadow-lg w-100" style="max-width: 560px; max-height: calc(100vh - 2rem); overflow: auto;">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header">
             <h2 id="swish_qr_title" class="h5 mb-0">Betala med Swish</h2>
-            <button type="button"
-                    class="btn-close"
-                    aria-label="Stäng"
-                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')"></button>
         </div>
         <div class="card-body text-center">
             <p class="mb-3">Skanna QR-koden med Swish. Belopp och meddelande är låsta.</p>
@@ -168,10 +132,16 @@
                  alt="Swish QR-kod">
             <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
         </div>
-        <div class="card-footer text-end">
+        <div class="card-footer d-flex justify-content-end gap-2">
             <button type="button"
                     class="btn btn-secondary"
-                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')">Stäng</button>
+                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')">Avbryt</button>
+            <button id="submit"
+                    name="submit"
+                    type="submit"
+                    form="flea_market_form"
+                    value="Registrera försäljning"
+                    class="btn btn-primary">Bekräfta betalning</button>
         </div>
     </div>
 </div>
