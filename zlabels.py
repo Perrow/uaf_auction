@@ -1,12 +1,14 @@
 # coding=utf-8
 
 import math
+import os
+import sqlite3
 
+from flask import after_this_request, current_app, has_request_context, request
 from reportlab.graphics import shapes
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-import os
 
 
 class ZLabels(object):
@@ -100,6 +102,49 @@ class ZLabels(object):
 
         print(self.label_columns, self.label_rows, self.paper_height / mm)
 
+    @staticmethod
+    def _post_ids(data):
+        post_ids = []
+        for seller in data:
+            for post in seller[4]:
+                try:
+                    post_ids.append(int(post[0]))
+                except (TypeError, ValueError):
+                    pass
+        return post_ids
+
+    @staticmethod
+    def _handle_label_download_request(data):
+        """Expose the highest label id and handle explicit mark-as-printed requests."""
+        if not has_request_context():
+            return False
+
+        post_ids = ZLabels._post_ids(data)
+        if post_ids:
+            max_post_id = max(post_ids)
+
+            @after_this_request
+            def add_label_metadata(response):
+                response.headers['X-Label-Max-Id'] = str(max_post_id)
+                return response
+
+        mark_printed_through = request.args.get('mark_printed_through')
+        if mark_printed_through is None:
+            return False
+
+        try:
+            max_post_id = int(mark_printed_through)
+        except (TypeError, ValueError):
+            return True
+
+        conn = sqlite3.connect(current_app.config['DATABASE'])
+        with conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE posts SET label_printed='yes' WHERE obj_id <= ?", [max_post_id])
+            conn.commit()
+
+        return True
+
     def make_multiline(self, text, max_length, font, font_size):
         """
         Takes a line of text and constructs a list of line fragments where each fragment do not exceed the maximum length of a line
@@ -157,6 +202,9 @@ class ZLabels(object):
         #   [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', '', '', 'auction', 1, ''],
         # [seller_id, seller_name, seller_phone, seller_society, [
         #   [post_id, pop_name, sci_name, post_fixed_price, post_min_price, post_type, quantity, comment
+
+        if self._handle_label_download_request(data):
+            return b''
 
         # import cStringIO
         # output = cStringIO.StringIO()
