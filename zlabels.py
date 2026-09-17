@@ -364,7 +364,7 @@ class ZLabels(object):
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
                 description_start_row = barcode_row + 1
-                max_description_lines = 3 if name_line_count == 1 else 2
+                max_description_lines = 3
                 description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
                     if idx < max_description_lines:
@@ -380,7 +380,7 @@ class ZLabels(object):
                 else:
                     row = 7
                 canvas.setFont(self.font, 7)
-                seller_offset = self.row_height * 0.5
+                seller_offset = self.row_height * 0.5 + 1 * mm
                 canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
