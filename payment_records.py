@@ -8,7 +8,7 @@ import sqlite3
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 
-from flask import current_app, flash, redirect, request, session, url_for
+from flask import current_app, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 
@@ -237,6 +237,28 @@ def _confirm_flea_market_payment(payment_id, expected_signature):
         conn.close()
 
 
+@login_required
+def payment_report():
+    if not current_user.is_admin:
+        flash('Du måste vara administratör för att komma åt sidan.')
+        return redirect(url_for('index'))
+
+    conn = sqlite3.connect(_database_path(), timeout=30)
+    with conn:
+        ensure_schema(conn)
+        cur = conn.cursor()
+        cur.execute(
+            '''
+            SELECT reference, amount, confirmed_at
+            FROM payments
+            ORDER BY payment_id DESC
+            '''
+        )
+        payments = cur.fetchall()
+
+    return render_template('payment_report.html', payments=payments)
+
+
 def _wrap_flea_market(original_view):
     @wraps(original_view)
     @login_required
@@ -297,6 +319,14 @@ def register_routes(app):
         conn = sqlite3.connect(app.config['DATABASE'], timeout=30)
         with conn:
             ensure_schema(conn)
+
+    if 'payment_report' not in app.view_functions:
+        app.add_url_rule(
+            '/reports/payments',
+            endpoint='payment_report',
+            view_func=payment_report,
+            methods=['GET'],
+        )
 
     if app.config.get('_PAYMENT_RECORDS_VIEWS_WRAPPED'):
         return
