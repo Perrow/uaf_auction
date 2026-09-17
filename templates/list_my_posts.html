@@ -16,7 +16,7 @@
         <table class="table table-hover align-middle" id="sorted_table" data-sortable>
             <thead class="table-light">
             <tr>
-                <th>Nr</th>
+                <th>Etikett</th>
                 <th>Vetenskapligt namn</th>
                 <th>Namn</th>
                 <th>Minpris</th>
@@ -33,7 +33,20 @@
             <tbody>
             {% for row in data %}
                 <tr>
-                    <td>{{ row[0] }}</td>
+                    <td>
+                        <span class="visually-hidden">{{ row[0] }}</span>
+                        <button type="button"
+                                class="btn p-0 border-0 bg-transparent label-preview-button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#labelPreviewModal"
+                                data-preview-url="{{ url_for('label_preview_image', post_id=row[0]) }}"
+                                data-post-id="{{ row[0] }}"
+                                aria-label="Visa större etikett för post {{ row[0] }}">
+                            <img src="{{ url_for('label_preview_image', post_id=row[0]) }}"
+                                 alt="Etikett för post {{ row[0] }}"
+                                 style="height: 60px; width: auto; cursor: zoom-in;">
+                        </button>
+                    </td>
                     <td>{{ row[1] }}</td>
                     <td>{{ row[2] }}</td>
                     <td>{{ row[3] }}</td>
@@ -56,7 +69,49 @@
         </table>
     </div>
 </div>
+
+<div class="modal fade" id="labelPreviewModal" tabindex="-1" aria-labelledby="labelPreviewModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="labelPreviewModalTitle">Etikett</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="labelPreviewModalImage"
+                     alt="Etikettförhandsvisning"
+                     style="height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/sort_tables.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('labelPreviewModal');
+    const modalImage = document.getElementById('labelPreviewModalImage');
+    const modalTitle = document.getElementById('labelPreviewModalTitle');
+
+    if (!modal || !modalImage || !modalTitle) {
+        return;
+    }
+
+    modal.addEventListener('show.bs.modal', event => {
+        const trigger = event.relatedTarget;
+        if (!trigger) {
+            return;
+        }
+
+        modalImage.src = trigger.dataset.previewUrl;
+        modalImage.alt = `Etikett för post ${trigger.dataset.postId}`;
+        modalTitle.textContent = `Etikett för post ${trigger.dataset.postId}`;
+    });
+
+    modal.addEventListener('hidden.bs.modal', () => {
+        modalImage.removeAttribute('src');
+    });
+});
+</script>
 {% endblock %}
