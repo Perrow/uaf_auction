@@ -217,7 +217,6 @@ class ZLabels(object):
         canvas.setAuthor(self.event_name)
 
         start_y = self.paper_height
-
         saved = False
         count = 0
         # Loop over sellers in data
@@ -318,8 +317,10 @@ class ZLabels(object):
                 if post_type == "auction":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Auktion")
                     if post_min_price is not None and len(str(post_min_price)) > 0:
+                        canvas.setFont(self.font, 6)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.2 * mm, u"Minimipris")
                         canvas.setFont(self.bold_font, 7)
-                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "min: {} kr".format(int(post_min_price)))
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
 
                 # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
