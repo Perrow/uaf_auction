@@ -302,7 +302,7 @@ class ZLabels(object):
 
                 # Post id
                 post_id_text = str(post_id)
-                post_id_font_size = 18 if len(post_id_text) >= 4 else 20
+                post_id_font_size = 17 if len(post_id_text) >= 4 else 20
                 canvas.setFont(self.font, post_id_font_size)
                 str_width = shapes.stringWidth(post_id_text, self.font, post_id_font_size)
                 center = (self.left_margin - str_width) / 2
