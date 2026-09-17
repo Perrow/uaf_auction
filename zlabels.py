@@ -75,7 +75,7 @@ class ZLabels(object):
             self.paper_left_right_margin = mm * 0  # mm
             self.paper_top_bottom_margin = mm * 0  # mm
             self.label_spacing = mm * 0  # mm
-            self.printer_margin = mm * 5  # mm
+            self.printer_margin = mm * 3.5  # mm
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
             self.left_margin = 13 * mm
@@ -83,7 +83,7 @@ class ZLabels(object):
             self.font = 'Helvetica'
             self.bold_font = 'Helvetica-Bold'
             self.row_height = mm * 3.5
-            self.text_width = mm * 45
+            self.text_width = mm * 48
 
         elif label_type == ZLabels.with_top_margin_24:
             self.label_width = mm * 70  # mm
@@ -91,7 +91,7 @@ class ZLabels(object):
             self.paper_left_right_margin = mm * 0  # mm
             self.paper_top_bottom_margin = mm * 5  # mm
             self.label_spacing = mm * 0  # mm
-            self.printer_margin = mm * 5  # mm
+            self.printer_margin = mm * 3.5  # mm
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
             self.left_margin = 13 * mm
@@ -99,7 +99,7 @@ class ZLabels(object):
             self.font = 'Helvetica'
             self.bold_font = 'Helvetica-Bold'
             self.row_height = mm * 3.5
-            self.text_width = mm * 45
+            self.text_width = mm * 48
 
         print(self.label_columns, self.label_rows, self.paper_height / mm)
 
