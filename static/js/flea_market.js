@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const changeButton = document.getElementById('changebutton');
     const form = document.getElementById('flea_market_form');
 
+    const loadingPostInputs = new WeakSet();
+
     let totalSum = 0;
     let rowNum = 1;
 
@@ -28,6 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return value !== '' && Number.isFinite(Number(value));
     }
 
+    function normalizePostId(value) {
+        const trimmed = value.trim();
+        if (/^\d+$/.test(trimmed)) {
+            return String(Number(trimmed));
+        }
+        return trimmed;
+    }
+
     function clearPostDetails() {
         setText('scientific_name', '');
         setText('plain_name', '');
@@ -45,6 +55,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function findDuplicatePostInput(currentInput) {
+        const normalizedPostId = normalizePostId(currentInput.value);
+        if (normalizedPostId === '') {
+            return null;
+        }
+
+        return Array.from(document.querySelectorAll('.post_id')).find(function (input) {
+            return input !== currentInput
+                && input.value.trim() !== ''
+                && normalizePostId(input.value) === normalizedPostId;
+        }) || null;
+    }
+
+    function findFirstDuplicatePostInput() {
+        const seenPostIds = new Set();
+
+        for (const input of document.querySelectorAll('.post_id')) {
+            const normalizedPostId = normalizePostId(input.value);
+            if (normalizedPostId === '') {
+                continue;
+            }
+            if (seenPostIds.has(normalizedPostId)) {
+                return input;
+            }
+            seenPostIds.add(normalizedPostId);
+        }
+
+        return null;
+    }
+
     function calculateSum() {
         totalSum = Array.from(document.querySelectorAll('.price')).reduce(function (sum, input) {
             return sum + (isNumeric(input.value) ? Number(input.value) : 0);
@@ -54,10 +94,31 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('sum2', String(totalSum));
     }
 
-    async function loadPost(id) {
+    function focusNextEmptyPostInput(currentInput) {
+        const postInputs = Array.from(document.querySelectorAll('.post_id'));
+        const currentIndex = postInputs.indexOf(currentInput);
+        const nextEmptyInput = postInputs.slice(currentIndex + 1).find(function (input) {
+            return input.value.trim() === '';
+        });
+
+        if (nextEmptyInput) {
+            nextEmptyInput.focus();
+            return;
+        }
+
+        const newPostInput = addRow();
+        newPostInput.focus();
+    }
+
+    async function loadPost(id, focusNextAfterLoad) {
         const postInput = document.getElementById('post' + id);
         const priceInput = document.getElementById('price' + id);
         const info = document.getElementById('info' + id);
+
+        if (loadingPostInputs.has(postInput)) {
+            return;
+        }
+
         const postId = postInput.value.trim();
 
         if (postId === '') {
@@ -69,9 +130,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const duplicateInput = findDuplicatePostInput(postInput);
+        if (duplicateInput) {
+            priceInput.value = '';
+            info.textContent = '\u00a0';
+            postInput.value = '';
+            clearPostDetails();
+            setText('error', 'POSTNUMMER ' + postId + ' FINNS REDAN I LISTAN');
+            calculateSum();
+            postInput.focus();
+            return;
+        }
+
         if (!hasEmptyNewRow()) {
             addRow();
         }
+
+        loadingPostInputs.add(postInput);
 
         try {
             const response = await fetch('json/' + encodeURIComponent(postId), {
@@ -112,6 +187,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             setText('error', '');
             calculateSum();
+
+            if (focusNextAfterLoad) {
+                focusNextEmptyPostInput(postInput);
+            }
         } catch (error) {
             priceInput.value = '';
             info.textContent = '\u00a0';
@@ -119,6 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
             setText('error', 'INGET POST ID GAVS');
             calculateSum();
             console.error('Postuppslag misslyckades:', error);
+        } finally {
+            loadingPostInputs.delete(postInput);
         }
     }
 
@@ -142,8 +223,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        postInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                event.stopPropagation();
+                loadPost(id, true);
+            }
+        });
+
         postInput.addEventListener('blur', function () {
-            loadPost(id);
+            loadPost(id, false);
         });
     }
 
@@ -176,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         formElements.appendChild(wrapper);
         bindRow(id);
+        return document.getElementById('post' + id);
     }
 
     addButton.addEventListener('click', addRow);
@@ -188,6 +278,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.addEventListener('submit', function (event) {
         let allOk = true;
+        const duplicateInput = findFirstDuplicatePostInput();
+
+        if (duplicateInput) {
+            setText('error', 'SAMMA POSTNUMMER KAN INTE FINNAS MER ÄN EN GÅNG I LISTAN');
+            event.preventDefault();
+            duplicateInput.focus();
+            return;
+        }
 
         document.querySelectorAll('.price').forEach(function (priceInput) {
             const rowId = priceInput.id.substring(5);
