@@ -4,10 +4,12 @@
 
 from uaf import app
 import label_preview
+import post_limit
 import swish_qr
 
 
 label_preview.register_routes(app)
+post_limit.register_routes(app)
 swish_qr.register_routes(app)
 
 
