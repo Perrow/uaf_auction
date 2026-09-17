@@ -359,7 +359,7 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset - barcode_extra_row_height
+                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset - barcode_extra_row_height - 0.5 * mm
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
