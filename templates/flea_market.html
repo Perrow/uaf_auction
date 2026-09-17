@@ -131,11 +131,17 @@
                  style="max-width: min(500px, 100%);"
                  alt="Swish QR-kod">
             <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
+            <input id="swish_qr_command_input"
+                   type="text"
+                   autocomplete="off"
+                   tabindex="-1"
+                   aria-label="Streckkodskommando"
+                   style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
         </div>
         <div class="card-footer d-flex justify-content-end gap-2">
-            <button type="button"
-                    class="btn btn-secondary"
-                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')">Avbryt</button>
+            <button id="swish_cancel_button"
+                    type="button"
+                    class="btn btn-secondary">Avbryt</button>
             <button id="submit"
                     name="submit"
                     type="submit"
@@ -153,12 +159,104 @@
     <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const emptyPostInputs = Array.from(document.querySelectorAll('.post_id')).filter(function (input) {
-                return input.value.trim() === '';
-            });
-            if (emptyPostInputs.length > 0) {
-                emptyPostInputs[emptyPostInputs.length - 1].focus();
+            const qrContainer = document.getElementById('swish_qr_container');
+            const qrCommandInput = document.getElementById('swish_qr_command_input');
+            const confirmButton = document.getElementById('submit');
+            const cancelButton = document.getElementById('swish_cancel_button');
+
+            function focusLastEmptyPostInput() {
+                const emptyPostInputs = Array.from(document.querySelectorAll('.post_id')).filter(function (input) {
+                    return input.value.trim() === '';
+                });
+                if (emptyPostInputs.length > 0) {
+                    emptyPostInputs[emptyPostInputs.length - 1].focus();
+                }
             }
+
+            function closeQrPopup() {
+                if (qrContainer) {
+                    qrContainer.classList.add('d-none');
+                }
+                if (qrCommandInput) {
+                    qrCommandInput.value = '';
+                }
+                focusLastEmptyPostInput();
+            }
+
+            document.addEventListener('keydown', function (event) {
+                const target = event.target;
+
+                if (event.key === 'Enter' && target.classList && target.classList.contains('post_id')
+                        && target.value.trim().toUpperCase() === 'QR') {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    target.value = '';
+                    target.dataset.skipQrBlur = 'true';
+
+                    const rowId = target.id.substring(4);
+                    const priceInput = document.getElementById('price' + rowId);
+                    const info = document.getElementById('info' + rowId);
+                    if (priceInput) {
+                        priceInput.value = '';
+                    }
+                    if (info) {
+                        info.textContent = '\u00a0';
+                    }
+
+                    document.getElementById('sumbutton').click();
+                    return;
+                }
+
+                if (target === qrCommandInput) {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        closeQrPopup();
+                        return;
+                    }
+
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    const command = qrCommandInput.value.trim().toUpperCase();
+                    qrCommandInput.value = '';
+
+                    if (command === 'OK' && confirmButton) {
+                        confirmButton.click();
+                    } else if (command === 'ESC') {
+                        closeQrPopup();
+                    }
+                }
+            }, true);
+
+            document.addEventListener('blur', function (event) {
+                const target = event.target;
+                if (target.dataset && target.dataset.skipQrBlur === 'true') {
+                    delete target.dataset.skipQrBlur;
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+
+            if (qrContainer && qrCommandInput) {
+                new MutationObserver(function () {
+                    if (!qrContainer.classList.contains('d-none')) {
+                        qrCommandInput.value = '';
+                        requestAnimationFrame(function () {
+                            qrCommandInput.focus();
+                        });
+                    }
+                }).observe(qrContainer, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            if (cancelButton) {
+                cancelButton.addEventListener('click', closeQrPopup);
+            }
+
+            focusLastEmptyPostInput();
         });
     </script>
 {% endblock %}
