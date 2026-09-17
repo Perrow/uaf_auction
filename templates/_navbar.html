@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3 app-navbar">
-    <div class="container-fluid">
+    <div class="container">
         {% set navbar_logo = config.get('NAVBAR_LOGO', 'img/logo_64.jpg') %}
         <a class="navbar-brand app-navbar-brand" href="{{ url_for('index') }}" aria-label="Start">
             {% if navbar_logo %}
