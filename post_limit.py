@@ -10,7 +10,9 @@ from flask_login import current_user, login_required
 
 
 LIMIT_COLUMN = 'max_registered_posts'
-TRIGGER_NAME = 'enforce_max_registered_posts'
+AUCTION_FLAG_COLUMN = 'is_auction'
+TRIGGER_NAME = 'enforce_max_registered_auction_posts'
+OLD_TRIGGER_NAME = 'enforce_max_registered_posts'
 TRIGGER_ERROR = 'MAX_REGISTERED_POSTS_REACHED'
 
 
@@ -18,24 +20,99 @@ def _database_path():
     return current_app.config['DATABASE']
 
 
+def _table_exists(cur, table_name):
+    cur.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        [table_name],
+    )
+    return cur.fetchone() is not None
+
+
+def _table_columns(cur, table_name):
+    cur.execute('PRAGMA table_info({})'.format(table_name))
+    return [row[1] for row in cur.fetchall()]
+
+
+def _ensure_auction_type_flags(cur):
+    """Add/backfill is_auction on the category tables when needed."""
+    if _table_exists(cur, 'all_types'):
+        all_type_columns = _table_columns(cur, 'all_types')
+        if AUCTION_FLAG_COLUMN not in all_type_columns:
+            cur.execute(
+                'ALTER TABLE all_types ADD COLUMN is_auction INTEGER NOT NULL DEFAULT 0'
+            )
+            cur.execute(
+                '''
+                UPDATE all_types
+                SET is_auction = CASE
+                    WHEN LOWER(COALESCE(description, '')) LIKE '%auktionen%' THEN 1
+                    ELSE 0
+                END
+                '''
+            )
+
+    if _table_exists(cur, 'used_types'):
+        used_type_columns = _table_columns(cur, 'used_types')
+        if AUCTION_FLAG_COLUMN not in used_type_columns:
+            cur.execute(
+                'ALTER TABLE used_types ADD COLUMN is_auction INTEGER NOT NULL DEFAULT 0'
+            )
+
+        if _table_exists(cur, 'all_types') and AUCTION_FLAG_COLUMN in _table_columns(cur, 'all_types'):
+            cur.execute(
+                '''
+                UPDATE used_types
+                SET is_auction = COALESCE(
+                    (SELECT all_types.is_auction
+                     FROM all_types
+                     WHERE all_types.type_id = used_types.type_id),
+                    0
+                )
+                '''
+            )
+
+
 def _ensure_schema(conn):
     cur = conn.cursor()
-    cur.execute('PRAGMA table_info(auction_info)')
-    columns = [row[1] for row in cur.fetchall()]
-    if LIMIT_COLUMN not in columns:
-        cur.execute('ALTER TABLE auction_info ADD COLUMN max_registered_posts INTEGER')
+
+    if _table_exists(cur, 'auction_info'):
+        auction_info_columns = _table_columns(cur, 'auction_info')
+        if LIMIT_COLUMN not in auction_info_columns:
+            cur.execute('ALTER TABLE auction_info ADD COLUMN max_registered_posts INTEGER')
+
+    _ensure_auction_type_flags(cur)
 
     cur.execute(
-        '''
-        CREATE TRIGGER IF NOT EXISTS {trigger_name}
-        BEFORE INSERT ON posts
-        WHEN (SELECT max_registered_posts FROM auction_info LIMIT 1) IS NOT NULL
-         AND (SELECT COUNT(*) FROM posts) >= (SELECT max_registered_posts FROM auction_info LIMIT 1)
-        BEGIN
-            SELECT RAISE(ABORT, '{trigger_error}');
-        END
-        '''.format(trigger_name=TRIGGER_NAME, trigger_error=TRIGGER_ERROR)
+        "SELECT 1 FROM sqlite_master WHERE type = 'trigger' AND name = ?",
+        [OLD_TRIGGER_NAME],
     )
+    if cur.fetchone() is not None:
+        cur.execute('DROP TRIGGER {}'.format(OLD_TRIGGER_NAME))
+
+    if (_table_exists(cur, 'posts') and _table_exists(cur, 'used_types')
+            and _table_exists(cur, 'auction_info')):
+        cur.execute(
+            '''
+            CREATE TRIGGER IF NOT EXISTS {trigger_name}
+            BEFORE INSERT ON posts
+            WHEN (SELECT max_registered_posts FROM auction_info LIMIT 1) IS NOT NULL
+             AND EXISTS (
+                 SELECT 1
+                 FROM used_types
+                 WHERE used_types.type_id = NEW.type
+                   AND used_types.is_auction = 1
+             )
+             AND (
+                 SELECT COUNT(*)
+                 FROM posts
+                 INNER JOIN used_types ON used_types.type_id = posts.type
+                 WHERE used_types.is_auction = 1
+             ) >= (SELECT max_registered_posts FROM auction_info LIMIT 1)
+            BEGIN
+                SELECT RAISE(ABORT, '{trigger_error}');
+            END
+            '''.format(trigger_name=TRIGGER_NAME, trigger_error=TRIGGER_ERROR)
+        )
 
 
 def _get_limit_status():
@@ -43,7 +120,14 @@ def _get_limit_status():
     with conn:
         _ensure_schema(conn)
         cur = conn.cursor()
-        cur.execute('SELECT COUNT(*) FROM posts')
+        cur.execute(
+            '''
+            SELECT COUNT(*)
+            FROM posts
+            INNER JOIN used_types ON used_types.type_id = posts.type
+            WHERE used_types.is_auction = 1
+            '''
+        )
         current_count = cur.fetchone()[0]
         cur.execute('SELECT max_registered_posts FROM auction_info LIMIT 1')
         row = cur.fetchone()
@@ -77,19 +161,19 @@ def post_limit_settings():
                 try:
                     max_posts = int(raw_value)
                 except ValueError:
-                    flash('Maxantal poster måste vara ett heltal.')
+                    flash('Maxantal auktionsposter måste vara ett heltal.')
                     return redirect(url_for('post_limit_settings'))
 
                 if max_posts <= 0:
-                    flash('Maxantal poster måste vara större än noll, eller lämnas tomt för obegränsat.')
+                    flash('Maxantal auktionsposter måste vara större än noll, eller lämnas tomt för obegränsat.')
                     return redirect(url_for('post_limit_settings'))
 
             cur = conn.cursor()
             cur.execute('UPDATE auction_info SET max_registered_posts = ?', [max_posts])
             if max_posts is None:
-                flash('Maxgränsen är borttagen. Antalet poster är obegränsat.')
+                flash('Maxgränsen är borttagen. Antalet auktionsposter är obegränsat.')
             else:
-                flash('Maxgränsen är satt till {} poster.'.format(max_posts))
+                flash('Maxgränsen är satt till {} auktionsposter.'.format(max_posts))
             return redirect(url_for('post_limit_settings'))
 
     current_count, max_posts = _get_limit_status()
@@ -109,7 +193,7 @@ def _handle_limit_error(error, fallback_endpoint):
         flash('Posten kunde inte registreras på grund av ett databasfel.')
     else:
         flash(
-            'Det finns inte plats för alla nya poster. Auktionen har {} av {} registrerade poster.'.format(
+            'Det finns inte plats för alla nya auktionsposter. Auktionen har {} av {} registrerade auktionsposter.'.format(
                 current_count,
                 max_posts,
             )
@@ -133,23 +217,27 @@ def _wrap_registration_view(original_view, fallback_endpoint):
     return wrapped
 
 
-def _wrap_edit_event(original_view):
+def _wrap_event_view(original_view, preserve_limit):
     @wraps(original_view)
     def wrapped(*args, **kwargs):
+        max_posts = None
         conn = sqlite3.connect(_database_path(), timeout=30)
         with conn:
             _ensure_schema(conn)
-            cur = conn.cursor()
-            cur.execute('SELECT max_registered_posts FROM auction_info LIMIT 1')
-            row = cur.fetchone()
-            max_posts = row[0] if row else None
+            if preserve_limit and _table_exists(conn.cursor(), 'auction_info'):
+                cur = conn.cursor()
+                cur.execute('SELECT max_registered_posts FROM auction_info LIMIT 1')
+                row = cur.fetchone()
+                max_posts = row[0] if row else None
 
         response = original_view(*args, **kwargs)
 
-        if request.method == 'POST':
-            conn = sqlite3.connect(_database_path(), timeout=30)
-            with conn:
-                _ensure_schema(conn)
+        # create_event recreates used_types without the new flag. edit_event also
+        # repopulates it from all_types. Synchronize the derived table afterwards.
+        conn = sqlite3.connect(_database_path(), timeout=30)
+        with conn:
+            _ensure_schema(conn)
+            if preserve_limit and request.method == 'POST':
                 conn.execute('UPDATE auction_info SET max_registered_posts = ?', [max_posts])
 
         return response
@@ -158,7 +246,7 @@ def _wrap_edit_event(original_view):
 
 
 def register_routes(app):
-    """Register settings route and enforce the post limit on registration routes."""
+    """Register settings route and enforce the auction-post limit."""
     if 'post_limit_settings' not in app.view_functions:
         app.add_url_rule(
             '/post_limit',
@@ -178,7 +266,15 @@ def register_routes(app):
                 app.view_functions['admin_register_many_posts'],
                 'admin_register_many_posts',
             )
+        if 'create_event' in app.view_functions:
+            app.view_functions['create_event'] = _wrap_event_view(
+                app.view_functions['create_event'],
+                preserve_limit=False,
+            )
         if 'edit_event' in app.view_functions:
-            app.view_functions['edit_event'] = _wrap_edit_event(app.view_functions['edit_event'])
+            app.view_functions['edit_event'] = _wrap_event_view(
+                app.view_functions['edit_event'],
+                preserve_limit=True,
+            )
 
         app.config['_POST_LIMIT_VIEWS_WRAPPED'] = True
