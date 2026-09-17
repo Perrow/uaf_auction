@@ -161,7 +161,6 @@ class ZLabels(object):
         lines = []  # Resulting list of lines
         line = []  # current line
         for word in parts:
-            # Test width of line including spaces
             tmp_line = line.copy()
             tmp_line.append(word)
             tmp_line = " ".join(tmp_line)
@@ -198,17 +197,9 @@ class ZLabels(object):
         :param data: the data to generate labels from
         :param border: Draw border around labels or not
         """
-        # [4, 'Bengt Bengtsson', '018-0123456', 'UAF', [
-        #   [8, 'Ancistrus', 'Ancistrus sp Super Red', 180.0, '', 'fixed_price', 2, 'Troligen 2 honor'],
-        #   [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', '', '', 'auction', 1, ''],
-        # [seller_id, seller_name, seller_phone, seller_society, [
-        #   [post_id, pop_name, sci_name, post_fixed_price, post_min_price, post_type, quantity, comment
-
         if self._handle_label_download_request(data):
             return b''
 
-        # import cStringIO
-        # output = cStringIO.StringIO()
         from io import BytesIO
         output = BytesIO()
         canvas = Canvas(output)
@@ -219,15 +210,12 @@ class ZLabels(object):
         start_y = self.paper_height
         saved = False
         count = 0
-        # Loop over sellers in data
         for seller in data:
-
             saved = False
             seller_id = seller[0]
             seller_name = seller[1]
             seller_phone = seller[2]
             seller_society = seller[3]
-            # Loop over the sellers items
             for post in seller[4]:
                 post_id = post[0]
                 pop_name = post[1]
@@ -238,7 +226,6 @@ class ZLabels(object):
                 post_quantity = post[6]
                 post_description = post[7]
 
-                # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
                     canvas.showPage()
                     count = 0
@@ -254,62 +241,41 @@ class ZLabels(object):
                 label_y_top = y - self.printer_margin
                 label_y_bottom = y - self.label_height + self.printer_margin
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
+                left_content_offset = -0.8 * mm
                 upper_text_offset = 1 * mm
                 lower_text_offset = 1 * mm
                 right_side_offset = 0.5 * mm
 
-                # Border
                 if self.border == "yes":
                     canvas.setLineWidth(.3)
-                    canvas.line(x + label_space, y, x + label_space + self.label_width, y)  # upper line
-                    canvas.line(x + label_space + self.label_width, y, x + label_space + self.label_width, y - self.label_height)  # right line
-                    canvas.line(x + label_space, y - self.label_height, x + label_space + self.label_width, y - self.label_height)  # bottom line
-                    canvas.line(x + label_space, y - self.label_height, x + label_space, y)  # Left line
+                    canvas.line(x + label_space, y, x + label_space + self.label_width, y)
+                    canvas.line(x + label_space + self.label_width, y, x + label_space + self.label_width, y - self.label_height)
+                    canvas.line(x + label_space, y - self.label_height, x + label_space + self.label_width, y - self.label_height)
+                    canvas.line(x + label_space, y - self.label_height, x + label_space, y)
 
-                    # inner bounding box for label so that nothing should end up outside of where the printer prints
-                    # upper line
                 if debug == True:
-                    canvas.line(label_x_left,
-                                label_y_top,
-                                label_x_right,
-                                label_y_top)
-                    # right line
-                    canvas.line(label_x_right,
-                                label_y_bottom,
-                                label_x_right,
-                                label_y_top)
-                    # bottom line
-                    canvas.line(label_x_left,
-                                label_y_bottom,
-                                label_x_right,
-                                label_y_bottom)
-                    # Left line
-                    canvas.line(label_x_left,
-                                label_y_bottom,
-                                label_x_left,
-                                label_y_top)
+                    canvas.line(label_x_left, label_y_top, label_x_right, label_y_top)
+                    canvas.line(label_x_right, label_y_bottom, label_x_right, label_y_top)
+                    canvas.line(label_x_left, label_y_bottom, label_x_right, label_y_bottom)
+                    canvas.line(label_x_left, label_y_bottom, label_x_left, label_y_top)
 
-                # Add logo
                 center = (self.left_margin - 25) / 2
-
                 basedir = os.path.abspath(os.path.dirname(__file__))
                 img_file = os.path.join(basedir, "static/img/logo_250.jpg")
-                canvas.drawInlineImage(img_file, label_x_left + center, label_y_top - 30, 25, 25)
+                canvas.drawInlineImage(img_file, label_x_left + center + left_content_offset, label_y_top - 30, 25, 25)
 
                 canvas.setLineWidth(1)
-                canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
+                canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)
                 canvas.setLineWidth(.3)
 
-                # Post id
                 post_id_text = str(post_id)
                 post_id_font_size = 17 if len(post_id_text) >= 4 else 20
                 canvas.setFont(self.font, post_id_font_size)
                 str_width = shapes.stringWidth(post_id_text, self.font, post_id_font_size)
                 center = (self.left_margin - str_width) / 2
-                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, post_id_text)          # Post id
+                canvas.drawString(label_x_left + center + left_content_offset, label_y_top - self.row_height * 5, post_id_text)
 
-                # Sale type and price below the post id in the left column
-                left_column_center = label_x_left + self.left_margin / 2
+                left_column_center = label_x_left + self.left_margin / 2 + left_content_offset
                 canvas.setFont(self.font, 7)
                 if post_type == "fixed_price":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
@@ -324,12 +290,9 @@ class ZLabels(object):
                         canvas.setFont(self.bold_font, 7)
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
 
-                # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
                 canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset + right_side_offset, "{} - {}".format(self.event_name, self.event_date))
 
-                # popular and scientific names; moved up one row now that sale type
-                # is displayed in the left column.
                 if sci_name != "" and pop_name != "":
                     names = self.make_multiline("{} - {}".format(sci_name, pop_name), self.text_width, self.bold_font, self.font_size)
                 elif sci_name != "":
@@ -338,14 +301,19 @@ class ZLabels(object):
                     names = self.make_multiline(pop_name, self.text_width, self.bold_font, self.font_size)
                 else:
                     names = []
+
+                visible_names = names[:2]
                 canvas.setFont(self.bold_font, self.font_size)
-                if len(names) > 0:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset + right_side_offset, names[0])
-                if len(names) > 1:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
+                for idx, name in enumerate(visible_names):
+                    canvas.drawString(
+                        label_text_x,
+                        label_y_top - self.row_height * (2 + idx) + upper_text_offset + right_side_offset,
+                        name
+                    )
                 canvas.setFont(self.font, self.font_size)
 
-                # Barcode for the zero-padded four digit post id.
+                name_line_count = max(1, len(visible_names))
+                barcode_row = 2 + name_line_count
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
@@ -354,39 +322,37 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 4.4 * mm + right_side_offset
+                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset
 
-                # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                description_start_row = barcode_row + 1
+                max_description_lines = 3 if name_line_count == 1 else 2
                 description_offset = self.row_height * 0.5
-                for idx, comment in enumerate(comments):
-                    if idx < 3:
-                        canvas.drawString(
-                            label_text_x,
-                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset + right_side_offset,
-                            comment
-                        )
+                for idx, comment in enumerate(comments[:max_description_lines]):
+                    canvas.drawString(
+                        label_text_x,
+                        label_y_top - self.row_height * (description_start_row + idx) - lower_text_offset + description_offset + right_side_offset,
+                        comment
+                    )
 
-                #Seller name and phone
                 if self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2:
                     row = 8
                 else:
                     row = 7
                 canvas.setFont(self.font, 7)
                 seller_offset = self.row_height * 0.5
-                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
+                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))
 
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 count += 1
 
-            # if new seller add an empty row and empty labels on current row
             tot_row = math.floor(count / 3)
             column = count % 3
-            if column > 0:  # one or two labels on current row add to rows to make an empty row
+            if column > 0:
                 tot_row += 2
             else:
-                tot_row += 1  # three labels on current row only add one empty row
+                tot_row += 1
             count = tot_row * 3
 
         if not saved:
@@ -397,11 +363,7 @@ class ZLabels(object):
 
 
 if __name__ == "__main__":
-    # MK = ZLabels("test", "UAF Storauktion", "2016-11-27", "Uppsala Akvarierförening", ZLabels.with_margins_24)
-    # MK = ZLabels("test", "UAF Storauktion", "2016-11-27", "Uppsala Akvarierförening", ZLabels.without_margins_24)
     MK = ZLabels("test", "UAF Storauktion", "2016-11-27", ZLabels.with_top_margin_24)
-
-
 
     test_data = [
         [4, 'Bengt Bengtsson', '018-0123456', 'UAF', [
@@ -434,7 +396,6 @@ if __name__ == "__main__":
             [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, '']
         ]]
     ]
-
 
     pdf = MK.make_pdf(test_data, True)
     pdf_temp = "temp_pdf.pdf"
