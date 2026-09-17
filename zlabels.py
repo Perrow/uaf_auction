@@ -348,6 +348,7 @@ class ZLabels(object):
 
                 name_line_count = 2 if len(names) > 1 else 1
                 barcode_row = 2 + name_line_count
+                barcode_extra_row_height = 1 * mm
 
                 # Barcode for the zero-padded four digit post id.
                 barcode_value = str(post_id).zfill(4)
@@ -358,7 +359,7 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset
+                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset - barcode_extra_row_height
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
@@ -369,7 +370,7 @@ class ZLabels(object):
                     if idx < max_description_lines:
                         canvas.drawString(
                             label_text_x,
-                            label_y_top - self.row_height * (description_start_row + idx) - lower_text_offset + description_offset + right_side_offset,
+                            label_y_top - self.row_height * (description_start_row + idx) - lower_text_offset + description_offset + right_side_offset - barcode_extra_row_height,
                             comment
                         )
 
