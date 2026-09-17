@@ -33,7 +33,7 @@
                         {% for row in all_types %}
                             <div class="col">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="{{ row[0] }}" name="type" id="type_{{ row[0] }}">
+                                    <input class="form-check-input" type="checkbox" value="{{ row[0] }}" name="type" id="type_{{ row[0] }}"{% if row[0] in (selected_types | default([])) %} checked{% endif %}>
                                     <label class="form-check-label" for="type_{{ row[0] }}">{{ row[1] }}</label>
                                 </div>
                             </div>
@@ -43,11 +43,11 @@
 
                 <section class="mb-4">
                     <h2 class="h4 mb-3">Administratör</h2>
-                    {{ input_field('admin_name', 'Administratörens namn:', placeholder='Förnamn Efternamn', autocomplete='name') }}
-                    {{ input_field('admin_address', 'Administratörens adress:', placeholder='Adress', autocomplete='street-address') }}
-                    {{ input_field('admin_email', 'Administratörens email:', type='email', placeholder='nnn@nn.nn', autocomplete='email') }}
-                    {{ input_field('admin_phone', 'Administratörens telefonnummer:', type='tel', placeholder='012-3456789', autocomplete='tel') }}
-                    {{ input_field('admin_aquarium_club', 'Administratörens akvarieförening:', placeholder='Akvarieförening') }}
+                    {{ input_field('admin_name', 'Administratörens namn:', admin_name | default(''), placeholder='Förnamn Efternamn', autocomplete='name') }}
+                    {{ input_field('admin_address', 'Administratörens adress:', admin_address | default(''), placeholder='Adress', autocomplete='street-address') }}
+                    {{ input_field('admin_email', 'Administratörens email:', admin_email | default(''), type='email', placeholder='nnn@nn.nn', autocomplete='email') }}
+                    {{ input_field('admin_phone', 'Administratörens telefonnummer:', admin_phone | default(''), type='tel', placeholder='012-3456789', autocomplete='tel') }}
+                    {{ input_field('admin_aquarium_club', 'Administratörens akvarieförening:', admin_aquarium_club | default(''), placeholder='Akvarieförening') }}
                     {{ input_field('admin_password', 'Administratörens lösenord:', type='password', placeholder='Lösenord', autocomplete='new-password') }}
                 </section>
 
