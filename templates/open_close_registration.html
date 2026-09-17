@@ -7,7 +7,7 @@
             <h1 class="mb-4">Föranmälan</h1>
 
             {% if registration_open == True %}
-                <div class="card border-success shadow-sm">
+                <div class="card border-success shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h2 class="h4 text-success">Föranmälan är öppen</h2>
                         <p class="text-body-secondary">Säljare kan registrera sig och föranmäla poster.</p>
@@ -17,7 +17,7 @@
                     </div>
                 </div>
             {% else %}
-                <div class="card border-secondary shadow-sm">
+                <div class="card border-secondary shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h2 class="h4">Föranmälan är stängd</h2>
                         <p class="text-body-secondary">Nya föranmälningar är för närvarande inte tillåtna.</p>
@@ -27,6 +27,16 @@
                     </div>
                 </div>
             {% endif %}
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                    <div>
+                        <h2 class="h5 mb-1">Maxantal poster</h2>
+                        <p class="text-body-secondary mb-0">Sätt en maxgräns och se hur många poster som är registrerade.</p>
+                    </div>
+                    <a href="{{ url_for('post_limit_settings') }}" class="btn btn-outline-primary">Hantera maxgräns</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
