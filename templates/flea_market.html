@@ -107,11 +107,6 @@
                 {% if config.get('SWISH_NUMBER') %}
                 <div class="mt-4">
                     <button id="swishbutton" type="button" class="btn btn-success">Visa Swish-QR</button>
-                    <div id="swish_qr_container" class="d-none mt-3 text-center" aria-live="polite">
-                        <p class="mb-2">Skanna QR-koden med Swish. Belopp och meddelande är låsta.</p>
-                        <img id="swish_qr_image" class="img-fluid border rounded" style="max-width: 500px" alt="Swish QR-kod">
-                        <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
-                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -149,6 +144,38 @@
         </div>
     </section>
 </div>
+
+{% if config.get('SWISH_NUMBER') %}
+<div id="swish_qr_container"
+     class="d-none"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="swish_qr_title"
+     style="position: fixed; inset: 0; z-index: 1080; background: rgba(0, 0, 0, 0.55); display: grid; place-items: center; padding: 1rem;">
+    <div class="card shadow-lg w-100" style="max-width: 560px; max-height: calc(100vh - 2rem); overflow: auto;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 id="swish_qr_title" class="h5 mb-0">Betala med Swish</h2>
+            <button type="button"
+                    class="btn-close"
+                    aria-label="Stäng"
+                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')"></button>
+        </div>
+        <div class="card-body text-center">
+            <p class="mb-3">Skanna QR-koden med Swish. Belopp och meddelande är låsta.</p>
+            <img id="swish_qr_image"
+                 class="img-fluid border rounded"
+                 style="max-width: min(500px, 100%);"
+                 alt="Swish QR-kod">
+            <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
+        </div>
+        <div class="card-footer text-end">
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick="document.getElementById('swish_qr_container').classList.add('d-none')">Stäng</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
