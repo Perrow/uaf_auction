@@ -345,12 +345,13 @@ class ZLabels(object):
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
-                    barWidth=0.18 * mm,
+                    barWidth=0.45 * mm,
                     barHeight=2.4 * mm,
                     humanReadable=False
                 )
-                barcode_y = label_y_top - self.row_height * 5 + 0.7 * mm
-                post_barcode.drawOn(canvas, label_text_x, barcode_y)
+                barcode_x = label_text_x - 4 * mm
+                barcode_y = label_y_top - self.row_height * 5 + 1.7 * mm
+                post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
@@ -405,24 +406,24 @@ if __name__ == "__main__":
             [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
             [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
             [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
-            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red"', '', 130, 'auction', 20, ''],
             [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, ''],
             [888, 'Ancistrus', 'Ancistrus sp Super Red', 180.0, '', 'fixed_price', 2, 'Troligen 2 honor'],
             [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
             [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
              'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
             [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
-            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red"', '', 130, 'auction', 20, ''],
             [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
             [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
              'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
             [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
-            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red"', '', 130, 'auction', 20, ''],
             [9, 'Cryptocoryne', 'Cryptocoryne aponogetifolia', 80, '', 'fixed_price', 1, ''],
             [111, "Labidochromis caeruleus", u"Golden labidochromis", 888, '', 'fixed_price', 5,
              'Mycket Lång kommentar, hur ska det gå? Det här kan aldrig fungera'],
             [222, "Crossocheilus oblongus", u"Siamesisk algätare, algätare", '', '', 'auction', 20, ''],
-            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red”', '', 130, 'auction', 20, ''],
+            [223, 'Crystal red räka', 'Caridina cf. cantonensis ”Crystal Red"', '', 130, 'auction', 20, ''],
             [88, "Ciklidgräs", u"Ophiopogon japonicus", 80.0, '', 'fixed_price', 1, '']
         ]]
     ]
