@@ -5,7 +5,7 @@
 import sqlite3
 from functools import wraps
 
-from flask import current_app, flash, redirect, render_template, request, url_for
+from flask import current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 
@@ -135,6 +135,15 @@ def _get_limit_status():
     return current_count, max_posts
 
 
+def _get_auction_type_ids():
+    conn = sqlite3.connect(_database_path(), timeout=30)
+    with conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+        cur.execute('SELECT type_id FROM used_types WHERE is_auction = 1 ORDER BY type_id')
+        return [row[0] for row in cur.fetchall()]
+
+
 def _admin_required(func):
     @wraps(func)
     @login_required
@@ -182,6 +191,17 @@ def post_limit_settings():
         current_count=current_count,
         max_posts=max_posts,
     )
+
+
+@_admin_required
+def auction_post_limit_status():
+    current_count, max_posts = _get_limit_status()
+    return jsonify({
+        'current_count': current_count,
+        'max_posts': max_posts,
+        'is_full': max_posts is not None and current_count >= max_posts,
+        'auction_type_ids': _get_auction_type_ids(),
+    })
 
 
 def _handle_limit_error(error, fallback_endpoint):
@@ -253,6 +273,14 @@ def register_routes(app):
             endpoint='post_limit_settings',
             view_func=post_limit_settings,
             methods=['GET', 'POST'],
+        )
+
+    if 'auction_post_limit_status' not in app.view_functions:
+        app.add_url_rule(
+            '/json_auction_post_limit_status',
+            endpoint='auction_post_limit_status',
+            view_func=auction_post_limit_status,
+            methods=['GET'],
         )
 
     if not app.config.get('_POST_LIMIT_VIEWS_WRAPPED'):
