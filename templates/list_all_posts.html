@@ -40,7 +40,13 @@
                         </a>
                     </td>
                     {% if current_user.is_admin %}
-                        <td><a class="btn btn-sm btn-warning" href="{{ url_for('edit_post') }}/{{ row[0] }}"><i class="fa fa-pencil" aria-hidden="true"></i> Editera</a></td>
+                        <td>
+                            {% if post_is_editable(row[0]) %}
+                                <a class="btn btn-sm btn-warning" href="{{ url_for('edit_post') }}/{{ row[0] }}"><i class="fa fa-pencil" aria-hidden="true"></i> Editera</a>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Etikett utskriven</span>
+                            {% endif %}
+                        </td>
                         <td><a class="btn btn-sm btn-danger" href="{{ url_for('delete_post') }}/{{ row[0] }}"><i class="fa fa-trash" aria-hidden="true"></i> Ta bort</a></td>
                     {% endif %}
                 </tr>
