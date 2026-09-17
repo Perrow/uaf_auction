@@ -113,7 +113,6 @@ def swish_qr_image():
         SWISH_QR_URL,
         data=json.dumps(swish_payload).encode('utf-8'),
         headers={
-            'Accept': 'image/png',
             'Content-Type': 'application/json',
         },
         method='POST',
