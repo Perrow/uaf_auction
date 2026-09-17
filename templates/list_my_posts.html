@@ -32,6 +32,7 @@
             </thead>
             <tbody>
             {% for row in data %}
+                {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
                 <tr>
                     <td>
                         <span class="visually-hidden">{{ row[0] }}</span>
@@ -39,10 +40,10 @@
                                 class="btn p-0 border-0 bg-transparent label-preview-button"
                                 data-bs-toggle="modal"
                                 data-bs-target="#labelPreviewModal"
-                                data-preview-url="{{ url_for('label_preview_image', post_id=row[0]) }}"
+                                data-preview-url="{{ preview_url }}"
                                 data-post-id="{{ row[0] }}"
                                 aria-label="Visa större etikett för post {{ row[0] }}">
-                            <img src="{{ url_for('label_preview_image', post_id=row[0]) }}"
+                            <img src="{{ preview_url }}"
                                  alt="Etikett för post {{ row[0] }}"
                                  style="height: 60px; width: auto; cursor: zoom-in;">
                         </button>
