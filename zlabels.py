@@ -343,8 +343,7 @@ class ZLabels(object):
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
-                # Prepare barcode coordinates. The barcode itself is drawn last so
-                # its background can cover any text that happens to overlap.
+                # Barcode for the zero-padded four digit post id.
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
@@ -353,7 +352,7 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm + right_side_offset
+                barcode_y = label_y_top - self.row_height * 5 + 4.4 * mm + right_side_offset
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
@@ -375,19 +374,6 @@ class ZLabels(object):
                 seller_offset = self.row_height * 0.5
                 canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
-                # Draw a light-blue background exactly matching the barcode area.
-                # It is rendered after all text so nothing can show through the bars.
-                canvas.saveState()
-                canvas.setFillColorRGB(0.88, 0.94, 1.0)
-                canvas.rect(
-                    barcode_x,
-                    barcode_y,
-                    post_barcode.width,
-                    post_barcode.height,
-                    stroke=0,
-                    fill=1
-                )
-                canvas.restoreState()
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 count += 1
