@@ -61,6 +61,11 @@
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clerk_receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
                 </tr>
                 <tr>
+                    <td>Betalningar</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('payment_report_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td></td>
+                </tr>
+                <tr>
                     <td>Auktionslista</td>
                     <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('wall_list_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('wall_list_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>

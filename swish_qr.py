@@ -10,33 +10,10 @@ from urllib.request import Request, urlopen
 from flask import Response, current_app, jsonify, request
 from flask_login import current_user, login_required
 
+from payment_records import create_pending_payment, remember_pending_payment
+
 
 SWISH_QR_URL = 'https://mpc.getswish.net/qrg-swish/api/v1/prefilled'
-MAX_SWISH_MESSAGE_LENGTH = 50
-
-
-def _build_message(post_ids):
-    """Build a compact Swish message that never exceeds 50 characters."""
-    prefix = 'Poster: '
-    full_message = prefix + ','.join(post_ids)
-    if len(full_message) <= MAX_SWISH_MESSAGE_LENGTH:
-        return full_message
-
-    included = []
-    for post_id in post_ids:
-        remaining = len(post_ids) - len(included) - 1
-        candidate_ids = included + [post_id]
-        candidate = prefix + ','.join(candidate_ids)
-        suffix = '' if remaining == 0 else ',...({} fler)'.format(remaining)
-        if len(candidate + suffix) > MAX_SWISH_MESSAGE_LENGTH:
-            break
-        included.append(post_id)
-
-    remaining = len(post_ids) - len(included)
-    if included:
-        return prefix + ','.join(included) + ',...({} fler)'.format(remaining)
-
-    return 'Poster: ...({} poster)'.format(len(post_ids))
 
 
 def _parse_items(payload):
@@ -44,7 +21,7 @@ def _parse_items(payload):
     if not isinstance(items, list) or not items:
         raise ValueError('Inga poster angavs.')
 
-    post_ids = []
+    normalized_items = []
     total = Decimal('0')
     seen = set()
 
@@ -61,17 +38,17 @@ def _parse_items(payload):
         seen.add(post_id)
 
         try:
-            price = Decimal(str(item.get('price', '')).strip())
+            price = Decimal(str(item.get('price', '')).strip()).quantize(Decimal('0.01'))
         except (InvalidOperation, ValueError):
             raise ValueError('Alla poster måste ha ett giltigt pris.')
 
         if not price.is_finite() or price <= 0:
             raise ValueError('Alla poster måste ha ett pris större än noll.')
 
-        post_ids.append(post_id)
+        normalized_items.append((post_id, price))
         total += price
 
-    return post_ids, total.quantize(Decimal('0.01'))
+    return normalized_items, total.quantize(Decimal('0.01'))
 
 
 @login_required
@@ -85,11 +62,16 @@ def swish_qr_image():
         return jsonify({'error': 'Swishnummer är inte konfigurerat.'}), 503
 
     try:
-        post_ids, amount = _parse_items(request.get_json(silent=True) or {})
+        items, amount = _parse_items(request.get_json(silent=True) or {})
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 
-    message = _build_message(post_ids)
+    try:
+        payment_id, reference = create_pending_payment(amount)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 500
+
+    message = 'Referens: {}'.format(reference)
     swish_payload = {
         'format': 'png',
         'payee': {
@@ -128,10 +110,14 @@ def swish_qr_image():
         current_app.logger.warning('Swish QR API could not be reached: %s', exc.reason)
         return jsonify({'error': 'Det gick inte att nå Swish QR-tjänst.'}), 502
 
+    remember_pending_payment(payment_id, items)
+
     response = Response(qr_image, mimetype='image/png')
     response.headers['Cache-Control'] = 'no-store'
     response.headers['X-Swish-Amount'] = format(amount, 'f')
     response.headers['X-Swish-Message'] = message
+    response.headers['X-Payment-Id'] = str(payment_id)
+    response.headers['X-Payment-Reference'] = reference
     return response
 
 
