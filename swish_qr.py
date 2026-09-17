@@ -71,7 +71,7 @@ def swish_qr_image():
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 500
 
-    message = 'Referens; {}'.format(reference)
+    message = 'Referens: {}'.format(reference)
     swish_payload = {
         'format': 'png',
         'payee': {
