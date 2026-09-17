@@ -3,9 +3,11 @@ import sys
 sys.path.append('/home/kristian/UAF_auction')
 from uaf import app as application
 from label_preview import register_routes as register_label_preview_routes
+from payment_records import register_routes as register_payment_routes
 from post_limit import register_routes as register_post_limit_routes
 from swish_qr import register_routes as register_swish_qr_routes
 
 register_label_preview_routes(application)
 register_post_limit_routes(application)
+register_payment_routes(application)
 register_swish_qr_routes(application)
