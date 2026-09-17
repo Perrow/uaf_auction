@@ -257,6 +257,7 @@ class ZLabels(object):
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
                 upper_text_offset = 1 * mm
                 lower_text_offset = 1 * mm
+                right_side_offset = 0.5 * mm
 
                 # Border
                 if self.border == "yes":
@@ -322,7 +323,7 @@ class ZLabels(object):
 
                 # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
-                canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset, "{} - {}".format(self.event_name, self.event_date))
+                canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset + right_side_offset, "{} - {}".format(self.event_name, self.event_date))
 
                 # popular and scientific names; moved up one row now that sale type
                 # is displayed in the left column.
@@ -336,9 +337,9 @@ class ZLabels(object):
                     names = []
                 canvas.setFont(self.bold_font, self.font_size)
                 if len(names) > 0:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset, names[0])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset + right_side_offset, names[0])
                 if len(names) > 1:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset, names[1])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
                 # Barcode for the zero-padded four digit post id. Keep it in the
@@ -352,7 +353,7 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm
+                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm + right_side_offset
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 # Description
@@ -362,7 +363,7 @@ class ZLabels(object):
                     if idx < 3:
                         canvas.drawString(
                             label_text_x,
-                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset,
+                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset + right_side_offset,
                             comment
                         )
 
@@ -373,7 +374,7 @@ class ZLabels(object):
                     row = 7
                 canvas.setFont(self.font, 7)
                 seller_offset = self.row_height * 0.5
-                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
+                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
 
 
