@@ -25,10 +25,9 @@ def _ensure_schema(conn):
     if LIMIT_COLUMN not in columns:
         cur.execute('ALTER TABLE auction_info ADD COLUMN max_registered_posts INTEGER')
 
-    cur.execute('DROP TRIGGER IF EXISTS {}'.format(TRIGGER_NAME))
     cur.execute(
         '''
-        CREATE TRIGGER {trigger_name}
+        CREATE TRIGGER IF NOT EXISTS {trigger_name}
         BEFORE INSERT ON posts
         WHEN (SELECT max_registered_posts FROM auction_info LIMIT 1) IS NOT NULL
          AND (SELECT COUNT(*) FROM posts) >= (SELECT max_registered_posts FROM auction_info LIMIT 1)
@@ -110,7 +109,7 @@ def _handle_limit_error(error, fallback_endpoint):
         flash('Posten kunde inte registreras på grund av ett databasfel.')
     else:
         flash(
-            'Det finns inte plats för fler poster. Auktionen har {} av {} registrerade poster.'.format(
+            'Det finns inte plats för alla nya poster. Auktionen har {} av {} registrerade poster.'.format(
                 current_count,
                 max_posts,
             )
