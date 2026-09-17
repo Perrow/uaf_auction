@@ -62,13 +62,11 @@ thead .sorting_desc {
 }
 
 .app-navbar,
-.app-navbar .container,
 .app-navbar .navbar-collapse,
 .app-navbar .navbar-nav {
     max-width: 100%;
 }
 
-.app-navbar .container,
 .app-navbar .navbar-collapse,
 .app-navbar .navbar-nav,
 .app-navbar .nav-item,
@@ -89,7 +87,7 @@ thead .sorting_desc {
 .app-navbar .dropdown-menu {
     width: max-content;
     min-width: 10rem;
-    max-width: calc(100vw - 2rem);
+    max-width: min(24rem, calc(100vw - 2rem));
 }
 
 .app-navbar .dropdown-item {
