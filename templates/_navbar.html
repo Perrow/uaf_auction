@@ -1,6 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3 app-navbar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
+        {% set navbar_logo = config.get('NAVBAR_LOGO', 'img/logo_64.jpg') %}
+        <a class="navbar-brand app-navbar-brand" href="{{ url_for('index') }}" aria-label="Start">
+            {% if navbar_logo %}
+                <img class="app-navbar-logo"
+                     src="{{ url_for('static', filename=navbar_logo) }}"
+                     alt="Start"
+                     onerror="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
+                <span class="app-navbar-brand-fallback d-none">Start</span>
+            {% else %}
+                <span>Start</span>
+            {% endif %}
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                 aria-controls="mainNavbar" aria-expanded="false" aria-label="Visa eller dölj navigation">
             <span class="navbar-toggler-icon"></span>
