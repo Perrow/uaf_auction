@@ -61,6 +61,75 @@ thead .sorting_desc {
     float: right;
 }
 
+.app-navbar,
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav {
+    max-width: 100%;
+}
+
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav,
+.app-navbar .nav-item,
+.app-navbar .navbar-collapse > .d-flex {
+    min-width: 0;
+}
+
+.app-navbar .navbar-collapse,
+.app-navbar .navbar-nav {
+    flex-wrap: wrap;
+}
+
+.app-navbar .navbar-collapse > .d-flex,
+.app-navbar .navbar-text {
+    max-width: 100%;
+}
+
+.app-navbar .dropdown-menu {
+    width: max-content;
+    min-width: 10rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.app-navbar .dropdown-item {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.app-navbar .navbar-text {
+    overflow-wrap: anywhere;
+}
+
+.app-navbar-brand {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    max-width: min(12rem, 45vw);
+    margin-right: 1rem;
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+}
+
+.app-navbar-logo {
+    display: block;
+    width: auto;
+    height: 32px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 991.98px) {
+    .app-navbar .dropdown-menu {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .app-navbar .dropdown-item {
+        overflow-wrap: anywhere;
+    }
+}
+
 /*
  * Temporary Bootstrap 3 compatibility helpers.
  * These keep existing templates usable while they are migrated to Bootstrap 5

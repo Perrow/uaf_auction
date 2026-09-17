@@ -1,6 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Start</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3 app-navbar">
+    <div class="container">
+        {% set navbar_logo = config.get('NAVBAR_LOGO', 'img/logo_64.jpg') %}
+        <a class="navbar-brand app-navbar-brand" href="{{ url_for('index') }}" aria-label="Start">
+            {% if navbar_logo %}
+                <img class="app-navbar-logo"
+                     src="{{ url_for('static', filename=navbar_logo) }}"
+                     alt="Start"
+                     onerror="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
+                <span class="app-navbar-brand-fallback d-none">Start</span>
+            {% else %}
+                <span>Start</span>
+            {% endif %}
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                 aria-controls="mainNavbar" aria-expanded="false" aria-label="Visa eller dölj navigation">
             <span class="navbar-toggler-icon"></span>
@@ -12,11 +23,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('login') }}"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a>
-                    </li>
-                {% endif %}
-                {% if current_user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a>
                     </li>
@@ -46,12 +52,12 @@
                             <i class="fa fa-users" aria-hidden="true"></i> Säljare
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="sellersDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('register_seller') }}"><i class="fa fa-user-plus" aria-hidden="true"></i> Registrera säljare</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('list_seller_info') }}"><i class="fa fa-users" aria-hidden="true"></i> Visa info om säljare</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('list_seller_actions') }}"><i class="fa fa-users" aria-hidden="true"></i> Hantera säljare</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('list_seller_checkin') }}"><i class="fa fa-users" aria-hidden="true"></i> Checka in och stänga säljare</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('auction') }}"><i class="fa fa-gavel" aria-hidden="true"></i> Auktion</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('flea_market') }}"><i class="fa fa-shopping-basket" aria-hidden="true"></i> Loppis</a></li>
 
@@ -74,6 +80,7 @@
                             <li><a class="dropdown-item" href="{{ url_for('edit_event') }}"><i class="fa fa-star" aria-hidden="true"></i> Ändra på eventet</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('open_close_registration') }}"><i class="fa fa-toggle-on" aria-hidden="true"></i> Öppna - stäng föranmälan</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('post_limit_settings') }}"><i class="fa fa-list-ol" aria-hidden="true"></i> Maxantal auktionsposter</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('reports') }}"><i class="fa fa-print" aria-hidden="true"></i> Rapporter</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('plot_registration') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot anmälningar per dag</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('plot_sales') }}"><i class="fa fa-bar-chart" aria-hidden="true"></i> Plot försäljning</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('download_database') }}"><i class="fa fa-download" aria-hidden="true"></i> Ladda ner databasen</a></li>
