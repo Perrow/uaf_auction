@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from flask import Response, current_app, jsonify, request
 from flask_login import current_user, login_required
 
-from payment_records import create_pending_payment
+from payment_records import create_pending_payment, remember_pending_payment
 
 
 SWISH_QR_URL = 'https://mpc.getswish.net/qrg-swish/api/v1/prefilled'
@@ -21,7 +21,7 @@ def _parse_items(payload):
     if not isinstance(items, list) or not items:
         raise ValueError('Inga poster angavs.')
 
-    post_ids = []
+    normalized_items = []
     total = Decimal('0')
     seen = set()
 
@@ -38,17 +38,17 @@ def _parse_items(payload):
         seen.add(post_id)
 
         try:
-            price = Decimal(str(item.get('price', '')).strip())
+            price = Decimal(str(item.get('price', '')).strip()).quantize(Decimal('0.01'))
         except (InvalidOperation, ValueError):
             raise ValueError('Alla poster måste ha ett giltigt pris.')
 
         if not price.is_finite() or price <= 0:
             raise ValueError('Alla poster måste ha ett pris större än noll.')
 
-        post_ids.append(post_id)
+        normalized_items.append((post_id, price))
         total += price
 
-    return post_ids, total.quantize(Decimal('0.01'))
+    return normalized_items, total.quantize(Decimal('0.01'))
 
 
 @login_required
@@ -62,7 +62,7 @@ def swish_qr_image():
         return jsonify({'error': 'Swishnummer är inte konfigurerat.'}), 503
 
     try:
-        _post_ids, amount = _parse_items(request.get_json(silent=True) or {})
+        items, amount = _parse_items(request.get_json(silent=True) or {})
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 
@@ -109,6 +109,8 @@ def swish_qr_image():
     except URLError as exc:
         current_app.logger.warning('Swish QR API could not be reached: %s', exc.reason)
         return jsonify({'error': 'Det gick inte att nå Swish QR-tjänst.'}), 502
+
+    remember_pending_payment(payment_id, items)
 
     response = Response(qr_image, mimetype='image/png')
     response.headers['Cache-Control'] = 'no-store'
