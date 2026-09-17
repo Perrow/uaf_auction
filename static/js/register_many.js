@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const formElements = document.getElementById('form_elements');
     const formActions = document.getElementById('form_actions');
     const message = document.getElementById('msg');
+    const isAdminRegistration = window.location.pathname.endsWith('/admin_register_many_posts');
+
+    let auctionLimitStatus = null;
 
     if (!form || !addButton || !numberInput || !masterType) {
         return;
@@ -17,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     masterType.classList.remove('form-control');
     masterType.classList.add('form-select');
+
+    if (isAdminRegistration) {
+        addButton.disabled = true;
+        masterType.disabled = true;
+    }
 
     form.addEventListener('keypress', function (event) {
         if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
@@ -34,12 +42,67 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json();
     }
 
+    function auctionTypeIdSet() {
+        if (!auctionLimitStatus || !Array.isArray(auctionLimitStatus.auction_type_ids)) {
+            return new Set();
+        }
+        return new Set(auctionLimitStatus.auction_type_ids.map(id => String(id)));
+    }
+
+    function removeAuctionOptions(select) {
+        if (!isAdminRegistration || !auctionLimitStatus || !auctionLimitStatus.is_full) {
+            return;
+        }
+
+        const auctionTypeIds = auctionTypeIdSet();
+        Array.from(select.options).forEach(option => {
+            if (auctionTypeIds.has(String(option.value))) {
+                option.remove();
+            }
+        });
+    }
+
+    function filterTypesForLimit(types) {
+        if (!isAdminRegistration || !auctionLimitStatus || !auctionLimitStatus.is_full) {
+            return types;
+        }
+
+        const auctionTypeIds = auctionTypeIdSet();
+        return types.filter(type => !auctionTypeIds.has(String(type.type_id)));
+    }
+
+    async function initializeAuctionLimitFiltering() {
+        if (!isAdminRegistration) {
+            return;
+        }
+
+        try {
+            auctionLimitStatus = await getJson('/json_auction_post_limit_status');
+            removeAuctionOptions(masterType);
+
+            if (auctionLimitStatus.is_full) {
+                createError.textContent = 'Maxantalet auktionsposter är nått. Endast andra godstyper kan registreras.';
+            }
+
+            if (masterType.options.length === 0) {
+                createError.textContent = 'Maxantalet auktionsposter är nått och det finns inga andra godstyper att registrera.';
+                return;
+            }
+        } catch (error) {
+            console.error('Kunde inte läsa maxgränsen för auktionsposter:', error);
+        } finally {
+            masterType.disabled = false;
+            addButton.disabled = masterType.options.length === 0;
+        }
+    }
+
     async function getSellTypes() {
         const data = await getJson('/json_get_sell_types');
         if (Object.prototype.hasOwnProperty.call(data, 'error')) {
             throw new Error('Kunde inte läsa godstyper');
         }
-        return Array.isArray(data) ? data : Object.values(data);
+        const types = Array.isArray(data) ? data : Object.values(data);
+        return filterTypesForLimit(types);
     }
 
     function createTypeOptions(select, types, selectedId) {
@@ -229,6 +292,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const types = await getSellTypes();
+            if (types.length === 0) {
+                createError.textContent = 'Det finns inga godstyper som kan registreras.';
+                addButton.disabled = false;
+                return;
+            }
+
             formElements.replaceChildren();
             for (let index = 0; index < count; index += 1) {
                 createRow(index, types, masterType.value);
@@ -249,4 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
             event.preventDefault();
         }
     });
+
+    initializeAuctionLimitFiltering();
 });
