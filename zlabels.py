@@ -75,7 +75,7 @@ class ZLabels(object):
             self.paper_left_right_margin = mm * 0  # mm
             self.paper_top_bottom_margin = mm * 0  # mm
             self.label_spacing = mm * 0  # mm
-            self.printer_margin = mm * 5  # mm
+            self.printer_margin = mm * 3.5  # mm
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
             self.left_margin = 13 * mm
@@ -83,7 +83,7 @@ class ZLabels(object):
             self.font = 'Helvetica'
             self.bold_font = 'Helvetica-Bold'
             self.row_height = mm * 3.5
-            self.text_width = mm * 45
+            self.text_width = mm * 48
 
         elif label_type == ZLabels.with_top_margin_24:
             self.label_width = mm * 70  # mm
@@ -91,7 +91,7 @@ class ZLabels(object):
             self.paper_left_right_margin = mm * 0  # mm
             self.paper_top_bottom_margin = mm * 5  # mm
             self.label_spacing = mm * 0  # mm
-            self.printer_margin = mm * 5  # mm
+            self.printer_margin = mm * 3.5  # mm
             self.label_columns = int(self.paper_width / self.label_width)  # nr of columns
             self.label_rows = int(self.paper_height / self.label_height)  # nr of rows
             self.left_margin = 13 * mm
@@ -99,7 +99,7 @@ class ZLabels(object):
             self.font = 'Helvetica'
             self.bold_font = 'Helvetica-Bold'
             self.row_height = mm * 3.5
-            self.text_width = mm * 45
+            self.text_width = mm * 48
 
         print(self.label_columns, self.label_rows, self.paper_height / mm)
 
@@ -254,6 +254,7 @@ class ZLabels(object):
                 label_y_top = y - self.printer_margin
                 label_y_bottom = y - self.label_height + self.printer_margin
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
+                left_content_offset = -0.8 * mm
                 upper_text_offset = 1 * mm
                 lower_text_offset = 1 * mm
                 right_side_offset = 0.5 * mm
@@ -294,20 +295,22 @@ class ZLabels(object):
 
                 basedir = os.path.abspath(os.path.dirname(__file__))
                 img_file = os.path.join(basedir, "static/img/logo_250.jpg")
-                canvas.drawInlineImage(img_file, label_x_left + center, label_y_top - 30, 25, 25)
+                canvas.drawInlineImage(img_file, label_x_left + center + left_content_offset, label_y_top - 30, 25, 25)
 
                 canvas.setLineWidth(1)
                 canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
                 canvas.setLineWidth(.3)
 
                 # Post id
-                canvas.setFont(self.font, 20)
-                str_width = shapes.stringWidth(str(post_id), self.font, 20)
+                post_id_text = str(post_id)
+                post_id_font_size = 17 if len(post_id_text) >= 4 else 20
+                canvas.setFont(self.font, post_id_font_size)
+                str_width = shapes.stringWidth(post_id_text, self.font, post_id_font_size)
                 center = (self.left_margin - str_width) / 2
-                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, str(post_id))          # Post id
+                canvas.drawString(label_x_left + center + left_content_offset, label_y_top - self.row_height * 5, post_id_text)          # Post id
 
                 # Sale type and price below the post id in the left column
-                left_column_center = label_x_left + self.left_margin / 2
+                left_column_center = label_x_left + self.left_margin / 2 + left_content_offset
                 canvas.setFont(self.font, 7)
                 if post_type == "fixed_price":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
@@ -343,9 +346,11 @@ class ZLabels(object):
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
-                # Barcode for the zero-padded four digit post id. Keep it in the
-                # gap between the name and description rows so the existing text
-                # layout does not need to move.
+                name_line_count = 2 if len(names) > 1 else 1
+                barcode_row = 2 + name_line_count
+                barcode_extra_row_height = 1 * mm
+
+                # Barcode for the zero-padded four digit post id.
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
@@ -354,17 +359,18 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm + right_side_offset
-                post_barcode.drawOn(canvas, barcode_x, barcode_y)
+                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset - barcode_extra_row_height - 0.5 * mm
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                description_start_row = barcode_row + 1
+                max_description_lines = 3
                 description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
-                    if idx < 3:
+                    if idx < max_description_lines:
                         canvas.drawString(
                             label_text_x,
-                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset + right_side_offset,
+                            label_y_top - self.row_height * (description_start_row + idx) - lower_text_offset + description_offset + right_side_offset - barcode_extra_row_height,
                             comment
                         )
 
@@ -374,10 +380,10 @@ class ZLabels(object):
                 else:
                     row = 7
                 canvas.setFont(self.font, 7)
-                seller_offset = self.row_height * 0.5
+                seller_offset = self.row_height * 0.5 + 1 * mm
                 canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
-
+                post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 count += 1
 
