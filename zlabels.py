@@ -345,12 +345,12 @@ class ZLabels(object):
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
-                    barWidth=0.45 * mm,
+                    barWidth=0.55 * mm,
                     barHeight=2.4 * mm,
                     humanReadable=False
                 )
-                barcode_x = label_text_x - 4 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 1.7 * mm
+                barcode_x = label_text_x
+                barcode_y = label_y_top - self.row_height * 5 + 3.2 * mm
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 # Description
