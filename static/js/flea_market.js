@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return items;
     }
 
-    async function createSwishQr() {
+    async function createSwishQr(triggerButton) {
         calculateSum();
 
         const duplicateInput = findFirstDuplicatePostInput();
@@ -164,9 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        swishButton.disabled = true;
-        const originalButtonText = swishButton.textContent;
-        swishButton.textContent = 'Skapar Swish-QR...';
+        const activeButton = triggerButton || sumButton;
+        const originalButtonText = activeButton ? activeButton.textContent : '';
+        if (activeButton) {
+            activeButton.disabled = true;
+            activeButton.textContent = 'Skapar Swish-QR...';
+        }
 
         try {
             const response = await fetch('/swish_qr', {
@@ -193,20 +196,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const qrBlob = await response.blob();
             swishQrObjectUrl = URL.createObjectURL(qrBlob);
-            swishQrImage.src = swishQrObjectUrl;
+            if (swishQrImage) {
+                swishQrImage.src = swishQrObjectUrl;
+            }
 
             const amount = response.headers.get('X-Swish-Amount') || String(totalSum);
             const message = response.headers.get('X-Swish-Message') || '';
-            swishQrDetails.textContent = amount + ' kr' + (message ? ' · ' + message : '');
-            swishQrContainer.classList.remove('d-none');
+            if (swishQrDetails) {
+                swishQrDetails.textContent = amount + ' kr' + (message ? ' · ' + message : '');
+            }
+            if (swishQrContainer) {
+                swishQrContainer.classList.remove('d-none');
+            }
             setText('error', '');
         } catch (error) {
             clearSwishQr();
             setText('error', error.message || 'KUNDE INTE SKAPA SWISH-QR');
             console.error('Swish QR kunde inte skapas:', error);
         } finally {
-            swishButton.disabled = false;
-            swishButton.textContent = originalButtonText;
+            if (activeButton) {
+                activeButton.disabled = false;
+                activeButton.textContent = originalButtonText;
+            }
         }
     }
 
@@ -385,7 +396,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     addButton.addEventListener('click', addRow);
-    sumButton.addEventListener('click', calculateSum);
+    sumButton.addEventListener('click', function () {
+        createSwishQr(sumButton);
+    });
 
     changeButton.addEventListener('click', function () {
         const received = Number(document.getElementById('from_seller').value);
@@ -393,7 +406,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (swishButton) {
-        swishButton.addEventListener('click', createSwishQr);
+        swishButton.addEventListener('click', function () {
+            createSwishQr(swishButton);
+        });
     }
 
     form.addEventListener('submit', function (event) {
