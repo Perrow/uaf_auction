@@ -6,6 +6,7 @@ import sqlite3
 
 from flask import after_this_request, current_app, has_request_context, request
 from reportlab.graphics import shapes
+from reportlab.graphics.barcode import code128
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
@@ -337,6 +338,19 @@ class ZLabels(object):
                 if len(names) > 1:
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 4, names[1])
                 canvas.setFont(self.font, self.font_size)
+
+                # Barcode for the zero-padded four digit post id. Keep it in the
+                # gap between the name and description rows so the existing text
+                # layout does not need to move.
+                barcode_value = str(post_id).zfill(4)
+                post_barcode = code128.Code128(
+                    barcode_value,
+                    barWidth=0.18 * mm,
+                    barHeight=2.4 * mm,
+                    humanReadable=False
+                )
+                barcode_y = label_y_top - self.row_height * 5 + 0.7 * mm
+                post_barcode.drawOn(canvas, label_text_x, barcode_y)
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
