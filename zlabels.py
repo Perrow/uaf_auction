@@ -254,6 +254,7 @@ class ZLabels(object):
                 label_y_top = y - self.printer_margin
                 label_y_bottom = y - self.label_height + self.printer_margin
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
+                left_content_offset = -0.8 * mm
                 upper_text_offset = 1 * mm
                 lower_text_offset = 1 * mm
                 right_side_offset = 0.5 * mm
@@ -294,7 +295,7 @@ class ZLabels(object):
 
                 basedir = os.path.abspath(os.path.dirname(__file__))
                 img_file = os.path.join(basedir, "static/img/logo_250.jpg")
-                canvas.drawInlineImage(img_file, label_x_left + center, label_y_top - 30, 25, 25)
+                canvas.drawInlineImage(img_file, label_x_left + center + left_content_offset, label_y_top - 30, 25, 25)
 
                 canvas.setLineWidth(1)
                 canvas.line(label_x_left + self.left_margin, label_y_bottom, label_x_left + self.left_margin, label_y_top)  # Left line
@@ -306,10 +307,10 @@ class ZLabels(object):
                 canvas.setFont(self.font, post_id_font_size)
                 str_width = shapes.stringWidth(post_id_text, self.font, post_id_font_size)
                 center = (self.left_margin - str_width) / 2
-                canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, post_id_text)          # Post id
+                canvas.drawString(label_x_left + center + left_content_offset, label_y_top - self.row_height * 5, post_id_text)          # Post id
 
                 # Sale type and price below the post id in the left column
-                left_column_center = label_x_left + self.left_margin / 2
+                left_column_center = label_x_left + self.left_margin / 2 + left_content_offset
                 canvas.setFont(self.font, 7)
                 if post_type == "fixed_price":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
@@ -345,6 +346,9 @@ class ZLabels(object):
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
+                name_line_count = 2 if len(names) > 1 else 1
+                barcode_row = 2 + name_line_count
+
                 # Barcode for the zero-padded four digit post id.
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
@@ -354,16 +358,18 @@ class ZLabels(object):
                     humanReadable=False
                 )
                 barcode_x = label_text_x - 3 * mm
-                barcode_y = label_y_top - self.row_height * 5 + 4.4 * mm + right_side_offset
+                barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                description_start_row = barcode_row + 1
+                max_description_lines = 3 if name_line_count == 1 else 2
                 description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
-                    if idx < 3:
+                    if idx < max_description_lines:
                         canvas.drawString(
                             label_text_x,
-                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset + right_side_offset,
+                            label_y_top - self.row_height * (description_start_row + idx) - lower_text_offset + description_offset + right_side_offset,
                             comment
                         )
 
