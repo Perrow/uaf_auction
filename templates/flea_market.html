@@ -151,4 +151,14 @@
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const emptyPostInputs = Array.from(document.querySelectorAll('.post_id')).filter(function (input) {
+                return input.value.trim() === '';
+            });
+            if (emptyPostInputs.length > 0) {
+                emptyPostInputs[emptyPostInputs.length - 1].focus();
+            }
+        });
+    </script>
 {% endblock %}
