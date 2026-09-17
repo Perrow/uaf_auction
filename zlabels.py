@@ -313,12 +313,12 @@ class ZLabels(object):
                 if post_type == "fixed_price":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
                     if post_fixed_price is not None and len(str(post_fixed_price)) > 0:
-                        canvas.setFont(self.font, 6)
+                        canvas.setFont(self.bold_font, 7)
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "{} kr".format(int(post_fixed_price)))
                 if post_type == "auction":
                     canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Auktion")
                     if post_min_price is not None and len(str(post_min_price)) > 0:
-                        canvas.setFont(self.font, 6)
+                        canvas.setFont(self.bold_font, 7)
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "min: {} kr".format(int(post_min_price)))
 
                 # Event name and date
