@@ -12,7 +12,58 @@
         {% endif %}
     </div>
 
-    <div class="table-responsive">
+    <div class="d-md-none">
+        {% for row in data %}
+            {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
+            {% set edit_url = url_for('edit_post') ~ '/' ~ row[0] %}
+            <div class="card mb-2 {% if registration_open == True %}mobile-post-card{% endif %}"
+                 {% if registration_open == True %}
+                     role="link"
+                     tabindex="0"
+                     data-edit-url="{{ edit_url }}"
+                     aria-label="Redigera post {{ row[0] }}"
+                 {% endif %}>
+                <div class="card-body p-2">
+                    <div class="d-flex align-items-start gap-2">
+                        <button type="button"
+                                class="btn p-0 border-0 bg-transparent flex-shrink-0 label-preview-button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#labelPreviewModal"
+                                data-preview-url="{{ preview_url }}"
+                                data-post-id="{{ row[0] }}"
+                                aria-label="Visa större etikett för post {{ row[0] }}">
+                            <img src="{{ preview_url }}"
+                                 alt="Etikett för post {{ row[0] }}"
+                                 style="height: 42px; width: auto; cursor: zoom-in;">
+                        </button>
+
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold lh-sm">
+                                {% if row[1] %}{{ row[1] }}{% endif %}
+                                {% if row[1] and row[2] %}<span class="text-body-secondary"> · </span>{% endif %}
+                                {% if row[2] %}{{ row[2] }}{% endif %}
+                            </div>
+                            <div class="small text-body-secondary mt-1">
+                                {% if row[4] %}
+                                    Fast pris: {{ row[4] }} kr
+                                {% elif row[3] %}
+                                    Minpris: {{ row[3] }} kr
+                                {% endif %}
+                                {% if (row[4] or row[3]) and row[6] %}<span class="mx-1">·</span>{% endif %}
+                                {{ row[6] }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if row[5] %}
+                        <div class="small mt-2 pt-2 border-top text-body-secondary">{{ row[5] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
         <table class="table table-hover align-middle" id="sorted_table" data-sortable>
             <thead class="table-light">
             <tr>
@@ -95,23 +146,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalImage = document.getElementById('labelPreviewModalImage');
     const modalTitle = document.getElementById('labelPreviewModalTitle');
 
-    if (!modal || !modalImage || !modalTitle) {
-        return;
+    if (modal && modalImage && modalTitle) {
+        modal.addEventListener('show.bs.modal', event => {
+            const trigger = event.relatedTarget;
+            if (!trigger) {
+                return;
+            }
+
+            modalImage.src = trigger.dataset.previewUrl;
+            modalImage.alt = `Etikett för post ${trigger.dataset.postId}`;
+            modalTitle.textContent = `Etikett för post ${trigger.dataset.postId}`;
+        });
+
+        modal.addEventListener('hidden.bs.modal', () => {
+            modalImage.removeAttribute('src');
+        });
     }
 
-    modal.addEventListener('show.bs.modal', event => {
-        const trigger = event.relatedTarget;
-        if (!trigger) {
-            return;
-        }
+    document.querySelectorAll('.mobile-post-card[data-edit-url]').forEach(card => {
+        const openEditor = () => {
+            window.location.href = card.dataset.editUrl;
+        };
 
-        modalImage.src = trigger.dataset.previewUrl;
-        modalImage.alt = `Etikett för post ${trigger.dataset.postId}`;
-        modalTitle.textContent = `Etikett för post ${trigger.dataset.postId}`;
-    });
-
-    modal.addEventListener('hidden.bs.modal', () => {
-        modalImage.removeAttribute('src');
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', event => {
+            if (event.target.closest('button, a')) {
+                return;
+            }
+            openEditor();
+        });
+        card.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openEditor();
+            }
+        });
     });
 });
 </script>
