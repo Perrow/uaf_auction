@@ -5,12 +5,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const addButton = document.getElementById('addbutton');
     const sumButton = document.getElementById('sumbutton');
     const changeButton = document.getElementById('changebutton');
+    const swishButton = document.getElementById('swishbutton');
+    const swishQrContainer = document.getElementById('swish_qr_container');
+    const swishQrImage = document.getElementById('swish_qr_image');
+    const swishQrDetails = document.getElementById('swish_qr_details');
     const form = document.getElementById('flea_market_form');
 
     const loadingPostInputs = new WeakSet();
 
     let totalSum = 0;
     let rowNum = 1;
+    let swishQrObjectUrl = null;
 
     function setText(id, value) {
         const element = document.getElementById(id);
@@ -47,6 +52,22 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('sold', '');
         setText('checked_in', '');
         setText('closed', '');
+    }
+
+    function clearSwishQr() {
+        if (swishQrObjectUrl) {
+            URL.revokeObjectURL(swishQrObjectUrl);
+            swishQrObjectUrl = null;
+        }
+        if (swishQrImage) {
+            swishQrImage.removeAttribute('src');
+        }
+        if (swishQrDetails) {
+            swishQrDetails.textContent = '';
+        }
+        if (swishQrContainer) {
+            swishQrContainer.classList.add('d-none');
+        }
     }
 
     function hasEmptyNewRow() {
@@ -92,6 +113,101 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setText('sum', 'Att betala: ' + totalSum);
         setText('sum2', String(totalSum));
+        clearSwishQr();
+    }
+
+    function collectSwishItems() {
+        const items = [];
+
+        for (const postInput of document.querySelectorAll('.post_id')) {
+            const postId = postInput.value.trim();
+            if (postId === '') {
+                continue;
+            }
+
+            const rowId = postInput.id.substring(4);
+            const priceInput = document.getElementById('price' + rowId);
+            if (!priceInput || !isNumeric(priceInput.value)) {
+                return null;
+            }
+
+            items.push({
+                post_id: normalizePostId(postId),
+                price: priceInput.value.trim()
+            });
+        }
+
+        return items;
+    }
+
+    async function createSwishQr() {
+        calculateSum();
+
+        const duplicateInput = findFirstDuplicatePostInput();
+        if (duplicateInput) {
+            setText('error', 'SAMMA POSTNUMMER KAN INTE FINNAS MER ÄN EN GÅNG I LISTAN');
+            duplicateInput.focus();
+            return;
+        }
+
+        const items = collectSwishItems();
+        if (!items || items.length === 0) {
+            setText('error', 'LÄGG TILL MINST EN POST MED ETT GILTIGT PRIS FÖRST');
+            return;
+        }
+
+        const itemTotal = items.reduce(function (sum, item) {
+            return sum + Number(item.price);
+        }, 0);
+        if (itemTotal !== totalSum || totalSum <= 0) {
+            setText('error', 'KONTROLLERA ATT ALLA PRISER HÖR TILL EN POST OCH ÄR STÖRRE ÄN NOLL');
+            return;
+        }
+
+        swishButton.disabled = true;
+        const originalButtonText = swishButton.textContent;
+        swishButton.textContent = 'Skapar Swish-QR...';
+
+        try {
+            const response = await fetch('/swish_qr', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'image/png',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: items })
+            });
+
+            if (!response.ok) {
+                let message = 'KUNDE INTE SKAPA SWISH-QR';
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) {
+                        message = errorData.error;
+                    }
+                } catch (error) {
+                    // Keep the generic message if the response was not JSON.
+                }
+                throw new Error(message);
+            }
+
+            const qrBlob = await response.blob();
+            swishQrObjectUrl = URL.createObjectURL(qrBlob);
+            swishQrImage.src = swishQrObjectUrl;
+
+            const amount = response.headers.get('X-Swish-Amount') || String(totalSum);
+            const message = response.headers.get('X-Swish-Message') || '';
+            swishQrDetails.textContent = amount + ' kr' + (message ? ' · ' + message : '');
+            swishQrContainer.classList.remove('d-none');
+            setText('error', '');
+        } catch (error) {
+            clearSwishQr();
+            setText('error', error.message || 'KUNDE INTE SKAPA SWISH-QR');
+            console.error('Swish QR kunde inte skapas:', error);
+        } finally {
+            swishButton.disabled = false;
+            swishButton.textContent = originalButtonText;
+        }
     }
 
     function focusNextEmptyPostInput(currentInput) {
@@ -275,6 +391,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const received = Number(document.getElementById('from_seller').value);
         setValue('to_seller', received - totalSum);
     });
+
+    if (swishButton) {
+        swishButton.addEventListener('click', createSwishQr);
+    }
 
     form.addEventListener('submit', function (event) {
         let allOk = true;
