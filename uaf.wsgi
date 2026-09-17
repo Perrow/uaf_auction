@@ -2,6 +2,8 @@ import sys
 
 sys.path.append('/home/kristian/UAF_auction')
 from uaf import app as application
-from label_preview import register_routes
+from label_preview import register_routes as register_label_preview_routes
+from swish_qr import register_routes as register_swish_qr_routes
 
-register_routes(application)
+register_label_preview_routes(application)
+register_swish_qr_routes(application)
