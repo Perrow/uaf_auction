@@ -80,35 +80,9 @@
                 </div>
 
                 <button id="sumbutton" type="button" class="btn btn-outline-primary">Beräkna summa</button>
+                <button id="changebutton" type="button" hidden aria-hidden="true" tabindex="-1"></button>
             </div>
         </section>
-
-        <section class="card mb-4">
-            <div class="card-body">
-                <h2 class="h4 mb-3">Betalning och växel</h2>
-                <div class="row g-3 align-items-end">
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="sum2">Att betala</label>
-                        <div id="sum2" class="form-control bg-body-tertiary">0</div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="from_seller">Från köparen</label>
-                        <input class="form-control" id="from_seller" name="from_seller" type="text" inputmode="decimal" autocomplete="off">
-                    </div>
-                    <div class="col-sm-6 col-lg-3 d-grid">
-                        <button id="changebutton" type="button" class="btn btn-outline-primary">Beräkna växel</button>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <label class="form-label" for="to_seller">Växel till köparen</label>
-                        <input class="form-control" id="to_seller" name="to_seller" type="text" readonly>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="d-grid d-sm-block mb-4">
-            <input id="submit" name="submit" type="submit" class="btn btn-primary px-4" value="Registrera försäljning">
-        </div>
     </form>
 
     <section aria-live="polite" class="mb-4">
@@ -138,9 +112,151 @@
         </div>
     </section>
 </div>
+
+{% if config.get('SWISH_NUMBER') %}
+<div id="swish_qr_container"
+     class="d-none"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="swish_qr_title"
+     style="position: fixed; inset: 0; z-index: 1080; background: rgba(0, 0, 0, 0.55); display: grid; place-items: center; padding: 1rem;">
+    <div class="card shadow-lg w-100" style="max-width: 560px; max-height: calc(100vh - 2rem); overflow: auto;">
+        <div class="card-header">
+            <h2 id="swish_qr_title" class="h5 mb-0">Betala med Swish</h2>
+        </div>
+        <div class="card-body text-center">
+            <p class="mb-3">Skanna QR-koden med Swish. Belopp och meddelande är låsta.</p>
+            <img id="swish_qr_image"
+                 class="img-fluid border rounded"
+                 style="max-width: min(500px, 100%);"
+                 alt="Swish QR-kod">
+            <div id="swish_qr_details" class="small text-body-secondary mt-2"></div>
+            <input id="swish_qr_command_input"
+                   type="text"
+                   autocomplete="off"
+                   tabindex="-1"
+                   aria-label="Streckkodskommando"
+                   style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button id="swish_cancel_button"
+                    type="button"
+                    class="btn btn-secondary">Avbryt</button>
+            <button id="submit"
+                    name="submit"
+                    type="submit"
+                    form="flea_market_form"
+                    value="Registrera försäljning"
+                    class="btn btn-primary">Bekräfta betalning</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='js/flea_market.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const qrContainer = document.getElementById('swish_qr_container');
+            const qrCommandInput = document.getElementById('swish_qr_command_input');
+            const confirmButton = document.getElementById('submit');
+            const cancelButton = document.getElementById('swish_cancel_button');
+
+            function focusLastEmptyPostInput() {
+                const emptyPostInputs = Array.from(document.querySelectorAll('.post_id')).filter(function (input) {
+                    return input.value.trim() === '';
+                });
+                if (emptyPostInputs.length > 0) {
+                    emptyPostInputs[emptyPostInputs.length - 1].focus();
+                }
+            }
+
+            function closeQrPopup() {
+                if (qrContainer) {
+                    qrContainer.classList.add('d-none');
+                }
+                if (qrCommandInput) {
+                    qrCommandInput.value = '';
+                }
+                focusLastEmptyPostInput();
+            }
+
+            document.addEventListener('keydown', function (event) {
+                const target = event.target;
+
+                if (event.key === 'Enter' && target.classList && target.classList.contains('post_id')
+                        && target.value.trim().toUpperCase() === 'QR') {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    target.value = '';
+                    target.dataset.skipQrBlur = 'true';
+
+                    const rowId = target.id.substring(4);
+                    const priceInput = document.getElementById('price' + rowId);
+                    const info = document.getElementById('info' + rowId);
+                    if (priceInput) {
+                        priceInput.value = '';
+                    }
+                    if (info) {
+                        info.textContent = '\u00a0';
+                    }
+
+                    document.getElementById('sumbutton').click();
+                    return;
+                }
+
+                if (target === qrCommandInput) {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        closeQrPopup();
+                        return;
+                    }
+
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    const command = qrCommandInput.value.trim().toUpperCase();
+                    qrCommandInput.value = '';
+
+                    if (command === 'OK' && confirmButton) {
+                        confirmButton.click();
+                    } else if (command === 'ESC') {
+                        closeQrPopup();
+                    }
+                }
+            }, true);
+
+            document.addEventListener('blur', function (event) {
+                const target = event.target;
+                if (target.dataset && target.dataset.skipQrBlur === 'true') {
+                    delete target.dataset.skipQrBlur;
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+
+            if (qrContainer && qrCommandInput) {
+                new MutationObserver(function () {
+                    if (!qrContainer.classList.contains('d-none')) {
+                        qrCommandInput.value = '';
+                        requestAnimationFrame(function () {
+                            qrCommandInput.focus();
+                        });
+                    }
+                }).observe(qrContainer, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            if (cancelButton) {
+                cancelButton.addEventListener('click', closeQrPopup);
+            }
+
+            focusLastEmptyPostInput();
+        });
+    </script>
 {% endblock %}
