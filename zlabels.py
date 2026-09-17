@@ -347,21 +347,24 @@ class ZLabels(object):
                 barcode_value = str(post_id).zfill(4)
                 post_barcode = code128.Code128(
                     barcode_value,
-                    barWidth=0.55 * mm,
+                    barWidth=0.65 * mm,
                     barHeight=3.9 * mm,
                     humanReadable=False
                 )
-                barcode_x = label_text_x
-                barcode_y = label_y_top - self.row_height * 5 + 4.2 * mm
+                barcode_x = label_text_x - 3 * mm
+                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm
                 post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
-                    if idx < 2:
-                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx) - lower_text_offset, comment)
-                    if idx == 2 and (self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2):  # One extra row of comments on labels with margins
-                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx) - lower_text_offset, comment)
+                    if idx < 3:
+                        canvas.drawString(
+                            label_text_x,
+                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset,
+                            comment
+                        )
 
                 #Seller name and phone
                 if self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2:
@@ -369,7 +372,8 @@ class ZLabels(object):
                 else:
                     row = 7
                 canvas.setFont(self.font, 7)
-                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
+                seller_offset = self.row_height * 0.5
+                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
 
 
