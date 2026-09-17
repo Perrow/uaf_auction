@@ -6,6 +6,7 @@ import sqlite3
 
 from flask import after_this_request, current_app, has_request_context, request
 from reportlab.graphics import shapes
+from reportlab.graphics.barcode import code128
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
@@ -216,7 +217,6 @@ class ZLabels(object):
         canvas.setAuthor(self.event_name)
 
         start_y = self.paper_height
-
         saved = False
         count = 0
         # Loop over sellers in data
@@ -254,6 +254,9 @@ class ZLabels(object):
                 label_y_top = y - self.printer_margin
                 label_y_bottom = y - self.label_height + self.printer_margin
                 label_text_x = label_x_left + self.left_margin + 1.5 * mm
+                upper_text_offset = 1 * mm
+                lower_text_offset = 1 * mm
+                right_side_offset = 0.5 * mm
 
                 # Border
                 if self.border == "yes":
@@ -303,26 +306,28 @@ class ZLabels(object):
                 center = (self.left_margin - str_width) / 2
                 canvas.drawString(label_x_left + center, label_y_top - self.row_height * 5, str(post_id))          # Post id
 
+                # Sale type and price below the post id in the left column
+                left_column_center = label_x_left + self.left_margin / 2
+                canvas.setFont(self.font, 7)
+                if post_type == "fixed_price":
+                    canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Fastpris")
+                    if post_fixed_price is not None and len(str(post_fixed_price)) > 0:
+                        canvas.setFont(self.bold_font, 7)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.5 * mm, "{} kr".format(int(post_fixed_price)))
+                if post_type == "auction":
+                    canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6, u"Auktion")
+                    if post_min_price is not None and len(str(post_min_price)) > 0:
+                        canvas.setFont(self.font, 6)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.2 * mm, u"Minimipris")
+                        canvas.setFont(self.bold_font, 7)
+                        canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
+
                 # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
-                canvas.drawString(label_text_x, label_y_top - self.row_height * 1, "{} - {}".format(self.event_name, self.event_date))
+                canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset + right_side_offset, "{} - {}".format(self.event_name, self.event_date))
 
-                # Fixed price or auction
-                canvas.setFont(self.font, self.font_size)
-                if post_type == "fixed_price":
-                    msg = u"Fastpris: "
-                    if post_fixed_price is not None:
-                        if len(str(post_fixed_price)) > 0:
-                            msg += "{} kr".format(int(post_fixed_price))
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2, msg)  # Fleamarket price
-                if post_type == "auction":
-                    msg = u"Auktion"
-                    if post_min_price is not None:
-                        if len(str(post_min_price)) > 0:
-                            msg += " min: {} kr".format(int(post_min_price))
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2, msg)  # Auction price
-
-                # popular and scientific names
+                # popular and scientific names; moved up one row now that sale type
+                # is displayed in the left column.
                 if sci_name != "" and pop_name != "":
                     names = self.make_multiline("{} - {}".format(sci_name, pop_name), self.text_width, self.bold_font, self.font_size)
                 elif sci_name != "":
@@ -333,18 +338,35 @@ class ZLabels(object):
                     names = []
                 canvas.setFont(self.bold_font, self.font_size)
                 if len(names) > 0:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3, names[0])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset + right_side_offset, names[0])
                 if len(names) > 1:
-                    canvas.drawString(label_text_x, label_y_top - self.row_height * 4, names[1])
+                    canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
+
+                # Barcode for the zero-padded four digit post id. Keep it in the
+                # gap between the name and description rows so the existing text
+                # layout does not need to move.
+                barcode_value = str(post_id).zfill(4)
+                post_barcode = code128.Code128(
+                    barcode_value,
+                    barWidth=0.65 * mm,
+                    barHeight=3.9 * mm,
+                    humanReadable=False
+                )
+                barcode_x = label_text_x - 3 * mm
+                barcode_y = label_y_top - self.row_height * 5 + 5.2 * mm + right_side_offset
+                post_barcode.drawOn(canvas, barcode_x, barcode_y)
 
                 # Description
                 comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
-                    if idx < 2:
-                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
-                    if idx == 2 and (self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2):  # One extra row of comments on labels with margins
-                        canvas.drawString(label_text_x, label_y_top - self.row_height * (5 + idx), comment)
+                    if idx < 3:
+                        canvas.drawString(
+                            label_text_x,
+                            label_y_top - self.row_height * (5 + idx) - lower_text_offset + description_offset + right_side_offset,
+                            comment
+                        )
 
                 #Seller name and phone
                 if self.label_type == ZLabels.with_margins_24 or self.label_type == ZLabels.with_margins_24_typ_2:
@@ -352,7 +374,8 @@ class ZLabels(object):
                 else:
                     row = 7
                 canvas.setFont(self.font, 7)
-                canvas.drawString(label_text_x, label_y_top - self.row_height * row, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
+                seller_offset = self.row_height * 0.5
+                canvas.drawString(label_text_x, label_y_top - self.row_height * row - lower_text_offset - seller_offset + right_side_offset, "{}".format(self.truncate_str("Nr {}: {}  {}".format(seller_id, seller_phone, seller_name), self.text_width, self.font, 7)))  # Seller Name
 
 
 
