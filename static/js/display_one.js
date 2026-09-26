@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const postInput = document.getElementById('post_id');
     const form = document.getElementById('display_form');
 
+    const latestSaleElement = document.getElementById('latest-sale');
+    let latestSalePollTimer = null;
+    let renderedSaleKey = null;
+
     const emptyData = {
         description: '', minimum_price: '', name: '', obj_id: '', plain_name: '', scientific_name: ''
     };
@@ -38,6 +42,63 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Kunde inte uppdatera aktuell displaypost:', error);
         }
+    }
+
+    function saleKey(sale) {
+        if (!sale) {
+            return null;
+        }
+        return [sale.obj_id, sale.sold_price, sale.time_stamp_sold].join('|');
+    }
+
+    function renderLatestSale(sale) {
+        if (!sale) {
+            latestSaleElement.textContent = 'Ingen försäljning ännu';
+            renderedSaleKey = null;
+            return;
+        }
+
+        latestSaleElement.textContent = `${sale.obj_id} · ${sale.name || ''} · ${sale.sold_price} kr`;
+        renderedSaleKey = saleKey(sale);
+    }
+
+    async function fetchLatestSale() {
+        const response = await fetch('json_latest_auction_sale', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        return data.sale;
+    }
+
+    function stopLatestSalePolling() {
+        if (latestSalePollTimer !== null) {
+            window.clearInterval(latestSalePollTimer);
+            latestSalePollTimer = null;
+        }
+    }
+
+    async function pollLatestSaleOnce() {
+        try {
+            const sale = await fetchLatestSale();
+            if (saleKey(sale) !== renderedSaleKey) {
+                renderLatestSale(sale);
+                stopLatestSalePolling();
+                await getSoldStat();
+            }
+        } catch (error) {
+            console.error('Kunde inte hämta senaste försäljning:', error);
+        }
+    }
+
+    function startLatestSalePolling() {
+        stopLatestSalePolling();
+        pollLatestSaleOnce();
+        latestSalePollTimer = window.setInterval(pollLatestSaleOnce, 1000);
     }
 
     function displayCurrent(data) {
@@ -81,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             displayCurrent(data);
             await setDisplayState(data.obj_id);
+            startLatestSalePolling();
         } catch (error) {
             console.error('Kunde inte hämta post:', error);
             setAlert('error', 'Kunde inte hämta posten');
@@ -122,4 +184,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     getSoldStat();
+    fetchLatestSale()
+        .then(renderLatestSale)
+        .catch(function (error) {
+            console.error('Kunde inte hämta senaste försäljning:', error);
+        });
 });
