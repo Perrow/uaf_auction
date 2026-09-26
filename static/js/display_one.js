@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function startLatestSalePolling() {
         stopLatestSalePolling();
-        latestSalePollTimer = window.setInterval(pollLatestSaleOnce, 1000);
+        latestSalePollTimer = window.setInterval(pollLatestSaleOnce, 3000);
         pollLatestSaleOnce();
     }
 

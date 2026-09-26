@@ -137,5 +137,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     refreshDisplayState();
-    window.setInterval(refreshDisplayState, 1000);
+    window.setInterval(refreshDisplayState, 3000);
 });
