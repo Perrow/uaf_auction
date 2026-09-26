@@ -49,7 +49,7 @@ class Compilation(object):
         else:
             return text
 
-    def make_pdf(self, compilation_data):
+    def make_pdf(self, compilation_data, include_receipt=True):
         #import cStringIO
         #output = cStringIO.StringIO()
         from io import BytesIO
@@ -134,25 +134,26 @@ class Compilation(object):
 
             story.append(t2)
 
-            story.append(PageBreak())
-            story.append(im)
-            p = Paragraph(self.event_name, title)
-            story.append(p)
-            p = Paragraph(self.event_date, title)
-            story.append(p)
-            p = Paragraph("Utbetalningskvitto", title)
-            story.append(p)
-            story.append(Spacer(1, 10 * mm))
-            p = Paragraph("Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100)), normal)
-            story.append(p)
-            story.append(Spacer(1, 10 * mm))
-            p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)
-            story.append(p)
-            story.append(Spacer(1, 20 * mm))
-            line = CenterLine(200, doc.width / 2)
-            story.append(line)
-            p = Paragraph(u"{}".format(seller_name), normal_center)
-            story.append(p)
+            if include_receipt:
+                story.append(PageBreak())
+                story.append(im)
+                p = Paragraph(self.event_name, title)
+                story.append(p)
+                p = Paragraph(self.event_date, title)
+                story.append(p)
+                p = Paragraph("Utbetalningskvitto", title)
+                story.append(p)
+                story.append(Spacer(1, 10 * mm))
+                p = Paragraph("Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100)), normal)
+                story.append(p)
+                story.append(Spacer(1, 10 * mm))
+                p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)
+                story.append(p)
+                story.append(Spacer(1, 20 * mm))
+                line = CenterLine(200, doc.width / 2)
+                story.append(line)
+                p = Paragraph(u"{}".format(seller_name), normal_center)
+                story.append(p)
 
             story.append(PageBreak())
 
