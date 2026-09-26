@@ -58,7 +58,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        latestSaleElement.textContent = `${sale.obj_id} · ${sale.name || ''} · ${sale.sold_price} kr`;
+        const numericPrice = Number(sale.sold_price);
+        const price = Number.isFinite(numericPrice)
+            ? numericPrice.toLocaleString('sv-SE', { maximumFractionDigits: 2 })
+            : sale.sold_price;
+        latestSaleElement.textContent = `${sale.obj_id} · ${sale.name || ''} · ${price} kr`;
         renderedSaleKey = saleKey(sale);
     }
 
@@ -97,8 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function startLatestSalePolling() {
         stopLatestSalePolling();
-        pollLatestSaleOnce();
         latestSalePollTimer = window.setInterval(pollLatestSaleOnce, 1000);
+        pollLatestSaleOnce();
     }
 
     function displayCurrent(data) {
@@ -125,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!postId) {
             displayCurrent(emptyData);
+            stopLatestSalePolling();
             await setDisplayState(null);
             return;
         }
@@ -137,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
             if (Object.prototype.hasOwnProperty.call(data, 'error')) {
                 displayCurrent({ ...emptyData, obj_id: postId, plain_name: 'Posten finns inte' });
+                stopLatestSalePolling();
                 await setDisplayState(null);
                 return;
             }
@@ -146,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Kunde inte hämta post:', error);
             setAlert('error', 'Kunde inte hämta posten');
+            stopLatestSalePolling();
             await setDisplayState(null);
         }
     }
