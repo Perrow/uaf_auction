@@ -231,6 +231,36 @@ class ZLabels(object):
         # losing text.
         return description or ""
 
+    def extra_label_layout(self, text):
+        """Return layout data and overflow state for an extra label."""
+        available_height = self.label_height - 2 * self.printer_margin - 3 * mm
+        font_size = self.font_size
+
+        while font_size >= 5:
+            lines = self.make_multiline(
+                text,
+                self.text_width,
+                self.font,
+                font_size,
+            )
+            line_height = max(font_size * 1.3, 2.4 * mm)
+            max_lines = int(available_height / line_height)
+            line_too_wide = any(
+                shapes.stringWidth(line, self.font, font_size) > self.text_width
+                for line in lines
+            )
+            if len(lines) <= max_lines and not line_too_wide:
+                return lines, font_size, line_height, max_lines, False
+            if font_size == 5:
+                return lines, font_size, line_height, max_lines, True
+            font_size = max(5, font_size - 0.5)
+
+        return [], 5, 2.4 * mm, 0, bool(text)
+
+    def extra_label_overflows(self, text):
+        """Return True when the full extra-label text cannot be printed."""
+        return self.extra_label_layout(text)[4]
+
     def truncate_str(self, text, max_length, font, font_size):
         """
         Caluculates the length of a string when rendered with the font and size for the label and truncates it to fit in a given length
@@ -384,26 +414,15 @@ class ZLabels(object):
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
 
                 if extra_label_text is not None:
-                    extra_font_size = self.font_size
-                    extra_lines = []
-                    extra_line_height = 0
-                    available_height = self.label_height - 2 * self.printer_margin - 3 * mm
-
-                    while extra_font_size >= 5:
-                        extra_lines = self.make_multiline(
-                            extra_label_text,
-                            self.text_width,
-                            self.font,
-                            extra_font_size,
-                        )
-                        extra_line_height = max(extra_font_size * 1.3, 2.4 * mm)
-                        max_extra_lines = int(available_height / extra_line_height)
-                        if len(extra_lines) <= max_extra_lines:
-                            break
-                        extra_font_size -= 0.5
+                    (
+                        extra_lines,
+                        extra_font_size,
+                        extra_line_height,
+                        max_extra_lines,
+                        _,
+                    ) = self.extra_label_layout(extra_label_text)
 
                     canvas.setFont(self.font, extra_font_size)
-                    max_extra_lines = int(available_height / extra_line_height)
                     for idx, line in enumerate(extra_lines[:max_extra_lines]):
                         canvas.drawString(
                             label_text_x,
