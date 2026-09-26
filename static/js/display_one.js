@@ -123,16 +123,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchData() {
         const postId = postInput.value.trim();
+
+        if (!postId) {
+            return;
+        }
+
         postInput.value = '';
         postInput.focus();
         setAlert('error', '');
-
-        if (!postId) {
-            displayCurrent(emptyData);
-            stopLatestSalePolling();
-            await setDisplayState(null);
-            return;
-        }
 
         try {
             const response = await fetch(`json/${encodeURIComponent(postId)}`, { headers: { Accept: 'application/json' } });
