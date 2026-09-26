@@ -47,10 +47,18 @@
                                 data-preview-url="{{ preview_url }}"
                                 data-post-id="{{ row[0] }}"
                                 aria-label="Visa större etikett för post {{ row[0] }}">
-                            <img src="{{ preview_url }}"
-                                 alt="Etikett för post {{ row[0] }}"
-                                 class="{% if description_overflow %}border border-3 border-danger rounded{% endif %}"
-                                 style="height: 42px; width: auto; cursor: zoom-in;">
+                            <span class="label-preview-stack">
+                                <img src="{{ preview_url }}"
+                                     alt="Etikett för post {{ row[0] }}"
+                                     class="label-preview-image {% if description_overflow %}border border-3 border-danger rounded{% endif %}"
+                                     style="height: 42px; width: auto; cursor: zoom-in;">
+                                {% if post_has_extra_label(row[0]) %}
+                                    <img src="{{ url_for('static', filename='img/extra_label_overlay.png') }}"
+                                         class="label-extra-overlay"
+                                         alt=""
+                                         aria-hidden="true">
+                                {% endif %}
+                            </span>
                         </button>
 
                         <div class="flex-grow-1 min-w-0">
@@ -111,10 +119,18 @@
                                 data-preview-url="{{ preview_url }}"
                                 data-post-id="{{ row[0] }}"
                                 aria-label="Visa större etikett för post {{ row[0] }}">
-                            <img src="{{ preview_url }}"
-                                 alt="Etikett för post {{ row[0] }}"
-                                 class="{% if description_overflow %}border border-3 border-danger rounded{% endif %}"
-                                 style="height: 60px; width: auto; cursor: zoom-in;">
+                            <span class="label-preview-stack">
+                                <img src="{{ preview_url }}"
+                                     alt="Etikett för post {{ row[0] }}"
+                                     class="label-preview-image {% if description_overflow %}border border-3 border-danger rounded{% endif %}"
+                                     style="height: 60px; width: auto; cursor: zoom-in;">
+                                {% if post_has_extra_label(row[0]) %}
+                                    <img src="{{ url_for('static', filename='img/extra_label_overlay.png') }}"
+                                         class="label-extra-overlay"
+                                         alt=""
+                                         aria-hidden="true">
+                                {% endif %}
+                            </span>
                         </button>
                     </td>
                     <td>{{ row[1] }}</td>
