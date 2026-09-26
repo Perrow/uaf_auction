@@ -43,6 +43,15 @@
                     <label class="form-label" for="description_id">Beskrivning</label>
                     <input class="form-control" id="description_id" name="description" type="text" value="{{ data[3] }}" maxlength="500">
                     <div class="form-text">Ange gärna antal, färg eller annat intressant. Max 500 tecken.</div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input"
+                               id="extra_label"
+                               name="extra_label"
+                               type="checkbox"
+                               value="yes"
+                               {% if post_has_extra_label(data[0]) %}checked{% endif %}>
+                        <label class="form-check-label" for="extra_label">Extra etikett med överskjutande text</label>
+                    </div>
                 </div>
 
                 <div id="msg" class="mb-3" aria-live="polite"></div>
