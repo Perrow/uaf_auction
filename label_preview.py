@@ -4,7 +4,7 @@
 
 import sqlite3
 
-from flask import Response, abort
+from flask import Response, abort, g
 from flask_login import current_user, login_required
 
 import zlabels
@@ -83,8 +83,39 @@ def make_label_preview_png(label_generator, seller, post, dpi=200):
         document.close()
 
 
+def _overflow_label_generator(app):
+    """Create one label renderer per request for overflow calculations."""
+    generator = getattr(g, "_label_overflow_generator", None)
+    if generator is not None:
+        return generator
+
+    conn = sqlite3.connect(app.config["DATABASE"])
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT label_type, border FROM label_type")
+        label_setup = cur.fetchone()
+
+    label_type = zlabels.ZLabels.without_margins_24
+    border = "no"
+    if label_setup is not None:
+        label_type = label_setup[0]
+        border = label_setup[1]
+
+    generator = zlabels.ZLabels("overflow-check", "", "", label_type, border)
+    g._label_overflow_generator = generator
+    return generator
+
+
 def register_routes(app):
-    """Register the label-preview endpoint on an existing Flask application."""
+    """Register label-preview helpers and endpoint on an existing application."""
+    app.jinja_env.globals["label_description_overflows"] = (
+        lambda sci_name, pop_name, description: _overflow_label_generator(app).description_overflows(
+            sci_name,
+            pop_name,
+            description,
+        )
+    )
+
     if "label_preview_image" in app.view_functions:
         return
 
