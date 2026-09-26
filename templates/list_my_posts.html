@@ -31,8 +31,8 @@
             {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
             {% set edit_url = url_for('edit_post') ~ '/' ~ row[0] %}
             {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) %}
-            <div class="card mb-2 {% if registration_open == True %}mobile-post-card{% endif %}"
-                 {% if registration_open == True %}
+            <div class="card mb-2 {% if registration_open == True or print_labels == True %}mobile-post-card{% endif %}"
+                 {% if registration_open == True or print_labels == True %}
                      role="link"
                      tabindex="0"
                      data-edit-url="{{ edit_url }}"
@@ -99,8 +99,10 @@
                 <th>Beskrivning</th>
                 <th>Godstyp</th>
                 <th data-sort="none">Bildsök</th>
-                {% if registration_open == True %}
+                {% if registration_open == True or print_labels == True %}
                     <th data-sort="none">Editera</th>
+                {% endif %}
+                {% if registration_open == True %}
                     <th data-sort="none">Ta bort</th>
                 {% endif %}
             </tr>
@@ -145,8 +147,10 @@
                             <i class="fa fa-picture-o" aria-hidden="true"></i> Bildsök
                         </a>
                     </td>
-                    {% if registration_open == True %}
+                    {% if registration_open == True or print_labels == True %}
                         <td><a class="btn btn-sm btn-warning" href="{{ url_for('edit_post') }}/{{ row[0] }}"><i class="fa fa-pencil" aria-hidden="true"></i> Editera</a></td>
+                    {% endif %}
+                    {% if registration_open == True %}
                         <td><a class="btn btn-sm btn-danger" href="{{ url_for('delete_post') }}/{{ row[0] }}"><i class="fa fa-trash" aria-hidden="true"></i> Ta bort</a></td>
                     {% endif %}
                 </tr>
