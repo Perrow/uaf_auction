@@ -106,8 +106,85 @@ def _overflow_label_generator(app):
     return generator
 
 
+def _load_preview_data(app, post_id):
+    conn = sqlite3.connect(app.config["DATABASE"])
+    with conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT sellers.seller_id,
+                   sellers.name,
+                   sellers.phone,
+                   sellers.aquarium_club,
+                   posts.obj_id,
+                   posts.plain_name,
+                   posts.scientific_name,
+                   posts.fixed_price,
+                   posts.minimum_price,
+                   all_types.sale_type,
+                   posts.quantity,
+                   posts.description,
+                   extra_labels.text
+            FROM posts
+            INNER JOIN sellers ON posts.seller_id = sellers.seller_id
+            INNER JOIN all_types ON posts.type = all_types.type_id
+            LEFT JOIN extra_labels ON extra_labels.post_id = posts.obj_id
+            WHERE posts.obj_id = ?
+            """,
+            [post_id],
+        )
+        row = cur.fetchone()
+
+        if row is None:
+            abort(404)
+
+        owner_id = str(row[0])
+        if str(current_user.get_id()) != owner_id and not current_user.is_admin:
+            abort(403)
+
+        cur.execute("SELECT event_name, date FROM auction_info")
+        auction_info = cur.fetchone()
+        if auction_info is None:
+            abort(500)
+
+        cur.execute("SELECT label_type, border FROM label_type")
+        label_setup = cur.fetchone()
+
+    label_type = zlabels.ZLabels.without_margins_24
+    border = "no"
+    if label_setup is not None:
+        label_type = label_setup[0]
+        border = label_setup[1]
+
+    label_generator = zlabels.ZLabels(
+        "preview",
+        auction_info[0],
+        auction_info[1],
+        label_type,
+        border,
+    )
+    seller = [row[0], row[1], row[2], row[3]]
+    post = [
+        row[4],
+        row[5],
+        row[6],
+        row[7],
+        row[8],
+        row[9],
+        row[10],
+        row[11],
+    ]
+    return label_generator, seller, post, row[12]
+
+
+def _png_response(png):
+    response = Response(png, mimetype="image/png")
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 def register_routes(app):
-    """Register label-preview helpers and endpoint on an existing application."""
+    """Register label-preview helpers and endpoints on an existing application."""
     app.jinja_env.globals["label_description_overflows"] = (
         lambda sci_name, pop_name, description: _overflow_label_generator(app).description_overflows(
             sci_name,
@@ -116,79 +193,25 @@ def register_routes(app):
         )
     )
 
-    if "label_preview_image" in app.view_functions:
-        return
+    if "label_preview_image" not in app.view_functions:
+        @app.route("/label_preview/<int:post_id>.png", endpoint="label_preview_image")
+        @login_required
+        def label_preview_image(post_id):
+            label_generator, seller, post, _ = _load_preview_data(app, post_id)
+            png = make_label_preview_png(label_generator, seller, post)
+            return _png_response(png)
 
-    @app.route("/label_preview/<int:post_id>.png", endpoint="label_preview_image")
-    @login_required
-    def label_preview_image(post_id):
-        conn = sqlite3.connect(app.config["DATABASE"])
-        with conn:
-            cur = conn.cursor()
-            cur.execute(
-                """
-                SELECT sellers.seller_id,
-                       sellers.name,
-                       sellers.phone,
-                       sellers.aquarium_club,
-                       posts.obj_id,
-                       posts.plain_name,
-                       posts.scientific_name,
-                       posts.fixed_price,
-                       posts.minimum_price,
-                       all_types.sale_type,
-                       posts.quantity,
-                       posts.description
-                FROM posts
-                INNER JOIN sellers ON posts.seller_id = sellers.seller_id
-                INNER JOIN all_types ON posts.type = all_types.type_id
-                WHERE posts.obj_id = ?
-                """,
-                [post_id],
-            )
-            row = cur.fetchone()
-
-            if row is None:
+    if "extra_label_preview_image" not in app.view_functions:
+        @app.route(
+            "/label_preview/<int:post_id>/extra.png",
+            endpoint="extra_label_preview_image",
+        )
+        @login_required
+        def extra_label_preview_image(post_id):
+            label_generator, seller, post, extra_text = _load_preview_data(app, post_id)
+            if not extra_text:
                 abort(404)
 
-            owner_id = str(row[0])
-            if str(current_user.get_id()) != owner_id and not current_user.is_admin:
-                abort(403)
-
-            cur.execute("SELECT event_name, date FROM auction_info")
-            auction_info = cur.fetchone()
-            if auction_info is None:
-                abort(500)
-
-            cur.execute("SELECT label_type, border FROM label_type")
-            label_setup = cur.fetchone()
-
-        label_type = zlabels.ZLabels.without_margins_24
-        border = "no"
-        if label_setup is not None:
-            label_type = label_setup[0]
-            border = label_setup[1]
-
-        label_generator = zlabels.ZLabels(
-            "preview",
-            auction_info[0],
-            auction_info[1],
-            label_type,
-            border,
-        )
-        seller = [row[0], row[1], row[2], row[3]]
-        post = [
-            row[4],
-            row[5],
-            row[6],
-            row[7],
-            row[8],
-            row[9],
-            row[10],
-            row[11],
-        ]
-
-        png = make_label_preview_png(label_generator, seller, post)
-        response = Response(png, mimetype="image/png")
-        response.headers["Cache-Control"] = "no-store"
-        return response
+            extra_post = post + [extra_text]
+            png = make_label_preview_png(label_generator, seller, extra_post)
+            return _png_response(png)
