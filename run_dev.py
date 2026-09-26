@@ -4,6 +4,7 @@
 
 from uaf import app
 import display_state
+import email_confirmation
 import event_prefill
 import extra_labels
 import label_preview
@@ -16,6 +17,7 @@ import swish_qr
 
 
 display_state.register_routes(app)
+email_confirmation.register_routes(app)
 label_preview.register_routes(app)
 post_limit.register_routes(app)
 result_email.register_routes(app)
