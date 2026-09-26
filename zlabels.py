@@ -212,6 +212,25 @@ class ZLabels(object):
         """Return True when the full description cannot be printed on the label."""
         return self.description_layout(sci_name, pop_name, description)[2]
 
+    def description_overflow_text(self, sci_name, pop_name, description):
+        """Return the part of the description that is not printed on the ordinary label."""
+        lines, max_description_lines, overflows = self.description_layout(
+            sci_name,
+            pop_name,
+            description,
+        )
+        if not overflows:
+            return ""
+
+        overflow_lines = lines[max_description_lines:]
+        if overflow_lines:
+            return " ".join(overflow_lines)
+
+        # A single unbroken word may itself be wider than the printable area.
+        # Keep the complete description on the extra label rather than silently
+        # losing text.
+        return description or ""
+
     def truncate_str(self, text, max_length, font, font_size):
         """
         Caluculates the length of a string when rendered with the font and size for the label and truncates it to fit in a given length
@@ -275,6 +294,7 @@ class ZLabels(object):
                 post_type = post[5]
                 post_quantity = post[6]
                 post_description = post[7]
+                extra_label_text = post[8] if len(post) > 8 else None
 
                 # 24 labels on a sheet, if more start a new sheet
                 if count >= 24:
@@ -362,6 +382,28 @@ class ZLabels(object):
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 2.2 * mm, u"Minimipris")
                         canvas.setFont(self.bold_font, 7)
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
+
+                if extra_label_text is not None:
+                    canvas.setFont(self.font, self.font_size)
+                    extra_lines = self.make_multiline(
+                        extra_label_text,
+                        self.text_width,
+                        self.font,
+                        self.font_size,
+                    )
+                    max_extra_lines = 7 if self.label_type in (
+                        ZLabels.with_margins_24,
+                        ZLabels.with_margins_24_typ_2,
+                    ) else 6
+                    for idx, line in enumerate(extra_lines[:max_extra_lines]):
+                        canvas.drawString(
+                            label_text_x,
+                            label_y_top - self.row_height * (idx + 1) - lower_text_offset,
+                            line,
+                        )
+
+                    count += 1
+                    continue
 
                 # Event name and date
                 canvas.setFont(self.font, self.font_size - 2)
