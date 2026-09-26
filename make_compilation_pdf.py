@@ -77,7 +77,7 @@ class Compilation(object):
         im = Image(logo, 30 * mm, 30 * mm)
         im.hAlign = "LEFT"
 
-        for seller in compilation_data:
+        for seller_index, seller in enumerate(compilation_data):
             seller_id = seller[0]
             seller_name = seller[1]
             story.append(im)
@@ -155,7 +155,8 @@ class Compilation(object):
                 p = Paragraph(u"{}".format(seller_name), normal_center)
                 story.append(p)
 
-            story.append(PageBreak())
+            if include_receipt or seller_index < len(compilation_data) - 1:
+                story.append(PageBreak())
 
         doc.build(story) #, onFirstPage=self.my_first_page) #, onLaterPages=my_later_pages)
 
