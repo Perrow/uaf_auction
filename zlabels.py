@@ -175,31 +175,24 @@ class ZLabels(object):
         return lines
 
     def make_name_lines(self, sci_name, pop_name):
-        """Return the name lines exactly as they are laid out on the label."""
-        if sci_name and pop_name:
-            text = "{} - {}".format(sci_name, pop_name)
-        elif sci_name:
-            text = sci_name
-        elif pop_name:
-            text = pop_name
-        else:
-            return []
-
-        return self.make_multiline(text, self.text_width, self.bold_font, self.font_size)
+        """Return one fixed label row for scientific name and one for popular name."""
+        scientific_line = self.truncate_str(
+            sci_name or "",
+            self.text_width,
+            self.bold_font,
+            self.font_size,
+        )
+        popular_line = self.truncate_str(
+            pop_name or "",
+            self.text_width,
+            self.bold_font,
+            self.font_size,
+        )
+        return [scientific_line, popular_line]
 
     def description_layout(self, sci_name, pop_name, description):
         """Return wrapped description lines, printable line count and overflow state."""
-        names = self.make_name_lines(sci_name, pop_name)
-        name_line_count = 2 if len(names) > 1 else 1
-        barcode_row = 2 + name_line_count
-        description_start_row = barcode_row + 1
-
-        if self.label_type in (ZLabels.with_margins_24, ZLabels.with_margins_24_typ_2):
-            seller_row = 8
-        else:
-            seller_row = 7
-
-        max_description_lines = min(3, max(0, seller_row - description_start_row))
+        max_description_lines = 3
         lines = self.make_multiline(description, self.text_width, self.font, self.font_size)
         line_too_wide = any(
             shapes.stringWidth(line, self.font, self.font_size) > self.text_width
@@ -230,6 +223,36 @@ class ZLabels(object):
         # Keep the complete description on the extra label rather than silently
         # losing text.
         return description or ""
+
+    def extra_label_layout(self, text):
+        """Return layout data and overflow state for an extra label."""
+        available_height = self.label_height - 2 * self.printer_margin - 3 * mm
+        font_size = self.font_size
+
+        while font_size >= 5:
+            lines = self.make_multiline(
+                text,
+                self.text_width,
+                self.font,
+                font_size,
+            )
+            line_height = max(font_size * 1.3, 2.4 * mm)
+            max_lines = int(available_height / line_height)
+            line_too_wide = any(
+                shapes.stringWidth(line, self.font, font_size) > self.text_width
+                for line in lines
+            )
+            if len(lines) <= max_lines and not line_too_wide:
+                return lines, font_size, line_height, max_lines, False
+            if font_size == 5:
+                return lines, font_size, line_height, max_lines, True
+            font_size = max(5, font_size - 0.5)
+
+        return [], 5, 2.4 * mm, 0, bool(text)
+
+    def extra_label_overflows(self, text):
+        """Return True when the full extra-label text cannot be printed."""
+        return self.extra_label_layout(text)[4]
 
     def truncate_str(self, text, max_length, font, font_size):
         """
@@ -384,26 +407,15 @@ class ZLabels(object):
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
 
                 if extra_label_text is not None:
-                    extra_font_size = self.font_size
-                    extra_lines = []
-                    extra_line_height = 0
-                    available_height = self.label_height - 2 * self.printer_margin - 3 * mm
-
-                    while extra_font_size >= 5:
-                        extra_lines = self.make_multiline(
-                            extra_label_text,
-                            self.text_width,
-                            self.font,
-                            extra_font_size,
-                        )
-                        extra_line_height = max(extra_font_size * 1.3, 2.4 * mm)
-                        max_extra_lines = int(available_height / extra_line_height)
-                        if len(extra_lines) <= max_extra_lines:
-                            break
-                        extra_font_size -= 0.5
+                    (
+                        extra_lines,
+                        extra_font_size,
+                        extra_line_height,
+                        max_extra_lines,
+                        _,
+                    ) = self.extra_label_layout(extra_label_text)
 
                     canvas.setFont(self.font, extra_font_size)
-                    max_extra_lines = int(available_height / extra_line_height)
                     for idx, line in enumerate(extra_lines[:max_extra_lines]):
                         canvas.drawString(
                             label_text_x,
@@ -418,18 +430,16 @@ class ZLabels(object):
                 canvas.setFont(self.font, self.font_size - 2)
                 canvas.drawString(label_text_x, label_y_top - self.row_height * 1 + upper_text_offset + right_side_offset, "{} - {}".format(self.event_name, self.event_date))
 
-                # popular and scientific names; moved up one row now that sale type
-                # is displayed in the left column.
+                # Scientific name and popular name each have one fixed row.
                 names = self.make_name_lines(sci_name, pop_name)
                 canvas.setFont(self.bold_font, self.font_size)
-                if len(names) > 0:
+                if names[0]:
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset + right_side_offset, names[0])
-                if len(names) > 1:
+                if names[1]:
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 3 + upper_text_offset + right_side_offset, names[1])
                 canvas.setFont(self.font, self.font_size)
 
-                name_line_count = 2 if len(names) > 1 else 1
-                barcode_row = 2 + name_line_count
+                barcode_row = 4
                 barcode_extra_row_height = 1 * mm
 
                 # Barcode for the zero-padded four digit post id.
