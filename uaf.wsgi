@@ -9,10 +9,12 @@ from payment_records import register_routes as register_payment_routes
 from payment_report_pdf import register_routes as register_payment_report_routes
 from password_reset import register_routes as register_password_reset_routes
 from post_limit import register_routes as register_post_limit_routes
+from result_email import register_routes as register_result_email_routes
 from swish_qr import register_routes as register_swish_qr_routes
 
 register_label_preview_routes(application)
 register_post_limit_routes(application)
+register_result_email_routes(application)
 register_extra_label_routes(application)
 register_payment_routes(application)
 register_payment_report_routes(application)
