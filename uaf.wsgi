@@ -2,6 +2,7 @@ import sys
 
 sys.path.append('/home/kristian/UAF_auction')
 from uaf import app as application
+from display_state import register_routes as register_display_state_routes
 from event_prefill import register_routes as register_event_prefill_routes
 from extra_labels import register_routes as register_extra_label_routes
 from label_preview import register_routes as register_label_preview_routes
@@ -12,6 +13,7 @@ from post_limit import register_routes as register_post_limit_routes
 from result_email import register_routes as register_result_email_routes
 from swish_qr import register_routes as register_swish_qr_routes
 
+register_display_state_routes(application)
 register_label_preview_routes(application)
 register_post_limit_routes(application)
 register_result_email_routes(application)

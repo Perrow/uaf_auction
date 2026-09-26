@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const postIdInput = document.getElementById('post_id');
     const priceInput = document.getElementById('price');
     const submitButton = document.getElementById('submit');
+    const auctionForm = document.getElementById('auction_form');
+    const displayCurrentPost = document.getElementById('display-current-post');
+    let lastSubmittedPost = sessionStorage.getItem('auctionLastSubmittedPost') || '';
 
     function setHtml(id, value) {
         document.getElementById(id).innerHTML = value == null ? '' : value;
@@ -16,8 +19,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    postIdInput.addEventListener('blur', async function () {
-        const postId = postIdInput.value;
+    async function loadPostDetails() {
+        const postId = postIdInput.value.trim();
+
+        if (postId === '') {
+            clearPostDetails();
+            setHtml('error', '');
+            priceInput.value = '';
+            return;
+        }
 
         try {
             const response = await fetch('json/' + encodeURIComponent(postId), {
@@ -59,7 +69,48 @@ document.addEventListener('DOMContentLoaded', function () {
             setHtml('error', 'INGET POST ID GAVS');
             console.error('Postuppslag misslyckades:', error);
         }
-    });
+    }
+
+    async function refreshDisplayState() {
+        try {
+            const response = await fetch('json_display_state', {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            const data = await response.json();
+            const currentPost = data.post_id == null ? '' : String(data.post_id);
+            displayCurrentPost.textContent = currentPost || 'Ingen post';
+
+            if (!currentPost) {
+                return;
+            }
+
+            if (lastSubmittedPost && currentPost === lastSubmittedPost) {
+                return;
+            }
+
+            if (lastSubmittedPost && currentPost !== lastSubmittedPost) {
+                lastSubmittedPost = '';
+                sessionStorage.removeItem('auctionLastSubmittedPost');
+            }
+
+            if (postIdInput.value.trim() === '') {
+                postIdInput.value = currentPost;
+                await loadPostDetails();
+                priceInput.focus();
+            }
+        } catch (error) {
+            console.error('Kunde inte hämta aktuell displaypost:', error);
+            displayCurrentPost.textContent = 'Kunde inte hämtas';
+        }
+    }
+
+    postIdInput.addEventListener('blur', loadPostDetails);
 
     submitButton.addEventListener('click', function (event) {
         if (postIdInput.value === '') {
@@ -77,4 +128,14 @@ document.addEventListener('DOMContentLoaded', function () {
         setHtml('error', 'Pris måste ges');
         event.preventDefault();
     });
+
+    auctionForm.addEventListener('submit', function () {
+        const postId = postIdInput.value.trim();
+        if (postId) {
+            sessionStorage.setItem('auctionLastSubmittedPost', postId);
+        }
+    });
+
+    refreshDisplayState();
+    window.setInterval(refreshDisplayState, 1000);
 });

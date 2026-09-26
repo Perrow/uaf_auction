@@ -47,9 +47,14 @@
         </div>
     </div>
 
+    <div id="display-current-card" class="alert alert-info d-flex flex-column flex-sm-row align-items-sm-center gap-2 mb-4" role="status">
+        <strong>På displayen just nu:</strong>
+        <span id="display-current-post">Ingen post</span>
+    </div>
+
     <section class="card shadow-sm mb-4">
         <div class="card-body">
-            <form action="{{ url_for('auction') }}" method="POST">
+            <form id="auction_form" action="{{ url_for('auction') }}" method="POST">
                 <div class="row g-3 align-items-end">
                     <div class="col-sm-6 col-md-3">
                         <label class="form-label" for="post_id">Postens nummer</label>

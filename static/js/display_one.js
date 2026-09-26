@@ -24,6 +24,22 @@ document.addEventListener('DOMContentLoaded', function () {
         element.classList.toggle('d-none', !message);
     };
 
+    async function setDisplayState(postId) {
+        try {
+            await fetch('json_display_state', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ post_id: postId })
+            });
+        } catch (error) {
+            console.error('Kunde inte uppdatera aktuell displaypost:', error);
+        }
+    }
+
     function displayCurrent(data) {
         const postId = data.obj_id ? `Post: ${data.obj_id}` : '';
         const minPrice = data.minimum_price !== null && data.minimum_price !== ''
@@ -48,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!postId) {
             displayCurrent(emptyData);
+            await setDisplayState(null);
             return;
         }
 
@@ -59,12 +76,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
             if (Object.prototype.hasOwnProperty.call(data, 'error')) {
                 displayCurrent({ ...emptyData, obj_id: postId, plain_name: 'Posten finns inte' });
+                await setDisplayState(null);
                 return;
             }
             displayCurrent(data);
+            await setDisplayState(data.obj_id);
         } catch (error) {
             console.error('Kunde inte hämta post:', error);
             setAlert('error', 'Kunde inte hämta posten');
+            await setDisplayState(null);
         }
     }
 
