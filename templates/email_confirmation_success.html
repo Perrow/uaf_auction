@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}E-post bekräftad{% endblock %}
+{% block body %}
+<div class="container py-5">
+    <div class="alert alert-success">
+        <h1 class="h4 alert-heading">E-postadressen är bekräftad</h1>
+        <p class="mb-0">Din e-postadress har bekräftats och länken kan inte användas igen.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('index') }}">Till startsidan</a>
+</div>
+{% endblock %}
