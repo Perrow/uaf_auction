@@ -46,6 +46,20 @@
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('compilation_server_print_checked') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
                 </tr>
                 <tr>
+                    <td>
+                        Resultat till säljare via e-post
+                        <div class="small text-body-secondary">Skickar en individuell PDF utan utbetalningskvitto till säljare som har försäljning.</div>
+                    </td>
+                    <td colspan="2">
+                        <form action="{{ url_for('email_result_reports') }}" method="POST"
+                              onsubmit="return confirm('Skicka resultat-PDF via e-post till alla säljare med försäljning?');">
+                            <button class="btn btn-outline-primary btn-sm" type="submit">
+                                <i class="fa fa-envelope-o" aria-hidden="true"></i> Skicka
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
                     <td>Inlämningskvitton för alla säljare</td>
                     <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('receipt_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
                     <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
