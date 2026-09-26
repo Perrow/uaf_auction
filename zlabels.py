@@ -166,13 +166,51 @@ class ZLabels(object):
             tmp_line.append(word)
             tmp_line = " ".join(tmp_line)
             total_width = shapes.stringWidth(tmp_line, font, font_size)
-            if total_width < max_length:
+            if total_width < max_length or not line:
                 line.append(word)
             else:
                 lines.append(" ".join(line))
                 line = [word]
         lines.append(" ".join(line))
         return lines
+
+    def make_name_lines(self, sci_name, pop_name):
+        """Return the name lines exactly as they are laid out on the label."""
+        if sci_name and pop_name:
+            text = "{} - {}".format(sci_name, pop_name)
+        elif sci_name:
+            text = sci_name
+        elif pop_name:
+            text = pop_name
+        else:
+            return []
+
+        return self.make_multiline(text, self.text_width, self.bold_font, self.font_size)
+
+    def description_layout(self, sci_name, pop_name, description):
+        """Return wrapped description lines, printable line count and overflow state."""
+        names = self.make_name_lines(sci_name, pop_name)
+        name_line_count = 2 if len(names) > 1 else 1
+        barcode_row = 2 + name_line_count
+        description_start_row = barcode_row + 1
+
+        if self.label_type in (ZLabels.with_margins_24, ZLabels.with_margins_24_typ_2):
+            seller_row = 8
+        else:
+            seller_row = 7
+
+        max_description_lines = min(3, max(0, seller_row - description_start_row))
+        lines = self.make_multiline(description, self.text_width, self.font, self.font_size)
+        line_too_wide = any(
+            shapes.stringWidth(line, self.font, self.font_size) > self.text_width
+            for line in lines
+        )
+        overflows = line_too_wide or len(lines) > max_description_lines
+        return lines, max_description_lines, overflows
+
+    def description_overflows(self, sci_name, pop_name, description):
+        """Return True when the full description cannot be printed on the label."""
+        return self.description_layout(sci_name, pop_name, description)[2]
 
     def truncate_str(self, text, max_length, font, font_size):
         """
@@ -331,14 +369,7 @@ class ZLabels(object):
 
                 # popular and scientific names; moved up one row now that sale type
                 # is displayed in the left column.
-                if sci_name != "" and pop_name != "":
-                    names = self.make_multiline("{} - {}".format(sci_name, pop_name), self.text_width, self.bold_font, self.font_size)
-                elif sci_name != "":
-                    names = self.make_multiline(sci_name, self.text_width, self.bold_font, self.font_size)
-                elif pop_name != "":
-                    names = self.make_multiline(pop_name, self.text_width, self.bold_font, self.font_size)
-                else:
-                    names = []
+                names = self.make_name_lines(sci_name, pop_name)
                 canvas.setFont(self.bold_font, self.font_size)
                 if len(names) > 0:
                     canvas.drawString(label_text_x, label_y_top - self.row_height * 2 + upper_text_offset + right_side_offset, names[0])
@@ -362,9 +393,12 @@ class ZLabels(object):
                 barcode_y = label_y_top - self.row_height * (barcode_row + 1) + 4.4 * mm + right_side_offset - barcode_extra_row_height - 0.5 * mm
 
                 # Description
-                comments = self.make_multiline(post_description, self.text_width, self.font, self.font_size)
+                comments, max_description_lines, _ = self.description_layout(
+                    sci_name,
+                    pop_name,
+                    post_description,
+                )
                 description_start_row = barcode_row + 1
-                max_description_lines = 3
                 description_offset = self.row_height * 0.5
                 for idx, comment in enumerate(comments):
                     if idx < max_description_lines:
