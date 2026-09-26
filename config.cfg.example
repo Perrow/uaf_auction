@@ -1,8 +1,5 @@
 SECRET_KEY='a secret string'
 DATABASE='name_of_database.db3'
-GMAILUSER='username@gmail.com'
-GMAILPASSWORD='password'
-
 # SMTP används bland annat för lösenordsåterställning.
 # SMTPS använder normalt port 465 och SMTP_USE_SSL=True.
 # STARTTLS använder normalt port 587 och SMTP_USE_STARTTLS=True.
