@@ -8,7 +8,16 @@
             <div class="text-body-secondary">{{ nr_posts[0] }} · {{ nr_posts[1] }} · {{ nr_posts[2] }}</div>
         </div>
         {% if print_labels == True %}
-            <a class="btn btn-outline-primary" href="{{ url_for('my_labels') }}/{{ user }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> Skapa etikett-PDF</a>
+            <div class="d-flex flex-wrap gap-2">
+                {% if registration_open == True %}
+                    <a class="btn btn-primary" href="{{ url_for('register_many_posts') }}">
+                        <i class="fa fa-plus" aria-hidden="true"></i> Registrera fler poster
+                    </a>
+                {% endif %}
+                <a class="btn btn-outline-primary" href="{{ url_for('my_labels') }}/{{ user }}">
+                    <i class="fa fa-file-pdf-o" aria-hidden="true"></i> Skapa etikett-PDF
+                </a>
+            </div>
         {% endif %}
     </div>
 
