@@ -10,6 +10,27 @@
           crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css', _eternal=True) }}">
     <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <style>
+        body {
+            padding-bottom: 4.5rem;
+        }
+
+        .latest-sale-bar {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1030;
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            padding: .75rem 1.5rem;
+            background: var(--bs-dark);
+            color: var(--bs-white);
+            border-top: 1px solid rgba(255, 255, 255, .2);
+            box-shadow: 0 -.25rem .75rem rgba(0, 0, 0, .15);
+        }
+    </style>
 </head>
 <body class="bg-body-tertiary">
 <main class="container-fluid px-4 py-3">
@@ -60,11 +81,12 @@
         </div>
     </form>
 
-    <div class="border-top mt-4 pt-3 fs-4" aria-live="polite">
-        <strong>Senast såld:</strong>
-        <span id="latest-sale">Ingen försäljning ännu</span>
-    </div>
 </main>
+
+<div class="latest-sale-bar fs-4" aria-live="polite">
+    <strong class="me-2">Senast såld:</strong>
+    <span id="latest-sale">Ingen försäljning ännu</span>
+</div>
 
 <script src="{{ url_for('static', filename='js/display_one.js') }}"></script>
 </body>
