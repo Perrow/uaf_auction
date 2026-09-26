@@ -20,7 +20,10 @@
                                 <button type="button" class="btn btn-outline-secondary" data-password-toggle="password" aria-pressed="false">Visa</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Logga in</button>
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <button type="submit" class="btn btn-primary">Logga in</button>
+                            <a href="{{ url_for('forgot_password') }}">Glömt lösenord?</a>
+                        </div>
                     </form>
                 </div>
             </div>

@@ -31,8 +31,6 @@ __author__ = 'Kristian Persson'
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 DATABASE = app.config['DATABASE']
-GMAILUSER = app.config['GMAILUSER']
-GMAILPASSWORD = app.config['GMAILPASSWORD']
 
 VERSION = "0.85"
 
@@ -134,25 +132,51 @@ def get_email_notification_address():
 
 def send_email(subject, message):
     """
-    Sends an email message via gmail account
-    :param subject: email subject
-    :param message: email message
+    Sends an email message to the configured notification address.
+    SMTP settings are read from config.cfg.
     """
     send_to = get_email_notification_address()
-    if send_to != "":
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = GMAILUSER
-        msg['To'] = send_to
+    if send_to == "":
+        return
+
+    host = app.config.get("SMTP_HOST", "")
+    port = int(app.config.get("SMTP_PORT", 25))
+    use_ssl = bool(app.config.get("SMTP_USE_SSL", False))
+    use_starttls = bool(app.config.get("SMTP_USE_STARTTLS", False))
+    username = app.config.get("SMTP_USERNAME", "")
+    password = app.config.get("SMTP_PASSWORD", "")
+    sender = app.config.get("SMTP_FROM", "") or username
+
+    if not host or not sender:
+        print("Failed to send notification email: SMTP configuration is incomplete")
+        return
+    if use_ssl and use_starttls:
+        print("Failed to send notification email: both SSL and STARTTLS are enabled")
+        return
+
+    msg = MIMEText(message)
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = send_to
+
+    try:
+        if use_ssl:
+            server = smtplib.SMTP_SSL(host, port)
+        else:
+            server = smtplib.SMTP(host, port)
+
         try:
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
             server.ehlo()
-            server.login(GMAILUSER, GMAILPASSWORD)
-            server.sendmail(GMAILUSER, send_to, msg.as_bytes())
-            server.close()
-        except:
-            e = sys.exc_info()[0]
-            print("Failed to send notification email\n{}".format(e))
+            if use_starttls:
+                server.starttls()
+                server.ehlo()
+            if username:
+                server.login(username, password)
+            server.sendmail(sender, send_to, msg.as_bytes())
+        finally:
+            server.quit()
+    except Exception as error:
+        print("Failed to send notification email\n{}".format(error))
 
 
 def get_auction_info():
