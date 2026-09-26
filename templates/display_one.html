@@ -59,6 +59,11 @@
             <button type="submit" id="submit" name="submit" class="btn btn-primary d-none">Skicka</button>
         </div>
     </form>
+
+    <div class="border-top mt-4 pt-3 fs-4" aria-live="polite">
+        <strong>Senast såld:</strong>
+        <span id="latest-sale">Ingen försäljning ännu</span>
+    </div>
 </main>
 
 <script src="{{ url_for('static', filename='js/display_one.js') }}"></script>
