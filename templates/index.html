@@ -26,6 +26,18 @@
         </section>
     {% endif %}
 
+    {% if current_user.is_authenticated and email_confirmation_pending %}
+        <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" role="alert">
+            <div>
+                <strong>Din e-postadress är inte bekräftad.</strong>
+                Kontrollera din inkorg eller skicka en ny bekräftelselänk.
+            </div>
+            <form action="{{ url_for('resend_email_confirmation') }}" method="POST" class="m-0">
+                <button type="submit" class="btn btn-warning text-nowrap">Skicka ny länk</button>
+            </form>
+        </div>
+    {% endif %}
+
     <div class="row g-4">
         <div class="col-lg-8">
             <section class="card shadow-sm h-100">
