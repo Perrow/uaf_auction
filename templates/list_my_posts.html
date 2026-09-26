@@ -31,8 +31,8 @@
             {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
             {% set edit_url = url_for('edit_post') ~ '/' ~ row[0] %}
             {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) %}
-            <div class="card mb-2 {% if registration_open == True %}mobile-post-card{% endif %}"
-                 {% if registration_open == True %}
+            <div class="card mb-2 {% if registration_open == True or print_labels == True %}mobile-post-card{% endif %}"
+                 {% if registration_open == True or print_labels == True %}
                      role="link"
                      tabindex="0"
                      data-edit-url="{{ edit_url }}"
@@ -47,10 +47,18 @@
                                 data-preview-url="{{ preview_url }}"
                                 data-post-id="{{ row[0] }}"
                                 aria-label="Visa större etikett för post {{ row[0] }}">
-                            <img src="{{ preview_url }}"
-                                 alt="Etikett för post {{ row[0] }}"
-                                 class="{% if description_overflow %}border border-3 border-danger rounded{% endif %}"
-                                 style="height: 42px; width: auto; cursor: zoom-in;">
+                            <span class="label-preview-stack">
+                                <img src="{{ preview_url }}"
+                                     alt="Etikett för post {{ row[0] }}"
+                                     class="label-preview-image {% if description_overflow %}border border-3 border-danger rounded{% endif %}"
+                                     style="height: 42px; width: auto; cursor: zoom-in;">
+                                {% if post_has_extra_label(row[0]) %}
+                                    <img src="{{ url_for('static', filename='img/extra_label_overlay.png') }}"
+                                         class="label-extra-overlay"
+                                         alt=""
+                                         aria-hidden="true">
+                                {% endif %}
+                            </span>
                         </button>
 
                         <div class="flex-grow-1 min-w-0">
@@ -91,8 +99,10 @@
                 <th>Beskrivning</th>
                 <th>Godstyp</th>
                 <th data-sort="none">Bildsök</th>
-                {% if registration_open == True %}
+                {% if registration_open == True or print_labels == True %}
                     <th data-sort="none">Editera</th>
+                {% endif %}
+                {% if registration_open == True %}
                     <th data-sort="none">Ta bort</th>
                 {% endif %}
             </tr>
@@ -111,10 +121,18 @@
                                 data-preview-url="{{ preview_url }}"
                                 data-post-id="{{ row[0] }}"
                                 aria-label="Visa större etikett för post {{ row[0] }}">
-                            <img src="{{ preview_url }}"
-                                 alt="Etikett för post {{ row[0] }}"
-                                 class="{% if description_overflow %}border border-3 border-danger rounded{% endif %}"
-                                 style="height: 60px; width: auto; cursor: zoom-in;">
+                            <span class="label-preview-stack">
+                                <img src="{{ preview_url }}"
+                                     alt="Etikett för post {{ row[0] }}"
+                                     class="label-preview-image {% if description_overflow %}border border-3 border-danger rounded{% endif %}"
+                                     style="height: 60px; width: auto; cursor: zoom-in;">
+                                {% if post_has_extra_label(row[0]) %}
+                                    <img src="{{ url_for('static', filename='img/extra_label_overlay.png') }}"
+                                         class="label-extra-overlay"
+                                         alt=""
+                                         aria-hidden="true">
+                                {% endif %}
+                            </span>
                         </button>
                     </td>
                     <td>{{ row[1] }}</td>
@@ -129,8 +147,10 @@
                             <i class="fa fa-picture-o" aria-hidden="true"></i> Bildsök
                         </a>
                     </td>
-                    {% if registration_open == True %}
+                    {% if registration_open == True or print_labels == True %}
                         <td><a class="btn btn-sm btn-warning" href="{{ url_for('edit_post') }}/{{ row[0] }}"><i class="fa fa-pencil" aria-hidden="true"></i> Editera</a></td>
+                    {% endif %}
+                    {% if registration_open == True %}
                         <td><a class="btn btn-sm btn-danger" href="{{ url_for('delete_post') }}/{{ row[0] }}"><i class="fa fa-trash" aria-hidden="true"></i> Ta bort</a></td>
                     {% endif %}
                 </tr>

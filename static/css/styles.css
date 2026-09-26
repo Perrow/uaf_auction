@@ -191,3 +191,23 @@ thead .sorting_desc {
 .bg-danger {
     padding: .5rem;
 }
+
+
+.label-preview-stack {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+}
+
+.label-preview-image {
+    display: block;
+}
+
+.label-extra-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+}
