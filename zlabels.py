@@ -299,8 +299,11 @@ class ZLabels(object):
         start_y = self.paper_height
         saved = False
         count = 0
+        # Only sellers that actually have labels affect the label layout.
+        sellers_with_labels = [seller for seller in data if seller[4]]
+
         # Loop over sellers in data
-        for seller in data:
+        for seller_index, seller in enumerate(sellers_with_labels):
 
             saved = False
             seller_id = seller[0]
@@ -482,14 +485,15 @@ class ZLabels(object):
 
                 count += 1
 
-            # if new seller add an empty row and empty labels on current row
-            tot_row = math.floor(count / 3)
-            column = count % 3
-            if column > 0:  # one or two labels on current row add to rows to make an empty row
-                tot_row += 2
-            else:
-                tot_row += 1  # three labels on current row only add one empty row
-            count = tot_row * 3
+            # Add one empty label row only between sellers that have labels.
+            if seller_index < len(sellers_with_labels) - 1:
+                tot_row = math.floor(count / 3)
+                column = count % 3
+                if column > 0:  # one or two labels on current row: finish row + one empty row
+                    tot_row += 2
+                else:
+                    tot_row += 1  # complete row: add one empty row
+                count = tot_row * 3
 
         if not saved:
             canvas.save()
