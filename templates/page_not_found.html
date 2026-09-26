@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %} Error, page not found {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
+{% block title %} Sidan hittades inte {% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Page not found, 404 </h1>
-    <p>The page you requested was not found on the server.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 text-center">
+            <div class="display-1 fw-semibold text-body-secondary">404</div>
+            <h1 class="h2 mb-3">Sidan hittades inte</h1>
+            <p class="text-body-secondary mb-4">Sidan du försökte öppna finns inte eller har flyttats.</p>
+            <a class="btn btn-primary" href="{{ url_for('index') }}">Till startsidan</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

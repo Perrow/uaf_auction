@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% block title %} Error, page not found {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
+{% block title %} Inloggning misslyckades {% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Login misslyckades, 401 </h1>
-    <p>Kontrollera dina användaruppgifter.</p>
+<div class="container py-4">
+    <div class="alert alert-danger" role="alert">
+        <h1 class="h4 alert-heading">Inloggningen misslyckades</h1>
+        <p class="mb-0">Kontrollera dina användaruppgifter och försök igen.</p>
+    </div>
 </div>
 {% endblock %}

@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% block title %} Om {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Om </h1>
-        <p>Det här är version {{ version }} av auktions- och loppisprogrammet utvecklat av Uppsala Akvarieförening. <br>
-            Det är släppt under den öppna licensen GPL 3. </p>
-
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h3 mb-3">Om</h1>
+                    <p class="mb-2">Det här är version <strong>{{ version }}</strong> av auktions- och loppisprogrammet utvecklat av Uppsala Akvarieförening.</p>
+                    <p class="mb-0 text-body-secondary">Programmet är släppt under den öppna licensen GPL 3.</p>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

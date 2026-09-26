@@ -1,78 +1,188 @@
 {% extends "base.html" %}
 {% block title %} Rapporter {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
 {% block body %}
-<div class="container">
-    <h1> Rapporter </h1>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
+        <div>
+            <h1 class="mb-1">Rapporter</h1>
+            <p class="text-body-secondary mb-0">Skapa PDF-filer eller skicka rapporter direkt till konfigurerad skrivare.</p>
+        </div>
+    </div>
 
-    <table class="table-hover">
-        <tr>
-            <td>Etiketter för alla säljare:</td>
-   
-                            
-                    <td><a class="btn btn-link" href=" {{ url_for('labels_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('labels_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Outskrivna etiketter för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('unprinted_labels') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('unprinted_labels_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>       
-        <tr>
-            <td>Markera etiketter för alla säljare som ej utskrivna:</td>
-            <td></td>
-            <td><a class="btn btn-default" href=" {{ url_for('reset_printed_labels') }} ">
-                <span class="glyphicon glyphicon-refresh"></span> Reset </a>
-            </td>
-        </tr>           
-        <tr>
-            <td>Sammanställning för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('compilation_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Sammanställning för alla incheckade säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('compilation_view_checked') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('compilation_server_print_checked') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>        
-        <tr>
-            <td>Inlämningskvitton för alla säljare:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('receipt_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Ekonomisk rapport:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('economic_report_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('economic_report_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Fastabordet säljarkvitto:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('clerk_receipt_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('clerk_receipt_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>        
-        <tr>
-            <td>Auktionslista:</td>
-            <td><a class="btn btn-link" href=" {{ url_for('wall_list_view') }} "> <span class="fa fa-file-pdf-o"> PDF</span> </a></td>
-            <td><a class="btn btn-default" href=" {{ url_for('wall_list_server_print') }} ">
-                <span class="glyphicon glyphicon-print"></span> Skriv ut </a>
-            </td>
-        </tr>
-    </table>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th scope="col">Rapport</th>
+                    <th scope="col" class="text-nowrap">PDF</th>
+                    <th scope="col" class="text-nowrap">Skriv ut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Etiketter för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm js-label-pdf" data-label-kind="alla etiketter" href="{{ url_for('labels_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Outskrivna etiketter för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm js-label-pdf" data-label-kind="outskrivna etiketter" href="{{ url_for('unprinted_labels') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('unprinted_labels_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Markera etiketter för alla säljare som ej utskrivna</td>
+                    <td></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reset_printed_labels') }}"><i class="fa fa-refresh" aria-hidden="true"></i> Återställ</a></td>
+                </tr>
+                <tr>
+                    <td>Sammanställning för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('compilation_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('compilation_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Sammanställning för alla incheckade säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('compilation_view_checked') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('compilation_server_print_checked') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Inlämningskvitton för alla säljare</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('receipt_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Ekonomisk rapport</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('economic_report_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('economic_report_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Fastabordet säljarkvitto</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('clerk_receipt_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('clerk_receipt_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                <tr>
+                    <td>Betalningar</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('payment_report_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Auktionslista</td>
+                    <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('wall_list_view') }}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></td>
+                    <td><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('wall_list_server_print') }}"><i class="fa fa-print" aria-hidden="true"></i> Skriv ut</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="label-print-confirmation" class="alert alert-secondary mt-3 d-none" role="status">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div id="label-print-confirmation-text"></div>
+            <button id="mark-labels-printed" type="button" class="btn btn-primary text-nowrap">Markera som utskrivna</button>
+        </div>
+    </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+
+    const confirmation = document.getElementById('label-print-confirmation');
+    const confirmationText = document.getElementById('label-print-confirmation-text');
+    const markButton = document.getElementById('mark-labels-printed');
+    let markUrl = null;
+
+    function showStatus(message, style) {
+        confirmation.classList.remove('d-none', 'alert-secondary', 'alert-success', 'alert-danger', 'alert-info');
+        confirmation.classList.add(style);
+        confirmationText.textContent = message;
+    }
+
+    async function downloadLabelPdf(link) {
+        const response = await fetch(link.href, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/pdf' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const maxId = response.headers.get('X-Label-Max-Id');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = objectUrl;
+        downloadLink.download = 'labels.pdf';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(objectUrl);
+
+        if (!maxId) {
+            markUrl = null;
+            markButton.classList.add('d-none');
+            showStatus('PDF-filen hämtades, men den innehöll inga etiketter att markera som utskrivna.', 'alert-info');
+            return;
+        }
+
+        const separator = link.href.includes('?') ? '&' : '?';
+        markUrl = `${link.href}${separator}mark_printed_through=${encodeURIComponent(maxId)}`;
+        markButton.classList.remove('d-none');
+        markButton.disabled = false;
+        showStatus(
+            `PDF med ${link.dataset.labelKind} har hämtats. Vill du markera etikett ${maxId} och alla etiketter med lägre nummer som utskrivna?`,
+            'alert-secondary'
+        );
+    }
+
+    document.querySelectorAll('.js-label-pdf').forEach(function (link) {
+        link.addEventListener('click', async function (event) {
+            event.preventDefault();
+            link.classList.add('disabled');
+            link.setAttribute('aria-disabled', 'true');
+
+            try {
+                await downloadLabelPdf(link);
+            } catch (error) {
+                console.error('Kunde inte hämta etikett-PDF:', error);
+                markUrl = null;
+                markButton.classList.add('d-none');
+                showStatus('Kunde inte hämta etikett-PDF:en.', 'alert-danger');
+            } finally {
+                link.classList.remove('disabled');
+                link.removeAttribute('aria-disabled');
+            }
+        });
+    });
+
+    markButton.addEventListener('click', async function () {
+        if (!markUrl) {
+            return;
+        }
+
+        markButton.disabled = true;
+        try {
+            const response = await fetch(markUrl, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { Accept: 'application/pdf' }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            markUrl = null;
+            markButton.classList.add('d-none');
+            showStatus('Etiketterna har markerats som utskrivna.', 'alert-success');
+        } catch (error) {
+            console.error('Kunde inte markera etiketterna som utskrivna:', error);
+            markButton.disabled = false;
+            showStatus('Kunde inte markera etiketterna som utskrivna.', 'alert-danger');
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,240 +1,449 @@
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    var tot_sum = 0;
-    
-    // TEst function for development
-    var func_test = function (post_id, price_id) {
-//        $("#form_elements").append('<label for="' + post_id + '">Post nr:</label> <input class="loppis" id="' + post_id + '" name="post_id" type="text" value=""> <label for="' + price_id + '">Pris:</label>  <input class="loppis price" id="' + price_id + '" name="price" type="text" value="">');
-        var jq_post_id = "#" + post_id;
-        var jq_price_id = "#" + price_id;
-        console.log("func_test");
 
-        $(jq_post_id).blur(function () {
-            $(jq_price_id).val($(jq_post_id).val());
+    const formElements = document.getElementById('form_elements');
+    const addButton = document.getElementById('addbutton');
+    const sumButton = document.getElementById('sumbutton');
+    const changeButton = document.getElementById('changebutton');
+    const swishButton = document.getElementById('swishbutton');
+    const swishQrContainer = document.getElementById('swish_qr_container');
+    const swishQrImage = document.getElementById('swish_qr_image');
+    const swishQrDetails = document.getElementById('swish_qr_details');
+    const form = document.getElementById('flea_market_form');
+
+    const loadingPostInputs = new WeakSet();
+
+    let totalSum = 0;
+    let rowNum = 1;
+    let swishQrObjectUrl = null;
+
+    function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value || '';
+        }
+    }
+
+    function setValue(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.value = value ?? '';
+        }
+    }
+
+    function isNumeric(value) {
+        return value !== '' && Number.isFinite(Number(value));
+    }
+
+    function normalizePostId(value) {
+        const trimmed = value.trim();
+        if (/^\d+$/.test(trimmed)) {
+            return String(Number(trimmed));
+        }
+        return trimmed;
+    }
+
+    function clearPostDetails() {
+        setText('scientific_name', '');
+        setText('plain_name', '');
+        setText('description', '');
+        setText('seller_name', '');
+        setText('type', '');
+        setText('sold', '');
+        setText('checked_in', '');
+        setText('closed', '');
+    }
+
+    function clearSwishQr() {
+        if (swishQrObjectUrl) {
+            URL.revokeObjectURL(swishQrObjectUrl);
+            swishQrObjectUrl = null;
+        }
+        if (swishQrImage) {
+            swishQrImage.removeAttribute('src');
+        }
+        if (swishQrDetails) {
+            swishQrDetails.textContent = '';
+        }
+        if (swishQrContainer) {
+            swishQrContainer.classList.add('d-none');
+        }
+    }
+
+    function hasEmptyNewRow() {
+        return Array.from(document.querySelectorAll('.post_id')).some(function (input) {
+            return input.value.trim() === '';
         });
-    };
+    }
 
-    // Handlers for the items in the input rows
-    var func = function (id) {
-        console.log(id);
-//        var row_id = "row" + id;
-        var post_id = "post" + id;
-        var price_id = "price" + id;
-        var info_id = "info" + id;
-        var remove_id = "remove" + id;
-        console.log("Remove: " + remove_id, id);
+    function findDuplicatePostInput(currentInput) {
+        const normalizedPostId = normalizePostId(currentInput.value);
+        if (normalizedPostId === '') {
+            return null;
+        }
 
-        // Leave price input
-        $('#' + price_id).blur(function () {
-            if ($.isNumeric($('#' + price_id).val())) {
-                $('#error').html("").fadeIn();
-            } else {
-                $('#error').html("Pris måste ges").fadeIn();
+        return Array.from(document.querySelectorAll('.post_id')).find(function (input) {
+            return input !== currentInput
+                && input.value.trim() !== ''
+                && normalizePostId(input.value) === normalizedPostId;
+        }) || null;
+    }
+
+    function findFirstDuplicatePostInput() {
+        const seenPostIds = new Set();
+
+        for (const input of document.querySelectorAll('.post_id')) {
+            const normalizedPostId = normalizePostId(input.value);
+            if (normalizedPostId === '') {
+                continue;
             }
-            calculate_sum();
-        });
+            if (seenPostIds.has(normalizedPostId)) {
+                return input;
+            }
+            seenPostIds.add(normalizedPostId);
+        }
 
-        // Calculates the sum when cursor leaves the price input box
-        $('#' + price_id).change(function () {
-            calculate_sum();
-        });
-        
-        //This calculates the sum when the value in the price input box changes on the fly
-        var e = document.getElementById(price_id);
-        e.oninput = calculate_sum;
-        e.onpropertychange = e.oninput; // for IE8
+        return null;
+    }
 
-        // Removes a row in the form
-        $('#' + remove_id).click(function () {
-            var row_id = "row" + id;
-            console.log("Remove: " + row_id);
-//            $('#' + row_id).html("").fadeIn();
-            $("#" + row_id).remove();
-            calculate_sum();
-        });
+    function calculateSum() {
+        totalSum = Array.from(document.querySelectorAll('.price')).reduce(function (sum, input) {
+            return sum + (isNumeric(input.value) ? Number(input.value) : 0);
+        }, 0);
 
-        // Fetches info about the post and displays
-        $('#' + post_id).blur(function () {
-            var cur_post_id = $('#' + post_id).val();
-            var price_id = "price" + id;
+        setText('sum', 'Att betala: ' + totalSum);
+        setText('sum2', String(totalSum));
+        clearSwishQr();
+    }
 
-            $(this).removeClass('newRow');
-            if ($("input").hasClass("newRow")) {
-                console.log("Found a newRow");
-            } else {
-                console.log("postid: " + cur_post_id);
-                if (cur_post_id != "") {
-                    add_row();
-                }
+    function collectSwishItems() {
+        const items = [];
+
+        for (const postInput of document.querySelectorAll('.post_id')) {
+            const postId = postInput.value.trim();
+            if (postId === '') {
+                continue;
             }
 
-            $.ajax({
-                url: 'json/' + cur_post_id,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.hasOwnProperty('error')) {
-                        console.log("Not found");
-                        $("#" + price_id).val("");
-                        $('#scientific_name').html("").fadeIn();
-                        $('#plain_name').html("").fadeIn();
-                        $('#description').html("").fadeIn();
-                        $('#seller_name').html("").fadeIn();
-                        $('#type').html("").fadeIn();
-                        $('#sold').html("").fadeIn();
-                        $('#checked_in').html("").fadeIn();
-                        $('#closed').html("").fadeIn();
-                        $('#error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
-                    } else {
-                        console.log("Found");
-                        console.log(info_id)
-                        $("#" + info_id).html([data.scientific_name, data.plain_name].join(" ")).fadeIn();
-                        $("#" + price_id).val(data.fixed_price);
-                        $('#scientific_name').html(data.scientific_name).fadeIn();
-                        $('#plain_name').html(data.plain_name).fadeIn();
-                        $('#description').html(data.description).fadeIn();
-                        $('#seller_name').html(data.name).fadeIn()
-                        //          Warning for posts not registrated for auction
-                        if (data.type != "fixed_price") {
-                            $('#type').html("Ej registrerad för fasta bordet").fadeIn();
-                        } else {
-                            $('#type').html("").fadeIn();
-                        }
-                        if (data.is_checked_in != "yes") {
-                            $('#checked_in').html("Ej incheckad post").fadeIn();
-                        } else {
-                            $('#checked_in').html("").fadeIn();
-                        }
-                        if (data.is_closed == "yes") {
-                            $('#closed').html("Säljaren är stängd").fadeIn();
-                        } else {
-                            $('#closed').html("").fadeIn();
-                        }
-                        if (data.sold_on !== null) {
-                            $('#sold').html("Redan sålt").fadeIn();
-                            console.log("price_id: " + price_id + " id: " + id + " sold for: " + data.sold_price);
-                            $("#" + price_id).val(data.sold_price);
-                        } else {
-                            $('#sold').html("").fadeIn();
-//                         document.getElementById("#" + price_id).value = "";
-                        }
-                        $('#error').html("").fadeIn();
-                        $("#" + price_id).trigger("change");
-                    }
-                    console.log('.ajax() request returned successfully.');
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    $("#" + price_id).val("");
-                    $('#scientific_name').html("").fadeIn();
-                    $('#plain_name').html("").fadeIn();
-                    $('#description').html("").fadeIn();
-                    $('#seller_name').html("").fadeIn();
-                    $('#type').html("").fadeIn();
-                    $('#sold').html("").fadeIn();
-                    $('#checked_in').html("").fadeIn();
-                    $('#closed').html("").fadeIn();
-                    $('#error').html("INGET POST ID GAVS").fadeIn();
-                    console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-                }
+            const rowId = postInput.id.substring(4);
+            const priceInput = document.getElementById('price' + rowId);
+            if (!priceInput || !isNumeric(priceInput.value)) {
+                return null;
+            }
+
+            items.push({
+                post_id: normalizePostId(postId),
+                price: priceInput.value.trim()
             });
-        });
-    };
+        }
 
-
-    // Handler for add button
-    var rowNum = 1;
-    $("#addbutton").click(function () {
-        console.log("addbutton clicked");
-        add_row();
-    });
-
-    // Add a new row of input boxes
-    function add_row() {
-        rowNum++;
-        var row_id = "row" + rowNum;
-        var post_id = "post" + rowNum;
-        var price_id = "price" + rowNum;
-        var info_id = "info" + rowNum;
-        var remove_id = "remove" + rowNum;
-        var html_str = '<div id="' + row_id + '">' +
-            '<div class="row" >' +
-            '<div class="col-sm-2">' +
-            '<input class="loppis form-control newRow" id="' + post_id + '" name="post_id" type="text" value="">' +
-            '</div>' +
-            '<div class="col-sm-2">' +
-            '<input class="loppis price form-control" id="' + price_id + '" name="price" type="text" value="">' +
-            '</div>' +
-            '<div class="col-sm-6">' +
-            '<div class="form-control" id="' + info_id + '"> </div>' +
-            '</div>' +
-            '<div class="col-sm-2">' +
-            '<button type="button" id="' + remove_id + '" class="btn btn-danger btn-block" tabindex="-1">Ta bort <span class="glyphicon glyphicon-remove"></span></button>' +
-            '</div>' +
-            '</div>' +
-            '<br>' +
-            '</div>';
-
-        $("#form_elements").append(html_str);
-        // Add handler to items in the new row
-        func(rowNum);
+        return items;
     }
 
+    async function createSwishQr(triggerButton) {
+        calculateSum();
 
-    // Handler for sumbutton
-    $("#sumbutton").click(function () {
-        calculate_sum();
-    });
-    
+        const duplicateInput = findFirstDuplicatePostInput();
+        if (duplicateInput) {
+            setText('error', 'SAMMA POSTNUMMER KAN INTE FINNAS MER ÄN EN GÅNG I LISTAN');
+            duplicateInput.focus();
+            return;
+        }
 
-    // Calculate the sum the customer should pay    
-    function calculate_sum() {
-        tot_sum = 0;
-        $('.price').each(function (i, obj) {
-            console.log(this.value);
-            tot_sum += Number(this.value);
-            console.log(tot_sum);
-            $('#sum').html("Att betala: " + tot_sum).fadeIn();
-            $('#sum2').html( tot_sum).fadeIn();
-        });
-    }
+        const items = collectSwishItems();
+        if (!items || items.length === 0) {
+            setText('error', 'LÄGG TILL MINST EN POST MED ETT GILTIGT PRIS FÖRST');
+            return;
+        }
 
-    // Calculate the change the custumer should receive
-    $("#changebutton").click( function () {
-        console.log("changebutton");
-        var from_seller = Number($("#from_seller").val());
-        console.log(from_seller);
-        console.log(tot_sum);
-        var change = from_seller - tot_sum;
-        console.log(change);
-        $("#to_seller").val(change);
-    });
-    
-    // Check that all posts has a price before submitting
-    $("#submit").click(function () {
-        var all_ok = true;
-        console.log("checking prices");
-        $(".price").each(function () {
-            var price_id = $(this).attr('id'); //get the id of current price input
-            var post_id = "#post" + price_id.substring(5); // construct a id tag for matching post_id input
-            if ($(post_id).val() != "") { // Only check prices for rows with post nr 
-                if ($.isNumeric($(this).val())) {
-                    $('#error').html("").fadeIn();
-                } else {
-                    $('#error').html("Pris måste ges").fadeIn();
-                    all_ok = false;
+        const itemTotal = items.reduce(function (sum, item) {
+            return sum + Number(item.price);
+        }, 0);
+        if (itemTotal !== totalSum || totalSum <= 0) {
+            setText('error', 'KONTROLLERA ATT ALLA PRISER HÖR TILL EN POST OCH ÄR STÖRRE ÄN NOLL');
+            return;
+        }
+
+        const activeButton = triggerButton || sumButton;
+        const originalButtonText = activeButton ? activeButton.textContent : '';
+        if (activeButton) {
+            activeButton.disabled = true;
+            activeButton.textContent = 'Skapar Swish-QR...';
+        }
+
+        try {
+            const response = await fetch('/swish_qr', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'image/png',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: items })
+            });
+
+            if (!response.ok) {
+                let message = 'KUNDE INTE SKAPA SWISH-QR';
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) {
+                        message = errorData.error;
+                    }
+                } catch (error) {
+                    // Keep the generic message if the response was not JSON.
                 }
+                throw new Error(message);
+            }
+
+            const qrBlob = await response.blob();
+            swishQrObjectUrl = URL.createObjectURL(qrBlob);
+            if (swishQrImage) {
+                swishQrImage.src = swishQrObjectUrl;
+            }
+
+            const amount = response.headers.get('X-Swish-Amount') || String(totalSum);
+            const message = response.headers.get('X-Swish-Message') || '';
+            if (swishQrDetails) {
+                swishQrDetails.textContent = amount + ' kr' + (message ? ' · ' + message : '');
+            }
+            if (swishQrContainer) {
+                swishQrContainer.classList.remove('d-none');
+            }
+            setText('error', '');
+        } catch (error) {
+            clearSwishQr();
+            setText('error', error.message || 'KUNDE INTE SKAPA SWISH-QR');
+            console.error('Swish QR kunde inte skapas:', error);
+        } finally {
+            if (activeButton) {
+                activeButton.disabled = false;
+                activeButton.textContent = originalButtonText;
+            }
+        }
+    }
+
+    function focusNextEmptyPostInput(currentInput) {
+        const postInputs = Array.from(document.querySelectorAll('.post_id'));
+        const currentIndex = postInputs.indexOf(currentInput);
+        const nextEmptyInput = postInputs.slice(currentIndex + 1).find(function (input) {
+            return input.value.trim() === '';
+        });
+
+        if (nextEmptyInput) {
+            nextEmptyInput.focus();
+            return;
+        }
+
+        const newPostInput = addRow();
+        newPostInput.focus();
+    }
+
+    async function loadPost(id, focusNextAfterLoad) {
+        const postInput = document.getElementById('post' + id);
+        const priceInput = document.getElementById('price' + id);
+        const info = document.getElementById('info' + id);
+
+        if (loadingPostInputs.has(postInput)) {
+            return;
+        }
+
+        const postId = postInput.value.trim();
+
+        if (postId === '') {
+            priceInput.value = '';
+            info.textContent = '\u00a0';
+            clearPostDetails();
+            setText('error', 'INGET POST ID GAVS');
+            calculateSum();
+            return;
+        }
+
+        const duplicateInput = findDuplicatePostInput(postInput);
+        if (duplicateInput) {
+            priceInput.value = '';
+            info.textContent = '\u00a0';
+            postInput.value = '';
+            clearPostDetails();
+            setText('error', 'POSTNUMMER ' + postId + ' FINNS REDAN I LISTAN');
+            calculateSum();
+            postInput.focus();
+            return;
+        }
+
+        if (!hasEmptyNewRow()) {
+            addRow();
+        }
+
+        loadingPostInputs.add(postInput);
+
+        try {
+            const response = await fetch('json/' + encodeURIComponent(postId), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+
+            const data = await response.json();
+
+            if (Object.prototype.hasOwnProperty.call(data, 'error')) {
+                priceInput.value = '';
+                info.textContent = '\u00a0';
+                clearPostDetails();
+                setText('error', 'POSTEN FINNS INTE I DATABASEN');
+                calculateSum();
+                return;
+            }
+
+            info.textContent = [data.scientific_name, data.plain_name].filter(Boolean).join(' ');
+            priceInput.value = data.fixed_price ?? '';
+            setText('scientific_name', data.scientific_name);
+            setText('plain_name', data.plain_name);
+            setText('description', data.description);
+            setText('seller_name', data.name);
+            setText('type', data.type !== 'fixed_price' ? 'Ej registrerad för fasta bordet' : '');
+            setText('checked_in', data.is_checked_in !== 'yes' ? 'Ej incheckad post' : '');
+            setText('closed', data.is_closed === 'yes' ? 'Säljaren är stängd' : '');
+
+            if (data.sold_on !== null) {
+                setText('sold', 'Redan sålt');
+                priceInput.value = data.sold_price ?? '';
+            } else {
+                setText('sold', '');
+            }
+
+            setText('error', '');
+            calculateSum();
+
+            if (focusNextAfterLoad) {
+                focusNextEmptyPostInput(postInput);
+            }
+        } catch (error) {
+            priceInput.value = '';
+            info.textContent = '\u00a0';
+            clearPostDetails();
+            setText('error', 'INGET POST ID GAVS');
+            calculateSum();
+            console.error('Postuppslag misslyckades:', error);
+        } finally {
+            loadingPostInputs.delete(postInput);
+        }
+    }
+
+    function bindRow(id) {
+        const postInput = document.getElementById('post' + id);
+        const priceInput = document.getElementById('price' + id);
+        const removeButton = document.getElementById('remove' + id);
+
+        priceInput.addEventListener('blur', function () {
+            setText('error', priceInput.value === '' || isNumeric(priceInput.value) ? '' : 'Pris måste ges');
+            calculateSum();
+        });
+        priceInput.addEventListener('input', calculateSum);
+        priceInput.addEventListener('change', calculateSum);
+
+        removeButton.addEventListener('click', function () {
+            const row = document.getElementById('row' + id);
+            if (row) {
+                row.remove();
+                calculateSum();
             }
         });
-        if (all_ok) {
-            return true;
+
+        postInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                event.stopPropagation();
+                loadPost(id, true);
+            }
+        });
+
+        postInput.addEventListener('blur', function () {
+            loadPost(id, false);
+        });
+    }
+
+    function addRow() {
+        rowNum += 1;
+        const id = rowNum;
+        const wrapper = document.createElement('div');
+        wrapper.id = 'row' + id;
+        wrapper.className = 'sale-row mb-3';
+        wrapper.innerHTML = `
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label d-md-none" for="post${id}">Post nr</label>
+                    <input class="loppis post_id form-control" id="post${id}" name="post_id" type="text" autocomplete="off">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label d-md-none" for="price${id}">Pris</label>
+                    <input class="loppis price form-control" id="price${id}" name="price" type="text" inputmode="decimal" autocomplete="off">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label d-md-none" for="info${id}">Namn</label>
+                    <div class="form-control bg-body-tertiary" id="info${id}" aria-live="polite">&nbsp;</div>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="button" id="remove${id}" class="btn btn-outline-danger" tabindex="-1">
+                        <i class="fa fa-trash" aria-hidden="true"></i> Ta bort
+                    </button>
+                </div>
+            </div>`;
+
+        formElements.appendChild(wrapper);
+        bindRow(id);
+        return document.getElementById('post' + id);
+    }
+
+    addButton.addEventListener('click', addRow);
+    sumButton.addEventListener('click', function () {
+        createSwishQr(sumButton);
+    });
+
+    changeButton.addEventListener('click', function () {
+        const received = Number(document.getElementById('from_seller').value);
+        setValue('to_seller', received - totalSum);
+    });
+
+    if (swishButton) {
+        swishButton.addEventListener('click', function () {
+            createSwishQr(swishButton);
+        });
+    }
+
+    form.addEventListener('submit', function (event) {
+        let allOk = true;
+        const duplicateInput = findFirstDuplicatePostInput();
+
+        if (duplicateInput) {
+            setText('error', 'SAMMA POSTNUMMER KAN INTE FINNAS MER ÄN EN GÅNG I LISTAN');
+            event.preventDefault();
+            duplicateInput.focus();
+            return;
+        }
+
+        document.querySelectorAll('.price').forEach(function (priceInput) {
+            const rowId = priceInput.id.substring(5);
+            const postInput = document.getElementById('post' + rowId);
+
+            if (postInput && postInput.value.trim() !== '' && !isNumeric(priceInput.value)) {
+                allOk = false;
+            }
+        });
+
+        if (!allOk) {
+            setText('error', 'Pris måste ges');
+            event.preventDefault();
         } else {
-            return false;
+            setText('error', '');
         }
     });
 
-    // Set handler for first post
-    func(1);
+    bindRow(1);
+    calculateSum();
 
-    console.log('Everything is ready.');
+    const firstPostInput = document.getElementById('post1');
+    if (firstPostInput) {
+        firstPostInput.focus();
+    }
 });
-
-

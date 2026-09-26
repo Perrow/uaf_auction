@@ -1,192 +1,121 @@
-$(document).ready(function () {
-    'use strict';
-    var current_data = "";
-    var next_data = "";
-    var empty_data = { description: "", fixed_price: "", minimum_price: "", name: "", obj_id: "", plain_name: "", scientific_name: "", sold_on: "", sold_price: "", type: "" };
-    var not_found_data = { description: "", fixed_price: "", minimum_price: "", name: "", obj_id: "", plain_name: "Posten finns inte", scientific_name: "", sold_on: "", sold_price: "", type: "" };
+'use strict';
 
-    // leave the input box, with tab for example
-    $('#post_id').blur(function () {
-        fetch_data();
-        get_sold_stat();
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    const postInput = document.getElementById('post_id');
+    const form = document.getElementById('display_form');
 
-    // Press enter
-    // $(document).keypress(function (e) {
-    //     if (e.which == 13) {
-    //         console.log('You pressed enter!');
-    //         fetch_data();
-    //     }
-    // });
+    let currentData = null;
+    let nextData = null;
 
-    var display_current = function () {
-        console.log("Display current");
-        var cur_id = "";
-        if (current_data.obj_id == null || current_data.obj_id == ""){
-            cur_id = "";
-            console.log("id = null");
-        } else {
-            cur_id = "Post : " + current_data.obj_id;
-        }
-        
-        $('#current_post_id').html(cur_id).fadeIn();
-        $('#current_scientific_name').html(current_data.scientific_name).fadeIn();
-        if (current_data.minimum_price == null || current_data.minimum_price == "") {
-            $('#current_min_price').html("").fadeIn();
-        } else {
-            $('#current_min_price').html("Minpris: " + current_data.minimum_price + "kr").fadeIn();
-        }
-        $('#current_plain_name').html(current_data.plain_name).fadeIn();
-        $('#current_description').html(current_data.description).fadeIn();
-        if (current_data.name == null || current_data.name == "") {
-            $('#current_seller_name').html("").fadeIn();
-        } else {
-            $('#current_seller_name').html("Säljare: " + current_data.name).fadeIn();
-        }
-
+    const emptyData = {
+        description: '', minimum_price: '', name: '', obj_id: '', plain_name: '', scientific_name: ''
     };
 
-    var display_next = function () {
-        console.log("Display next");
-        $('#next_post_id').html(next_data.obj_id).fadeIn();
-        $('#next_scientific_name').html(next_data.scientific_name).fadeIn();
-        $('#next_min_price').html(next_data.minimum_price).fadeIn();
-        $('#next_plain_name').html(next_data.plain_name).fadeIn();
-        $('#next_description').html(next_data.description).fadeIn();
-        $('#next_seller_name').html(next_data.name).fadeIn();
-    };
-
-    var clear_current = function () {
-        console.log("Clearing");
-        $('#current_post_id').html("").fadeIn();
-        $('#current_scientific_name').html("").fadeIn();
-        $('#current_min_price').html("").fadeIn();
-        $('#current_plain_name').html("").fadeIn();
-        $('#current_description').html("").fadeIn();
-        $('#current_seller_name').html("").fadeIn();
-        $('#current_type').html("").fadeIn();
-        $('#current_sold').html("").fadeIn();
-        $('#current_error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
-    };
-
-    var clear_next = function () {
-        console.log("Clearing");
-        $('#next_post_id').html("").fadeIn();
-        $('#next_scientific_name').html("").fadeIn();
-        $('#next_min_price').html("").fadeIn();
-        $('#next_plain_name').html("").fadeIn();
-        $('#next_description').html("").fadeIn();
-        $('#next_seller_name').html("").fadeIn();
-        $('#next_type').html("").fadeIn();
-        $('#next_sold').html("").fadeIn();
-        $('#next_error').html("POSTEN FINNS INTE I DATABASEN").fadeIn();
-    };
-
-    var set_focus = function () {
-        var input = $("#post_id");
-        input.focus();
-    };
-
-    // Fetches post data via ajax from server
-    var fetch_data = function () {
-        console.log("fetch data");
-        var post_id = $('#post_id').val();
-        $('#post_id').val("");
-        $("#post_id").focus();
-        console.log(post_id);
-        if (post_id == "") {
-            console.log("empty data, advance one row");
-            current_data = next_data;
-            next_data = empty_data;
-            display_current();
-            display_next();
-        } else {
-            $.ajax({
-                url: 'json/' + post_id,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.hasOwnProperty('error')) {
-                        console.log("Not found");
-                        current_data = next_data;
-                        next_data = not_found_data;
-                        next_data["obj_id"] = post_id;
-                        display_current();
-                        display_next();
-                    } else {
-                        console.log("Found");
-                        current_data = next_data;
-                        next_data = data;
-                        console.log(data);
-                        display_current();
-                        display_next();
-
-                        // Warning for posts not registrated for auction
-                        if (data.type != "auction") {
-                            $('#current_type').html("Ej registrerad som auktionsgods").fadeIn();
-                        } else {
-                            $('#current_type').html("").fadeIn();
-                        }
-                        if (data.sold_on !== null) {
-                            $('#current_sold').html("Redan sålt").fadeIn();
-                            document.getElementById("price").value = data.sold_price;
-                        } else {
-                            $('#current_sold').html("").fadeIn();
-                            document.getElementById("price").value = "";
-                        }
-                        $('#error').html("").fadeIn();
-                    }
-
-
-                    console.log('.ajax() request returned successfully.');
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    // clear_current();
-                    $('#error').html("INGET POST ID GAVS").fadeIn();
-                    console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
-                }
-            });
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value ?? '';
         }
     };
 
+    const setAlert = (id, message) => {
+        const element = document.getElementById(id);
+        if (!element) {
+            return;
+        }
+        element.textContent = message || '';
+        element.classList.toggle('d-none', !message);
+    };
 
-    // Check that all posts has a price before submitting
-    $("#submit").click(function () {
-        var all_ok = false;
-        console.log("submit clicked");
-        fetch_data();
-        get_sold_stat();
+    function displayCurrent(data) {
+        const value = data || emptyData;
+        const postId = value.obj_id ? `Post: ${value.obj_id}` : '';
+        const minPrice = value.minimum_price !== null && value.minimum_price !== ''
+            ? `Minpris: ${value.minimum_price} kr`
+            : '';
 
-        return false;
-    });
+        setText('current_post_id', postId);
+        setText('current_min_price', minPrice);
+        setText('current_plain_name', value.plain_name);
+        setText('current_scientific_name', value.scientific_name);
+        setText('current_description', value.description);
+        setText('current_seller_name', value.name ? `Säljare: ${value.name}` : '');
+        setAlert('current_type', value.type && value.type !== 'auction' ? 'Ej registrerad som auktionsgods' : '');
+        setAlert('current_sold', value.sold_on !== null && value.sold_on !== undefined ? 'Redan sålt' : '');
+    }
 
-    // Get sold statistic via json and updates progressbars
-    var get_sold_stat = function () {
-        // result = {"total": total, "total_auction": total_auction, "sold_auction": sold_auction, "sold_auction_percent": sold_auction_percent, "total_fleamarket": total_fleamarket, "sold_fleamarket": sold_fleamarket, "sold_fleamarket_percent": sold_fleamarket_percent}
-        $.ajax({
-            url: 'json_sold',
-            dataType: 'json',
-            success: function (data) {
-                if (data.hasOwnProperty('error')) {
-                    console.log("Not found");
-                } else {
-                    console.log("Found");
-                    $('#sold_auction').css('width', data.sold_auction_percent + '%');
-                    $('#sold_fleamarket').css('width', data.sold_fleamarket_percent + '%');
-                    $('#sold_auction_text').html(data.sold_auction + ' av ' + data.total_auction);
-                    $('#sold_fleamarket_text').html(data.sold_fleamarket + ' av ' + data.total_fleamarket);
-                }
-                console.log('.ajax() request returned successfully.');
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('.ajax() request failed: ' + textStatus + ', ' + errorThrown);
+    function displayNext(data) {
+        setText('next_post_id', data?.obj_id || '');
+    }
+
+    async function fetchData() {
+        const postId = postInput.value.trim();
+        postInput.value = '';
+        postInput.focus();
+        setAlert('error', '');
+
+        if (!postId) {
+            currentData = nextData;
+            nextData = null;
+            displayCurrent(currentData);
+            displayNext(nextData);
+            return;
+        }
+
+        try {
+            const response = await fetch(`json/${encodeURIComponent(postId)}`, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-        });
-    };
+            const data = await response.json();
 
+            currentData = nextData;
+            if (Object.prototype.hasOwnProperty.call(data, 'error')) {
+                nextData = { ...emptyData, obj_id: postId, plain_name: 'Posten finns inte' };
+            } else {
+                nextData = data;
+            }
 
-    $('#submit').hide();
-    get_sold_stat();
-    console.log('Everything is ready.');
+            displayCurrent(currentData);
+            displayNext(nextData);
+        } catch (error) {
+            console.error('Kunde inte hämta post:', error);
+            setAlert('error', 'Kunde inte hämta posten');
+        }
+    }
+
+    async function getSoldStat() {
+        try {
+            const response = await fetch('json_sold', { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            if (Object.prototype.hasOwnProperty.call(data, 'error')) {
+                return;
+            }
+
+            document.getElementById('sold_auction').style.width = `${data.sold_auction_percent}%`;
+            document.getElementById('sold_fleamarket').style.width = `${data.sold_fleamarket_percent}%`;
+            setText('sold_auction_text', `${data.sold_auction} av ${data.total_auction}`);
+            setText('sold_fleamarket_text', `${data.sold_fleamarket} av ${data.total_fleamarket}`);
+        } catch (error) {
+            console.error('Kunde inte hämta försäljningsstatistik:', error);
+        }
+    }
+
+    postInput.addEventListener('blur', async function () {
+        await fetchData();
+        await getSoldStat();
+    });
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        await fetchData();
+        await getSoldStat();
+    });
+
+    displayCurrent(null);
+    displayNext(null);
+    getSoldStat();
 });
-
-

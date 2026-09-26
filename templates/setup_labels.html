@@ -1,58 +1,78 @@
 {% extends "base.html" %}
 {% block title %} Setup etiketter {% endblock %}
-{% block head %}
-    {{ super() }}
+{% block styles %}
+<style>
+    .label-format-option {
+        cursor: pointer;
+        border-width: 1px;
+        transition: border-color .15s ease, border-width .15s ease, background-color .15s ease;
+    }
+
+    .label-format-option:has(.label-format-radio:checked) {
+        border-width: 3px;
+        background-color: var(--bs-secondary-bg);
+    }
+
+    .label-format-radio {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .label-format-image {
+        width: 25%;
+        min-width: 90px;
+        max-width: 100px;
+    }
+</style>
 {% endblock %}
 {% block body %}
-    <div class="container">
-        <h1> Etiketter </h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-9">
+            <h1 class="mb-2">Etiketter</h1>
+            <p class="text-body-secondary mb-4">Välj etikettformat och om kanter ska skrivas ut.</p>
 
-        <p>Programmet stödjer 3 olika storlekar av etiketter. Alla med 24 etiketter per ark, 3 kolumner 8 rader.</p>
-        <form action="" method="POST">
-            <div class="form-group">
-                {% if label_type == "with_margins_24" %}
-                    <input type="radio" name="label" value="with_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt och mellan ettiketkolumnerna, 64 * 34 mm   <br>
-                {% else %}
-                    <input type="radio" name="label" value="with_margins_24"> <img src="{{ url_for('static', filename = 'img/24_label_64_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt och mellan ettiketkolumnerna, 64 * 34 mm   <br>
-                {% endif %}
-                <br>
-                {% if label_type == "with_margins_24_typ_2" %}
-                    <input type="radio" name="label" value="with_margins_24_typ_2" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_65_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 * 34 mm   <br>
-                {% else %}
-                    <input type="radio" name="label" value="with_margins_24_typ_2"> <img src="{{ url_for('static', filename = 'img/24_label_65_34.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 * 34 mm  <br>
-                {% endif %}
-                <br>
-                {% if label_type == "with_topmargin_24" %}
-                    <input type="radio" name="label" value="with_topmargin_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_70_36.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler över och under , 70 *
-                    36 mm<br>
-                {% else %}
-                    <input type="radio" name="label" value="with_topmargin_24"> <img src="{{ url_for('static', filename = 'img/24_label_70_36.jpg') }}" alt="etiketter" height="100"> 24 etiketter med marginaler över och under , 70 * 36 mm<br>
-                {% endif %}
-                <br>
-                {% if label_type == "without_margins_24" %}
-                    <input type="radio" name="label" value="without_margins_24" checked="checked"> <img src="{{ url_for('static', filename = 'img/24_label_70_37.jpg') }}" alt="etiketter" height="100"> 24 etiketter utan marginaler runt, 70 * 37 mm<br>
-                {% else %}
-                    <input type="radio" name="label" value="without_margins_24""> <img src="{{ url_for('static', filename = 'img/24_label_70_37.jpg') }}" alt="etiketter" height="100"> 24 etiketter utan marginaler runt, 70 * 37 mm<br>
-                {% endif %}
+            <form action="" method="POST">
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Etikettformat</h2>
+                    <div class="d-grid gap-2">
+                        {% set formats = [
+                            ('with_margins_24', '24_label_64_34.jpg', '24 etiketter med marginaler runt och mellan etikettkolumnerna, 64 × 34 mm'),
+                            ('with_margins_24_typ_2', '24_label_65_34.jpg', '24 etiketter med marginaler runt, inga marginaler mellan etikettkolumnerna, 65 × 34 mm'),
+                            ('with_topmargin_24', '24_label_70_36.jpg', '24 etiketter med marginaler över och under, 70 × 36 mm'),
+                            ('without_margins_24', '24_label_70_37.jpg', '24 etiketter utan marginaler runt, 70 × 37 mm')
+                        ] %}
+                        {% for value, image, text in formats %}
+                            <label class="label-format-option card shadow-sm p-3" for="label_{{ value }}">
+                                <input class="label-format-radio" type="radio" name="label" id="label_{{ value }}" value="{{ value }}" {% if label_type == value %}checked{% endif %}>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img class="label-format-image img-fluid rounded border flex-shrink-0" src="{{ url_for('static', filename='img/' + image) }}" alt="Exempel på etikettformat">
+                                    <div class="fw-semibold">{{ text }}</div>
+                                </div>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </section>
 
-            </div>
-            <div class="form-group">
-                {% if border == "yes" %}
-                    <input type="radio" name="border" value="yes" checked="checked"> Skriv ut kanter <br>
-                {% else %}
-                    <input type="radio" name="border" value="yes" > Skriv ut kanter <br>
-                {% endif %}
-                {% if border == "no" %}
-                    <input type="radio" name="border" value="no" checked="checked"> Skriv inte ut kanter <br>
-                {% else %}
-                    <input type="radio" name="border" value="no" > Skriv inte ut kanter <br>
-                {% endif %}
-                <br>
-            </div>
-            <br>
-                <input type="submit" value="spara" class="btn btn-primary">
-                <input id="inp" type="button" value="Avbryt" class="btn btn-danger" onclick="location.href='{{ url_for('index') }}';"/>
-        </form>
+                <section class="mb-4">
+                    <h2 class="h4 mb-3">Kanter</h2>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="border" id="border_yes" value="yes" {% if border == 'yes' %}checked{% endif %}>
+                        <label class="form-check-label" for="border_yes">Skriv ut kanter</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="border" id="border_no" value="no" {% if border != 'yes' %}checked{% endif %}>
+                        <label class="form-check-label" for="border_no">Skriv inte ut kanter</label>
+                    </div>
+                </section>
 
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Spara</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Avbryt</a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 {% endblock %}

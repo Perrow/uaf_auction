@@ -1,50 +1,52 @@
 {% extends "base.html" %}
-{% block title %} Registrera poster {% endblock %}
-{% block head %}
-{{ super() }}
-{% endblock %}
+{% block title %}Registrera poster{% endblock %}
 {% block body %}
-<div class="container">
-    <h1>Registrera poster</h1>
-    {% if registration_open == True %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <h1 class="h2 mb-4">Registrera poster</h1>
 
-    <form id="register_form" action="/register_many_posts" method="POST">
+            {% if registration_open == True %}
+                <form id="register_form" action="{{ url_for('register_many_posts') }}" method="POST" novalidate>
+                    <section id="create_posts" class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="numberofposts">Antal poster att registrera</label>
+                                    <input class="form-control" id="numberofposts" name="numberofposts" type="number" min="1" step="1">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label" for="master_type">Förvald godstyp</label>
+                                    {% autoescape false %}
+                                        {{ select }}
+                                    {% endautoescape %}
+                                </div>
+                                <div class="col-md-3 d-grid">
+                                    <button id="addbutton" type="button" class="btn btn-primary">Skapa poster</button>
+                                </div>
+                            </div>
+                            <div id="create_error" class="text-danger mt-2" aria-live="polite"></div>
+                        </div>
+                    </section>
 
-        <div id="create_posts">
+                    <div id="form_elements" class="d-grid gap-3"></div>
 
-            <div class="input-group">
-
-
-                <label for="numberofposts">Antal poster att registrera:</label><br>
-                <input class="form-control" id="numberofposts" name="numberofposts" type="text" value="">
-                <br>
-                <label for="master_type">Välj typ av post:</label><br>
-                {% autoescape false %}
-                {{ select }}
-                {% endautoescape %}
-            </div>
-            <br>
-            <br>
-            <button id="addbutton" type="button" class="btn btn-primary"> Skapa poster</button>
+                    <div id="form_actions" class="mt-4 d-none">
+                        <div id="msg" class="mb-3" aria-live="polite"></div>
+                        <button id="submit" name="submit" type="submit" class="btn btn-primary">Registrera poster</button>
+                        <p class="form-text mt-2 mb-0">Tomma poster sparas inte (varken vetenskapligt namn eller populärnamn angivet).</p>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info">Du kan inte registrera poster då föranmälan är stängd.</div>
+            {% endif %}
         </div>
-        <br>
-        <br>
-
-        <div id="form_elements">
-
-
-        </div>
-        <!--form_elements    -->
-        <div class="clearfix">
-            <br>
-            <input id="submit" name="submit" type="submit" value="Skicka" class="btn btn-primary">
-        </div>
-    </form>
-    <p>Tomma poster kommer inte att sparas ( = inget vetenskapligt- och populärnamn )</p>
-    {%  else %}
-    <p>Du kan inte registrera poster då föranmälan är stängd.</p>
-    {% endif %}
+    </div>
 </div>
+{% endblock %}
 
-<script src="{{ url_for('static', filename='js/register_many.js') }}"></script>
+{% block scripts %}
+    {% if registration_open == True %}
+        <script src="{{ url_for('static', filename='js/register_many.js') }}"></script>
+    {% endif %}
 {% endblock %}

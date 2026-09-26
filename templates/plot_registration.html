@@ -1,60 +1,58 @@
 {% extends "base.html" %}
-{% block title %} Om {% endblock %}
-{% block head %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='js/dygraph.min.js') }}"></script>
+{% block title %} Registreringsstatistik {% endblock %}
+{% block styles %}
     <link href="{{ url_for('static', filename='css/dygraph.css') }}" rel="stylesheet">
 {% endblock %}
 {% block body %}
-    <div class="container">
-
-        <div id="registration_plot"
-             style="width:100%; height:400px;"></div>
-        <script type="text/javascript">
-            function barChartPlotter(e) {  // This cutom plotter comes from http://dygraphs.com/tests/plotters.html
-                var ctx = e.drawingContext;
-                var points = e.points;
-                var y_bottom = e.dygraph.toDomYCoord(0);
-
-                ctx.fillStyle = e.color;
-
-                // Find the minimum separation between x-values.
-                // This determines the bar width.
-                var min_sep = Infinity;
-                for (var i = 1; i < points.length; i++) {
-                    var sep = points[i].canvasx - points[i - 1].canvasx;
-                    if (sep < min_sep) min_sep = sep;
-                }
-                var bar_width = Math.floor(2.0 / 3 * min_sep);
-
-                // Do the actual plotting.
-                for (var i = 0; i < points.length; i++) {
-                    var p = points[i];
-                    var center_x = p.canvasx;
-
-                    ctx.fillRect(center_x - bar_width / 2, p.canvasy,
-                        bar_width, y_bottom - p.canvasy);
-
-                    ctx.strokeRect(center_x - bar_width / 2, p.canvasy,
-                        bar_width, y_bottom - p.canvasy);
-                }
-            }
-
-            g2 = new Dygraph(
-                document.getElementById("registration_plot"),
-                {{ plot_data | safe}}
-                {
-                    rollPeriod: 1,
-                    title: 'Antal nya poster per dag ',
-                    ylabel: 'Antal',
-                    legend: 'always',
-                    labelsDivStyles: {'textAlign': 'right'},
-                    plotter: barChartPlotter
-                }
-            );
-        </script>
-
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="mb-1">Registreringsstatistik</h1>
+        <p class="text-body-secondary mb-0">Antal nya poster per dag.</p>
     </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div id="registration_plot" style="width:100%; height:400px;"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/dygraph.min.js') }}"></script>
+    <script>
+        function barChartPlotter(e) {
+            const ctx = e.drawingContext;
+            const points = e.points;
+            const yBottom = e.dygraph.toDomYCoord(0);
 
+            ctx.fillStyle = e.color;
 
+            let minSep = Infinity;
+            for (let i = 1; i < points.length; i++) {
+                const sep = points[i].canvasx - points[i - 1].canvasx;
+                if (sep < minSep) minSep = sep;
+            }
+            const barWidth = Math.floor(2.0 / 3 * minSep);
+
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+                const centerX = p.canvasx;
+                ctx.fillRect(centerX - barWidth / 2, p.canvasy, barWidth, yBottom - p.canvasy);
+                ctx.strokeRect(centerX - barWidth / 2, p.canvasy, barWidth, yBottom - p.canvasy);
+            }
+        }
+
+        new Dygraph(
+            document.getElementById('registration_plot'),
+            {{ plot_data | safe}}
+            {
+                rollPeriod: 1,
+                title: 'Antal nya poster per dag',
+                ylabel: 'Antal',
+                legend: 'always',
+                labelsDivStyles: {'textAlign': 'right'},
+                plotter: barChartPlotter
+            }
+        );
+    </script>
+{% endblock %}
