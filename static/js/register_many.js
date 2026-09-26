@@ -153,6 +153,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label class="form-label" for="description${index}">Beskrivning</label>
                         <input class="form-control" id="description${index}" name="description" type="text" maxlength="500">
                         <div class="form-text">Färg, antal eller annat intressant. Max 500 tecken.</div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" id="extra_label_${index}" name="extra_label_${index}" type="checkbox" value="yes">
+                            <label class="form-check-label" for="extra_label_${index}">Extra etikett med överskjutande text</label>
+                        </div>
                     </div>
                 </div>
             </div>`;
