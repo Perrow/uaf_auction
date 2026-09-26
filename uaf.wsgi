@@ -6,6 +6,7 @@ from display_state import register_routes as register_display_state_routes
 from event_prefill import register_routes as register_event_prefill_routes
 from extra_labels import register_routes as register_extra_label_routes
 from label_preview import register_routes as register_label_preview_routes
+from latest_sale import register_routes as register_latest_sale_routes
 from payment_records import register_routes as register_payment_routes
 from payment_report_pdf import register_routes as register_payment_report_routes
 from password_reset import register_routes as register_password_reset_routes
@@ -15,6 +16,7 @@ from swish_qr import register_routes as register_swish_qr_routes
 
 register_display_state_routes(application)
 register_label_preview_routes(application)
+register_latest_sale_routes(application)
 register_post_limit_routes(application)
 register_result_email_routes(application)
 register_extra_label_routes(application)
