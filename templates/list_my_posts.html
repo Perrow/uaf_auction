@@ -14,7 +14,7 @@
 
     {% set overflow = namespace(post_ids=[]) %}
     {% for row in data %}
-        {% if label_description_overflows(row[1], row[2], row[5]) %}
+        {% if label_description_overflows(row[1], row[2], row[5]) and not post_extra_label_fits(row[0]) %}
             {% set overflow.post_ids = overflow.post_ids + [row[0]] %}
         {% endif %}
     {% endfor %}
@@ -30,7 +30,7 @@
         {% for row in data %}
             {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
             {% set edit_url = url_for('edit_post') ~ '/' ~ row[0] %}
-            {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) %}
+            {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) and not post_extra_label_fits(row[0]) %}
             <div class="card mb-2 {% if registration_open == True or print_labels == True %}mobile-post-card{% endif %}"
                  {% if registration_open == True or print_labels == True %}
                      role="link"
@@ -113,7 +113,7 @@
             <tbody>
             {% for row in data %}
                 {% set preview_url = '/label_preview/' ~ row[0] ~ '.png' %}
-                {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) %}
+                {% set description_overflow = label_description_overflows(row[1], row[2], row[5]) and not post_extra_label_fits(row[0]) %}
                 <tr>
                     <td>
                         <span class="visually-hidden">{{ row[0] }}</span>
