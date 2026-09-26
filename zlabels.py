@@ -384,21 +384,30 @@ class ZLabels(object):
                         canvas.drawCentredString(left_column_center, label_y_top - self.row_height * 6 - 4.8 * mm, "{} kr".format(int(post_min_price)))
 
                 if extra_label_text is not None:
-                    canvas.setFont(self.font, self.font_size)
-                    extra_lines = self.make_multiline(
-                        extra_label_text,
-                        self.text_width,
-                        self.font,
-                        self.font_size,
-                    )
-                    max_extra_lines = 7 if self.label_type in (
-                        ZLabels.with_margins_24,
-                        ZLabels.with_margins_24_typ_2,
-                    ) else 6
+                    extra_font_size = self.font_size
+                    extra_lines = []
+                    extra_line_height = 0
+                    available_height = self.label_height - 2 * self.printer_margin - 3 * mm
+
+                    while extra_font_size >= 5:
+                        extra_lines = self.make_multiline(
+                            extra_label_text,
+                            self.text_width,
+                            self.font,
+                            extra_font_size,
+                        )
+                        extra_line_height = max(extra_font_size * 1.3, 2.4 * mm)
+                        max_extra_lines = int(available_height / extra_line_height)
+                        if len(extra_lines) <= max_extra_lines:
+                            break
+                        extra_font_size -= 0.5
+
+                    canvas.setFont(self.font, extra_font_size)
+                    max_extra_lines = int(available_height / extra_line_height)
                     for idx, line in enumerate(extra_lines[:max_extra_lines]):
                         canvas.drawString(
                             label_text_x,
-                            label_y_top - self.row_height * (idx + 1) - lower_text_offset,
+                            label_y_top - 1.5 * mm - extra_line_height * (idx + 1),
                             line,
                         )
 
