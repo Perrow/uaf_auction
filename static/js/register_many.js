@@ -151,8 +151,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="description${index}">Beskrivning</label>
-                        <input class="form-control" id="description${index}" name="description" type="text" maxlength="100">
-                        <div class="form-text">Färg, antal eller annat intressant. Max cirka 100 tecken.</div>
+                        <input class="form-control" id="description${index}" name="description" type="text" maxlength="500">
+                        <div class="form-text">Färg, antal eller annat intressant. Max 500 tecken.</div>
                     </div>
                 </div>
             </div>`;
