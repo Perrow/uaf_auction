@@ -7,6 +7,7 @@ import display_state
 import event_prefill
 import extra_labels
 import label_preview
+import latest_sale
 import payment_records
 import payment_report_pdf
 import password_reset
@@ -17,6 +18,7 @@ import swish_qr
 
 display_state.register_routes(app)
 label_preview.register_routes(app)
+latest_sale.register_routes(app)
 post_limit.register_routes(app)
 result_email.register_routes(app)
 extra_labels.register_routes(app)
