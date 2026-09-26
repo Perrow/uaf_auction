@@ -84,6 +84,30 @@ def _post_ids_with_extra_labels():
     return cached
 
 
+def _extra_label_fits(post_id):
+    """Return True when an existing extra label can print all of its text."""
+    cache = getattr(g, "_extra_label_fits", None)
+    if cache is None:
+        cache = {}
+        g._extra_label_fits = cache
+
+    post_id = int(post_id)
+    if post_id in cache:
+        return cache[post_id]
+
+    conn = sqlite3.connect(_database_path())
+    with conn:
+        _ensure_schema(conn)
+        row = conn.execute(
+            "SELECT text FROM extra_labels WHERE post_id = ?",
+            [post_id],
+        ).fetchone()
+
+    fits = bool(row and row[0]) and not _label_generator().extra_label_overflows(row[0])
+    cache[post_id] = fits
+    return fits
+
+
 def _wrap_registration_view(original_view, is_admin):
     @wraps(original_view)
     def wrapped(*args, **kwargs):
@@ -283,6 +307,7 @@ def register_routes(app):
     app.jinja_env.globals["post_has_extra_label"] = (
         lambda post_id: int(post_id) in _post_ids_with_extra_labels()
     )
+    app.jinja_env.globals["post_extra_label_fits"] = _extra_label_fits
 
     if not app.config.get("_EXTRA_LABEL_VIEWS_WRAPPED"):
         if "register_many_posts" in app.view_functions:
