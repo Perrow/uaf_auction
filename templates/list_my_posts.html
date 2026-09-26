@@ -45,8 +45,11 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#labelPreviewModal"
                                 data-preview-url="{{ preview_url }}"
+                                {% if post_has_extra_label(row[0]) %}
+                                    data-extra-preview-url="{{ url_for('extra_label_preview_image', post_id=row[0]) }}"
+                                {% endif %}
                                 data-post-id="{{ row[0] }}"
-                                aria-label="Visa större etikett för post {{ row[0] }}">
+                                aria-label="Visa alla etiketter för post {{ row[0] }}">
                             <span class="label-preview-stack">
                                 <img src="{{ preview_url }}"
                                      alt="Etikett för post {{ row[0] }}"
@@ -119,8 +122,11 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#labelPreviewModal"
                                 data-preview-url="{{ preview_url }}"
+                                {% if post_has_extra_label(row[0]) %}
+                                    data-extra-preview-url="{{ url_for('extra_label_preview_image', post_id=row[0]) }}"
+                                {% endif %}
                                 data-post-id="{{ row[0] }}"
-                                aria-label="Visa större etikett för post {{ row[0] }}">
+                                aria-label="Visa alla etiketter för post {{ row[0] }}">
                             <span class="label-preview-stack">
                                 <img src="{{ preview_url }}"
                                      alt="Etikett för post {{ row[0] }}"
@@ -167,10 +173,21 @@
                 <h2 class="modal-title fs-5" id="labelPreviewModalTitle">Etikett</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
             </div>
-            <div class="modal-body text-center">
-                <img id="labelPreviewModalImage"
-                     alt="Etikettförhandsvisning"
-                     style="height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+            <div class="modal-body">
+                <div class="d-flex flex-column flex-md-row flex-wrap justify-content-center align-items-start gap-4">
+                    <div class="text-center">
+                        <div class="small text-body-secondary mb-2">Ordinarie etikett</div>
+                        <img id="labelPreviewModalImage"
+                             alt="Ordinarie etikettförhandsvisning"
+                             style="height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+                    </div>
+                    <div id="extraLabelPreviewContainer" class="text-center d-none">
+                        <div class="small text-body-secondary mb-2">Extra etikett</div>
+                        <img id="extraLabelPreviewModalImage"
+                             alt="Extra etikettförhandsvisning"
+                             style="height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -182,9 +199,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('labelPreviewModal');
     const modalImage = document.getElementById('labelPreviewModalImage');
+    const extraModalImage = document.getElementById('extraLabelPreviewModalImage');
+    const extraContainer = document.getElementById('extraLabelPreviewContainer');
     const modalTitle = document.getElementById('labelPreviewModalTitle');
 
-    if (modal && modalImage && modalTitle) {
+    if (modal && modalImage && extraModalImage && extraContainer && modalTitle) {
         modal.addEventListener('show.bs.modal', event => {
             const trigger = event.relatedTarget;
             if (!trigger) {
@@ -192,12 +211,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             modalImage.src = trigger.dataset.previewUrl;
-            modalImage.alt = `Etikett för post ${trigger.dataset.postId}`;
-            modalTitle.textContent = `Etikett för post ${trigger.dataset.postId}`;
+            modalImage.alt = `Ordinarie etikett för post ${trigger.dataset.postId}`;
+            modalTitle.textContent = `Etiketter för post ${trigger.dataset.postId}`;
+
+            if (trigger.dataset.extraPreviewUrl) {
+                extraModalImage.src = trigger.dataset.extraPreviewUrl;
+                extraModalImage.alt = `Extra etikett för post ${trigger.dataset.postId}`;
+                extraContainer.classList.remove('d-none');
+            } else {
+                extraModalImage.removeAttribute('src');
+                extraContainer.classList.add('d-none');
+            }
         });
 
         modal.addEventListener('hidden.bs.modal', () => {
             modalImage.removeAttribute('src');
+            extraModalImage.removeAttribute('src');
+            extraContainer.classList.add('d-none');
         });
     }
 
