@@ -10,11 +10,13 @@ import payment_records
 import payment_report_pdf
 import password_reset
 import post_limit
+import result_email
 import swish_qr
 
 
 label_preview.register_routes(app)
 post_limit.register_routes(app)
+result_email.register_routes(app)
 extra_labels.register_routes(app)
 payment_records.register_routes(app)
 payment_report_pdf.register_routes(app)

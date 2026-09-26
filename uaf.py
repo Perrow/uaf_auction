@@ -1957,7 +1957,7 @@ def compilation_server_print_checked():
     return '', 204  # empty response
 
 
-def get_compilation_pdf(selected_id=None, only_checked=False):
+def get_compilation_pdf(selected_id=None, only_checked=False, include_receipt=True):
     """
     Generates a pdf with a compilation of the sales for each seller or for a singels seller identified by the seller id.
     :param selected_id:
@@ -2021,7 +2021,7 @@ def get_compilation_pdf(selected_id=None, only_checked=False):
                 data_posts.append([posts[0], posts[1], posts[2].strip(), price, sold_at, in_checkad])
             data.append([seller_id, seller_name, sold_for, data_posts])
             print(data)
-    pdf = comp_pdf.make_pdf(data)
+    pdf = comp_pdf.make_pdf(data, include_receipt=include_receipt)
     return pdf
 
 
