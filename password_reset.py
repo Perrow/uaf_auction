@@ -46,10 +46,22 @@ def _token_hash(token):
 
 
 def _send_reset_email(recipient, reset_url):
-    sender = current_app.config.get("GMAILUSER", "")
-    password = current_app.config.get("GMAILPASSWORD", "")
-    if not sender or not password:
-        raise RuntimeError("GMAILUSER/GMAILPASSWORD saknas")
+    host = current_app.config.get("SMTP_HOST", "")
+    port = int(current_app.config.get("SMTP_PORT", 25))
+    use_ssl = bool(current_app.config.get("SMTP_USE_SSL", False))
+    use_starttls = bool(current_app.config.get("SMTP_USE_STARTTLS", False))
+    username = current_app.config.get("SMTP_USERNAME", "")
+    password = current_app.config.get("SMTP_PASSWORD", "")
+    sender = current_app.config.get("SMTP_FROM", "") or username
+
+    if not host:
+        raise RuntimeError("SMTP_HOST saknas")
+    if not sender:
+        raise RuntimeError("SMTP_FROM eller SMTP_USERNAME måste anges")
+    if use_ssl and use_starttls:
+        raise RuntimeError("SMTP_USE_SSL och SMTP_USE_STARTTLS kan inte båda vara True")
+    if username and not password:
+        raise RuntimeError("SMTP_PASSWORD saknas för angivet SMTP_USERNAME")
 
     message = MIMEText(
         "Du har begärt att återställa lösenordet till ditt konto.\n\n"
@@ -63,13 +75,21 @@ def _send_reset_email(recipient, reset_url):
     message["From"] = sender
     message["To"] = recipient
 
-    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    if use_ssl:
+        server = smtplib.SMTP_SSL(host, port)
+    else:
+        server = smtplib.SMTP(host, port)
+
     try:
         server.ehlo()
-        server.login(sender, password)
+        if use_starttls:
+            server.starttls()
+            server.ehlo()
+        if username:
+            server.login(username, password)
         server.sendmail(sender, recipient, message.as_bytes())
     finally:
-        server.close()
+        server.quit()
 
 
 def _create_reset_token(seller_id):
