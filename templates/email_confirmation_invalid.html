@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Ogiltig bekräftelselänk{% endblock %}
+{% block body %}
+<div class="container py-5">
+    <div class="alert alert-warning">
+        <h1 class="h4 alert-heading">Bekräftelselänken kan inte användas</h1>
+        <p class="mb-0">Länken är ogiltig, har gått ut eller har redan använts. Logga in och begär en ny bekräftelselänk från startsidan.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('index') }}">Till startsidan</a>
+</div>
+{% endblock %}
