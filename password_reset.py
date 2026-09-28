@@ -4,14 +4,14 @@
 
 import hashlib
 import secrets
-import smtplib
 import sqlite3
 import time
-from email.mime.text import MIMEText
 from functools import wraps
 
 import bcrypt
 from flask import current_app, flash, redirect, render_template, request, url_for
+
+from smtp_email import send_plain_text_email
 
 
 TOKEN_LIFETIME_SECONDS = 60 * 60
@@ -46,24 +46,7 @@ def _token_hash(token):
 
 
 def _send_reset_email(recipient, reset_url):
-    host = current_app.config.get("SMTP_HOST", "")
-    port = int(current_app.config.get("SMTP_PORT", 25))
-    use_ssl = bool(current_app.config.get("SMTP_USE_SSL", False))
-    use_starttls = bool(current_app.config.get("SMTP_USE_STARTTLS", False))
-    username = current_app.config.get("SMTP_USERNAME", "")
-    password = current_app.config.get("SMTP_PASSWORD", "")
-    sender = current_app.config.get("SMTP_FROM", "") or username
-
-    if not host:
-        raise RuntimeError("SMTP_HOST saknas")
-    if not sender:
-        raise RuntimeError("SMTP_FROM eller SMTP_USERNAME måste anges")
-    if use_ssl and use_starttls:
-        raise RuntimeError("SMTP_USE_SSL och SMTP_USE_STARTTLS kan inte båda vara True")
-    if username and not password:
-        raise RuntimeError("SMTP_PASSWORD saknas för angivet SMTP_USERNAME")
-
-    message = MIMEText(
+    body = (
         "Du har begärt att återställa lösenordet till ditt konto.\n\n"
         "Öppna länken nedan för att välja ett nytt lösenord. "
         "Länken gäller i en timme och kan bara användas en gång.\n\n"
@@ -71,25 +54,7 @@ def _send_reset_email(recipient, reset_url):
         "Om du inte begärde återställningen kan du ignorera detta meddelande."
         .format(reset_url)
     )
-    message["Subject"] = "Återställ lösenord"
-    message["From"] = sender
-    message["To"] = recipient
-
-    if use_ssl:
-        server = smtplib.SMTP_SSL(host, port)
-    else:
-        server = smtplib.SMTP(host, port)
-
-    try:
-        server.ehlo()
-        if use_starttls:
-            server.starttls()
-            server.ehlo()
-        if username:
-            server.login(username, password)
-        server.sendmail(sender, recipient, message.as_bytes())
-    finally:
-        server.quit()
+    send_plain_text_email(recipient, "Återställ lösenord", body)
 
 
 def _create_reset_token(seller_id):
