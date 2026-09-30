@@ -78,6 +78,7 @@ class Receipt(object):
                      [u'Namn:', seller_name],
                      [u'Förening:', seller_association],
                      [u'Telefon:', seller_phone],
+                     [u'Kontonummer:', u'____________________________'],
                      [u'Antal registrerade poster:', str(registered_nr_posts)],
                      [u'Antal inlämnade poster:', str(checked_in_nr_posts)],
                      [u'Registrerade poster:', str(registered_posts)],
