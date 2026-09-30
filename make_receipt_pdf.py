@@ -78,7 +78,6 @@ class Receipt(object):
                      [u'Namn:', seller_name],
                      [u'Förening:', seller_association],
                      [u'Telefon:', seller_phone],
-                     [u'Kontonummer:', u'____________________________'],
                      [u'Antal registrerade poster:', str(registered_nr_posts)],
                      [u'Antal inlämnade poster:', str(checked_in_nr_posts)],
                      [u'Registrerade poster:', str(registered_posts)],
@@ -126,6 +125,11 @@ class Receipt(object):
             t2 = Table(data2)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
             t2.setStyle(TableStyle([('ALIGN', (0, 0), (0, 5), "RIGHT")]))
             story.append(t2)
+            story.append(Spacer(1, 10 * mm))
+
+            account_number = Table([[u'Kontonummer:', u'____________________________']])
+            account_number.setStyle(TableStyle([('ALIGN', (0, 0), (0, -1), "RIGHT")]))
+            story.append(account_number)
             story.append(Spacer(1, 10 * mm))
 
             p = Paragraph(u"Med min underskrift nedan erkänner jag som säljare fullt ansvar för att inlämnade djur och växter är de jag har angett och att de är i god kondition. Jag är ansvarig för att  tillbehör är i det skick som anges och jag har angett de brister som inte omedelbart framgår.", normal)
