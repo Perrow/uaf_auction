@@ -125,11 +125,16 @@ class Receipt(object):
             t2 = Table(data2)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
             t2.setStyle(TableStyle([('ALIGN', (0, 0), (0, 5), "RIGHT")]))
             story.append(t2)
-            story.append(Spacer(1, 10 * mm))
+            story.append(Spacer(1, 5 * mm))
+
+            account_number = Table([[u'Kontonummer:', u'____________________________']])
+            account_number.setStyle(TableStyle([('ALIGN', (0, 0), (0, -1), "RIGHT")]))
+            story.append(account_number)
+            story.append(Spacer(1, 5 * mm))
 
             p = Paragraph(u"Med min underskrift nedan erkänner jag som säljare fullt ansvar för att inlämnade djur och växter är de jag har angett och att de är i god kondition. Jag är ansvarig för att  tillbehör är i det skick som anges och jag har angett de brister som inte omedelbart framgår.", normal)
             story.append(p)
-            story.append(Spacer(1, 10 * mm))
+            story.append(Spacer(1, 5 * mm))
             p = Paragraph(u"Om köparen upptäcker att oärlighet i ovanstående har skett riktas ersättningskrav mot säljaren och inte mot förmedlaren {}. {} är efter förmåga behjälpliga vid oenighet.".format(self.Association, self.Association), normal)
             story.append(p)
 
