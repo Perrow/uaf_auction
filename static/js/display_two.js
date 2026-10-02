@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const postInput = document.getElementById('post_id');
     const form = document.getElementById('display_form');
     const latestSaleElement = document.getElementById('latest-sale');
+    const nextPostStorageKey = 'uaf.displayTwo.nextPost';
 
     let currentData = null;
     let nextData = null;
@@ -68,6 +69,12 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('next_post_id', value.obj_id ? `#${value.obj_id}` : '');
         setText('next_scientific_name', value.scientific_name);
         setText('next_plain_name', value.plain_name);
+
+        if (data) {
+            window.localStorage.setItem(nextPostStorageKey, JSON.stringify(data));
+        } else {
+            window.localStorage.removeItem(nextPostStorageKey);
+        }
     }
 
     function saleKey(sale) {
