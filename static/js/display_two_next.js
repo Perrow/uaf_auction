@@ -2,6 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     const storageKey = 'uaf.displayTwo.nextPost';
+    const channel = 'BroadcastChannel' in window
+        ? new BroadcastChannel('uaf.displayTwo')
+        : null;
 
     const setText = (id, value) => {
         const element = document.getElementById(id);
@@ -64,6 +67,16 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Kunde inte läsa nästa post från webbläsarlagringen:', error);
             return null;
         }
+    }
+
+
+    if (channel) {
+        channel.addEventListener('message', function (event) {
+            if (!event.data || event.data.type !== 'next-post') {
+                return;
+            }
+            render(event.data.data || null);
+        });
     }
 
     window.addEventListener('storage', function (event) {
