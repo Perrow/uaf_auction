@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentData = null;
     let nextData = null;
-    let repeatedNextCount = 0;
     let latestSalePollTimer = null;
     let renderedSaleKey = null;
 
@@ -147,33 +146,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return data;
     }
 
-    async function applyPost(data) {
-        const sameAsNext = nextData && String(nextData.obj_id) === String(data.obj_id);
-
-        if (sameAsNext) {
-            repeatedNextCount += 1;
-
-            if (repeatedNextCount >= 3) {
-                currentData = nextData;
-                nextData = null;
-                repeatedNextCount = 0;
-                displayCurrent(currentData);
-                displayNext(null);
-                await setDisplayState(currentData.obj_id);
-                startLatestSalePolling();
-            }
+    async function promoteNextPost() {
+        if (!nextData) {
             return;
         }
 
+        currentData = nextData;
+        nextData = null;
+        displayCurrent(currentData);
+        displayNext(null);
+        await setDisplayState(currentData.obj_id);
+        startLatestSalePolling();
+    }
+
+    async function applyPost(data) {
         if (nextData) {
-            currentData = nextData;
-            displayCurrent(currentData);
-            await setDisplayState(currentData.obj_id);
-            startLatestSalePolling();
+            await promoteNextPost();
         }
 
         nextData = data;
-        repeatedNextCount = 1;
         displayNext(nextData);
     }
 
@@ -188,6 +179,11 @@ document.addEventListener('DOMContentLoaded', function () {
         setAlert('error', '');
 
         try {
+            if (nextData && String(nextData.obj_id) === postId) {
+                await promoteNextPost();
+                return;
+            }
+
             const data = await loadPost(postId);
             if (!data) {
                 setAlert('error', `Post ${postId} finns inte`);
