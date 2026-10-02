@@ -855,6 +855,15 @@ def display_two():
     return render_template('display_two.html')
 
 
+@app.route("/display_two_next", methods=['GET'])
+@admin_required
+def display_two_next():
+    """
+    A local companion view showing full information for the next Display two post.
+    """
+    return render_template('display_two_next.html')
+
+
 @app.route("/display_one", methods=['GET'])
 @admin_required
 def display_one():
