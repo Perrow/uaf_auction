@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('display_form');
     const latestSaleElement = document.getElementById('latest-sale');
     const nextPostStorageKey = 'uaf.displayTwo.nextPost';
+    const nextPostChannel = 'BroadcastChannel' in window
+        ? new BroadcastChannel('uaf.displayTwo')
+        : null;
 
     let currentData = null;
     let nextData = null;
@@ -71,9 +74,16 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('next_plain_name', value.plain_name);
 
         if (data) {
-            window.localStorage.setItem(nextPostStorageKey, JSON.stringify(data));
+            const serialized = JSON.stringify(data);
+            window.localStorage.setItem(nextPostStorageKey, serialized);
+            if (nextPostChannel) {
+                nextPostChannel.postMessage({ type: 'next-post', data: data });
+            }
         } else {
             window.localStorage.removeItem(nextPostStorageKey);
+            if (nextPostChannel) {
+                nextPostChannel.postMessage({ type: 'next-post', data: null });
+            }
         }
     }
 
