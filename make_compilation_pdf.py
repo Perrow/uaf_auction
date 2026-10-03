@@ -122,7 +122,7 @@ class Compilation(object):
             to_society = tot_sum * self.commision
             to_society = int(to_society + 0.5)
             available_after_commission = max(0, tot_sum - to_society)
-            charged_extra_label_fee = min(extra_label_fee, available_after_commission)
+            charged_extra_label_fee = float(min(extra_label_fee, available_after_commission))
             to_seller = int(available_after_commission - charged_extra_label_fee)
             print(tot_sum, to_society, charged_extra_label_fee, to_seller)
 
