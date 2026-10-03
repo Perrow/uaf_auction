@@ -1738,13 +1738,26 @@ def get_economic_report_pdf():
                 tot_sold = 0
             count_sold = sold[1]
 
-             # Only include sellers that actually sold something
-            if tot_sold <= 0:
+             cur.execute(
+                """
+                SELECT COALESCE(SUM(extra_labels.fee), 0)
+                FROM extra_labels
+                INNER JOIN posts ON posts.obj_id = extra_labels.post_id
+                WHERE posts.seller_id = ?
+                """,
+                [seller_id],
+            )
+            extra_label_fees = float(cur.fetchone()[0] or 0)
+
+            # Include sellers that either sold something or have extra-label fees.
+            if tot_sold <= 0 and extra_label_fees <= 0:
                 continue
 
             to_society = tot_sold * commision
             to_society = int(to_society + 0.5)
-            to_seller = int(tot_sold - to_society)
+            available_after_commission = max(0, tot_sold - to_society)
+            charged_extra_label_fee = min(extra_label_fees, available_after_commission)
+            to_seller = int(available_after_commission - charged_extra_label_fee)
 
             cur.execute("SELECT  count(*) FROM posts WHERE seller_id=?", [seller_id])
             tot_nr_posts = cur.fetchone()[0]
@@ -1763,7 +1776,18 @@ def get_economic_report_pdf():
             else:
                 sold_stat_data.append(["", "", "", ""])
 
-            data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
+            data.append([
+                seller_id,
+                seller_name,
+                club,
+                tot_sold,
+                to_society,
+                to_seller,
+                tot_nr_posts,
+                count_sold,
+                sold_stat_data,
+                charged_extra_label_fee,
+            ])
 
         # Summation for the whole auction and flea market
         # Get the total number of registered posts and for auction and fleamarket
@@ -1800,9 +1824,18 @@ def get_economic_report_pdf():
         tot_sold_sum = int(tot_sold_sum)
         tot_commision = tot_sold_sum * commision
         tot_commision = int(tot_commision + 0.5)
-        netto = int(tot_sold_sum - tot_commision)
+        tot_extra_label_fees = sum(row[9] for row in data)
+        netto = int(max(0, tot_sold_sum - tot_commision - tot_extra_label_fees))
 
-        tot_data = [tot_sold_sum, tot_commision, netto, tot_nr_posts, tot_nr_sold_posts, tot_data_type]
+        tot_data = [
+            tot_sold_sum,
+            tot_commision,
+            netto,
+            tot_nr_posts,
+            tot_nr_sold_posts,
+            tot_data_type,
+            tot_extra_label_fees,
+        ]
 
     pdf = economic_pdf.make_pdf(data, tot_data)
     return pdf
