@@ -1738,7 +1738,7 @@ def get_economic_report_pdf():
                 tot_sold = 0
             count_sold = sold[1]
 
-             cur.execute(
+            cur.execute(
                 """
                 SELECT COALESCE(SUM(extra_labels.fee), 0)
                 FROM extra_labels
