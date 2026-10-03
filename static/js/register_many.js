@@ -12,9 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const message = document.getElementById('msg');
     const isAdminRegistration = window.location.pathname.endsWith('/admin_register_many_posts');
     const extraLabelFee = Number(form?.dataset.extraLabelFee || 0);
-    const extraLabelFeeText = Number.isFinite(extraLabelFee) && extraLabelFee > 0
-        ? ` (${extraLabelFee.toLocaleString('sv-SE')} kr)`
-        : '';
+    const extraLabelFeeText = ` (${(Number.isFinite(extraLabelFee) ? extraLabelFee : 0).toLocaleString('sv-SE')} kr)`;
 
     let auctionLimitStatus = null;
 
