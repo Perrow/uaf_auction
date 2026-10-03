@@ -121,13 +121,15 @@ class Compilation(object):
 
             to_society = tot_sum * self.commision
             to_society = int(to_society + 0.5)
-            to_seller = int(tot_sum - to_society - extra_label_fee)
-            print(tot_sum, to_society, extra_label_fee, to_seller)
+            available_after_commission = max(0, tot_sum - to_society)
+            charged_extra_label_fee = min(extra_label_fee, available_after_commission)
+            to_seller = int(available_after_commission - charged_extra_label_fee)
+            print(tot_sum, to_society, charged_extra_label_fee, to_seller)
 
             data2 = [['', '', '', 'summa', int(tot_sum)],
                      ['', '', '', 'provision', to_society]]
-            if extra_label_fee > 0:
-                fee_value = int(extra_label_fee) if extra_label_fee.is_integer() else extra_label_fee
+            if charged_extra_label_fee > 0:
+                fee_value = int(charged_extra_label_fee) if charged_extra_label_fee.is_integer() else charged_extra_label_fee
                 data2.append(['', '', '', 'extra etiketter', fee_value])
             data2.append(['', '', '', 'till säljaren', to_seller])
 
@@ -153,8 +155,8 @@ class Compilation(object):
                 story.append(p)
                 story.append(Spacer(1, 10 * mm))
                 receipt_text = "Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100))
-                if extra_label_fee > 0:
-                    fee_value = int(extra_label_fee) if extra_label_fee.is_integer() else extra_label_fee
+                if charged_extra_label_fee > 0:
+                    fee_value = int(charged_extra_label_fee) if charged_extra_label_fee.is_integer() else charged_extra_label_fee
                     receipt_text += " Avgift för extra etiketter på {} kr är också dragen.".format(fee_value)
                 p = Paragraph(receipt_text, normal)
                 story.append(p)
