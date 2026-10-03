@@ -949,7 +949,7 @@ def create_event():
         date = request.form['date']
         year = date[:4]
         commission = float(request.form['commission']) / 100
-        extra_label_fee = float(request.form.get('extra_label_fee', 0) or 0)
+        extra_label_fee = max(0, float(request.form.get('extra_label_fee', 0) or 0))
         event_description = request.form['event_description']
 
         admin_name = request.form['admin_name']
@@ -1042,7 +1042,7 @@ def edit_event():
         date = request.form['date']
         year = date[:4]
         commission = float(request.form['commission']) / 100
-        extra_label_fee = float(request.form.get('extra_label_fee', 0) or 0)
+        extra_label_fee = max(0, float(request.form.get('extra_label_fee', 0) or 0))
         event_description = request.form['event_description']
 
         selected_types = request.form.getlist('type')
