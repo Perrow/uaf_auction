@@ -74,6 +74,8 @@ class Receipt(object):
             checked_in_nr_posts = seller[5]
             registered_posts = seller[6]
             checked_in_posts = seller[7]
+            extra_label_fee = float(seller[8] if len(seller) > 8 else 0)
+            fee_value = int(extra_label_fee) if extra_label_fee.is_integer() else extra_label_fee
             data2 = [[u'Inlämningsnummer:', str(seller_id[0])],
                      [u'Namn:', seller_name],
                      [u'Förening:', seller_association],
@@ -81,7 +83,8 @@ class Receipt(object):
                      [u'Antal registrerade poster:', str(registered_nr_posts)],
                      [u'Antal inlämnade poster:', str(checked_in_nr_posts)],
                      [u'Registrerade poster:', str(registered_posts)],
-                     [u'Inlämnade poster:', str(checked_in_posts)]
+                     [u'Inlämnade poster:', str(checked_in_posts)],
+                     [u'Avgift extra etiketter:', u'{} kr'.format(fee_value)]
                      ]
 
             # Start page 1 sellers receipt
