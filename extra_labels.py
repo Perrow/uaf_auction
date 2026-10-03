@@ -30,7 +30,8 @@ def _ensure_schema(conn):
     extra_label_columns = {
         row[1] for row in conn.execute("PRAGMA table_info(extra_labels)")
     }
-    if "fee" not in extra_label_columns:
+    fee_column_added = "fee" not in extra_label_columns
+    if fee_column_added:
         conn.execute(
             "ALTER TABLE extra_labels ADD COLUMN fee REAL NOT NULL DEFAULT 0"
         )
@@ -41,6 +42,16 @@ def _ensure_schema(conn):
     if auction_info_columns and "extra_label_fee" not in auction_info_columns:
         conn.execute(
             "ALTER TABLE auction_info ADD COLUMN extra_label_fee REAL NOT NULL DEFAULT 0"
+        )
+
+    if fee_column_added and auction_info_columns:
+        row = conn.execute(
+            "SELECT COALESCE(extra_label_fee, 0) FROM auction_info LIMIT 1"
+        ).fetchone()
+        current_fee = float(row[0]) if row else 0.0
+        conn.execute(
+            "UPDATE extra_labels SET fee = ?",
+            [current_fee],
         )
 
 
