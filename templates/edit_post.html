@@ -50,7 +50,10 @@
                                type="checkbox"
                                value="yes"
                                {% if post_has_extra_label(data[0]) %}checked{% endif %}>
-                        <label class="form-check-label" for="extra_label">Extra etikett med överskjutande text</label>
+                        <label class="form-check-label" for="extra_label">
+                            Extra etikett med överskjutande text
+                            {% if extra_label_fee() > 0 %}({{ extra_label_fee() | int }} kr){% endif %}
+                        </label>
                     </div>
                 </div>
 
