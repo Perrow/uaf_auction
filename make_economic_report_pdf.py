@@ -138,7 +138,7 @@ class EconomicReport(object):
 
             fee_value = int(extra_label_fee) if extra_label_fee.is_integer() else extra_label_fee
             data3 = [['Sålt:', tot_sold, 'Avgår provision:', to_society, 'Netto:', to_seller, ""],
-                     ['Extra etiketter:', fee_value, '', '', '', '', ""],
+                     ['Avgift extra etiketter:', fee_value, '', '', '', '', ""],
                      ['Inlämnade poster:', tot_posts, 'Sålda poster:', count_sold, 'Osålda poster:', tot_posts - count_sold, ""]]
             t3 = Table(data3, colWidths=(30 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, 20 * mm,  doc.width - (30 + 20 + 30 + 20 + 30 + 20)*mm ))  # column width
             t3.setStyle(TableStyle([('ALIGN', (0, 0), (0, 2), "RIGHT"),
@@ -177,11 +177,11 @@ class EconomicReport(object):
         total_extra_label_fee = float(tot_data[6] if len(tot_data) > 6 else 0)
         total_fee_value = int(total_extra_label_fee) if total_extra_label_fee.is_integer() else total_extra_label_fee
         data4 = [["Total försäljningssumma", tot_data[0], "Avgår provision", tot_data[1], "Netto", tot_data[2]],
-                 ["Extra etiketter", total_fee_value, "", "", "", ""],
+                 ["Avgift extra etiketter", total_fee_value, "", "", "", ""],
                  ["Antal inlämnade poster", tot_data[3], "Antal sålda", tot_data[4], "Antal osålda", tot_data[3] - tot_data[4]]]
         t4 = Table(data4, colWidths=(45 * mm, 20 * mm, 30 * mm, 20 * mm, 30 * mm, doc.width - (45+20+30+20+30)*mm))
-        t4.setStyle(TableStyle([("LINEABOVE", (0, 0), (6, 0), 0.5, black),
-                                ("LINEBELOW", (0, -1), (6, -1), 1, black)
+        t4.setStyle(TableStyle([("LINEABOVE", (0, 0), (5, 0), 0.5, black),
+                                ("LINEBELOW", (0, -1), (5, -1), 1, black)
         #                         ('BACKGROUND', (0, 0), (0, 1), grey),
         #                         ('BACKGROUND', (1, 0), (1, 1), blueviolet),
         #                         ('BACKGROUND', (2, 0), (2, 1), yellowgreen),
