@@ -83,9 +83,9 @@ class Receipt(object):
                      [u'Antal registrerade poster:', str(registered_nr_posts)],
                      [u'Antal inlämnade poster:', str(checked_in_nr_posts)],
                      [u'Registrerade poster:', str(registered_posts)],
-                     [u'Inlämnade poster:', str(checked_in_posts)],
-                     [u'Avgift extra etiketter:', u'{} kr'.format(fee_value)]
+                     [u'Inlämnade poster:', str(checked_in_posts)]
                      ]
+            seller_data = data2 + [[u'Avgift extra etiketter:', u'{} kr'.format(fee_value)]]
 
             # Start page 1 sellers receipt
 
@@ -100,7 +100,7 @@ class Receipt(object):
             story.append(line)
             story.append(Spacer(1, 10 * mm))
 
-            t2 = Table(data2)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
+            t2 = Table(seller_data)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
             t2.setStyle(TableStyle([('ALIGN', (0, 0), (0, -1), "RIGHT")]))
             story.append(t2)
             story.append(Spacer(1, 10 * mm))
