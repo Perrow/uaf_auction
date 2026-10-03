@@ -949,6 +949,7 @@ def create_event():
         date = request.form['date']
         year = date[:4]
         commission = float(request.form['commission']) / 100
+        extra_label_fee = max(0, float(request.form.get('extra_label_fee', 0) or 0))
         event_description = request.form['event_description']
 
         admin_name = request.form['admin_name']
@@ -978,15 +979,15 @@ def create_event():
             cur.execute("DROP TABLE IF EXISTS used_types")
             cur.execute("DROP TABLE IF EXISTS auction_info")
 
-            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT)')
+            cur.execute('CREATE TABLE auction_info (type_id INTEGER PRIMARY KEY, hosting_association TEXT, hosting_association_abrv TEXT, city TEXT, event_name TEXT, year TEXT, date TEXT, commission INT, description TEXT, registration_open TEXT, extra_label_fee REAL NOT NULL DEFAULT 0)')
             cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT, has_checked_in TEXT, is_closed TEXT)')
             cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT, is_checked_in TEXT, is_closed TEXT)')
             # cur.execute('CREATE TABLE sellers (seller_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT TEXT, address TEXT, email TEXT, phone TEXT, aquarium_club TEXT, password TEXT, isAdmin TEXT, time_stamp TEXT, accepts_cookies TEXT, accepts_database TEXT)')
             # cur.execute('CREATE TABLE posts (obj_id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER, scientific_name TEXT, plain_name TEXT, quantity INTEGER, description TEXT, type TEXT, minimum_price FLOAT, fixed_price FLOAT, sold_price FLOAT, sold_on TEXT, sold_by TEXT, time_stamp_registration TEXT, time_stamp_sold TEXT, label_printed TEXT)')
             cur.execute('CREATE TABLE used_types (type_id INTEGER PRIMARY KEY, description TEXT, sale_type TEXT, scientific_name_obligatory TEXT, display_scientific_name_input TEXT)')
 
-            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description]
-            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description, extra_label_fee]
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, extra_label_fee) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             # cur.execute("SELECT type_id, description, sale_type FROM all_types WHERE type_id=?", selected_types)
             sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
@@ -1041,6 +1042,7 @@ def edit_event():
         date = request.form['date']
         year = date[:4]
         commission = float(request.form['commission']) / 100
+        extra_label_fee = max(0, float(request.form.get('extra_label_fee', 0) or 0))
         event_description = request.form['event_description']
 
         selected_types = request.form.getlist('type')
@@ -1051,9 +1053,9 @@ def edit_event():
             cur.execute("SELECT registration_open FROM auction_info")
             registration_open = cur.fetchone()[0]
             cur.execute('DELETE FROM auction_info')
-            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description, registration_open]
+            auction_info = [hosting_association, hosting_association_abrv, city, event_name, year, date, commission, event_description, registration_open, extra_label_fee]
 
-            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
+            cur.execute("INSERT INTO auction_info (hosting_association, hosting_association_abrv, city, event_name, year, date, commission, description, registration_open, extra_label_fee) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", auction_info)
 
             cur.execute('DELETE FROM used_types')
             sql = "SELECT type_id, description, sale_type, scientific_name_obligatory, display_scientific_name_input FROM all_types WHERE type_id in ({})".format(", ".join(["?"] * len(selected_types)))
@@ -1074,7 +1076,7 @@ def edit_event():
             cur.execute('SELECT type_id FROM used_types')
             used_types_tuples = cur.fetchall()
             used_types = [x[0] for x in used_types_tuples]
-            cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description FROM auction_info')
+            cur.execute('SELECT hosting_association, hosting_association_abrv, city, event_name, date, commission, description, COALESCE(extra_label_fee, 0) FROM auction_info')
             auction_info = cur.fetchone()
             auction_info = list(auction_info)
             auction_info[5] = auction_info[5] * 100
@@ -1736,13 +1738,26 @@ def get_economic_report_pdf():
                 tot_sold = 0
             count_sold = sold[1]
 
-             # Only include sellers that actually sold something
-            if tot_sold <= 0:
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(extra_labels.fee), 0)
+                FROM extra_labels
+                INNER JOIN posts ON posts.obj_id = extra_labels.post_id
+                WHERE posts.seller_id = ?
+                """,
+                [seller_id],
+            )
+            extra_label_fees = float(cur.fetchone()[0] or 0)
+
+            # Include sellers that either sold something or have extra-label fees.
+            if tot_sold <= 0 and extra_label_fees <= 0:
                 continue
 
             to_society = tot_sold * commision
             to_society = int(to_society + 0.5)
-            to_seller = int(tot_sold - to_society)
+            available_after_commission = max(0, tot_sold - to_society)
+            charged_extra_label_fee = min(extra_label_fees, available_after_commission)
+            to_seller = int(available_after_commission - charged_extra_label_fee)
 
             cur.execute("SELECT  count(*) FROM posts WHERE seller_id=?", [seller_id])
             tot_nr_posts = cur.fetchone()[0]
@@ -1761,7 +1776,18 @@ def get_economic_report_pdf():
             else:
                 sold_stat_data.append(["", "", "", ""])
 
-            data.append([seller_id, seller_name, club, tot_sold, to_society, to_seller, tot_nr_posts, count_sold, sold_stat_data])
+            data.append([
+                seller_id,
+                seller_name,
+                club,
+                tot_sold,
+                to_society,
+                to_seller,
+                tot_nr_posts,
+                count_sold,
+                sold_stat_data,
+                charged_extra_label_fee,
+            ])
 
         # Summation for the whole auction and flea market
         # Get the total number of registered posts and for auction and fleamarket
@@ -1798,9 +1824,18 @@ def get_economic_report_pdf():
         tot_sold_sum = int(tot_sold_sum)
         tot_commision = tot_sold_sum * commision
         tot_commision = int(tot_commision + 0.5)
-        netto = int(tot_sold_sum - tot_commision)
+        tot_extra_label_fees = sum(row[9] for row in data)
+        netto = int(max(0, tot_sold_sum - tot_commision - tot_extra_label_fees))
 
-        tot_data = [tot_sold_sum, tot_commision, netto, tot_nr_posts, tot_nr_sold_posts, tot_data_type]
+        tot_data = [
+            tot_sold_sum,
+            tot_commision,
+            netto,
+            tot_nr_posts,
+            tot_nr_sold_posts,
+            tot_data_type,
+            tot_extra_label_fees,
+        ]
 
     pdf = economic_pdf.make_pdf(data, tot_data)
     return pdf
@@ -2005,8 +2040,19 @@ def get_compilation_pdf(selected_id=None, only_checked=False, include_receipt=Tr
             except TypeError:
                 tot_sold = 0
 
-            if tot_sold <= 0 and (selected_id is None):  # Only include sellers that actually sold something unless a specific seller is requested
-                print("Skipping seller {} with no sales".format(seller_id))
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(extra_labels.fee), 0)
+                FROM extra_labels
+                INNER JOIN posts ON posts.obj_id = extra_labels.post_id
+                WHERE posts.seller_id = ?
+                """,
+                [seller_id],
+            )
+            extra_label_fees = float(cur.fetchone()[0] or 0)
+
+            if tot_sold <= 0 and extra_label_fees <= 0 and (selected_id is None):
+                print("Skipping seller {} with no sales or extra-label fees".format(seller_id))
                 continue
 
             # cur.execute("SELECT posts.obj_id, used_types.description, (posts.plain_name || ' ' || posts.scientific_name) as name , posts.sold_price, posts.sold_on FROM posts INNER JOIN used_types on posts.type=used_types.type_id WHERE posts.seller_id = ? and posts.sold_price>0", [seller_id])
@@ -2028,7 +2074,7 @@ def get_compilation_pdf(selected_id=None, only_checked=False, include_receipt=Tr
                     in_checkad = "Nej"
                     
                 data_posts.append([posts[0], posts[1], posts[2].strip(), price, sold_at, in_checkad])
-            data.append([seller_id, seller_name, sold_for, data_posts])
+            data.append([seller_id, seller_name, sold_for, data_posts, extra_label_fees])
             print(data)
     pdf = comp_pdf.make_pdf(data, include_receipt=include_receipt)
     return pdf
@@ -2119,7 +2165,29 @@ def get_receipt_pdf(selected_id=None, checked=False):
             check_in_nr_posts = len(checked_in_post_ids)
             shorter = list_shorter.ListShorter()
             checked_in_post_ids = shorter.short(checked_in_post_ids)
-            data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, check_in_nr_posts, registered_post_ids, checked_in_post_ids])
+
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(extra_labels.fee), 0)
+                FROM extra_labels
+                INNER JOIN posts ON posts.obj_id = extra_labels.post_id
+                WHERE posts.seller_id = ?
+                """,
+                seller_id,
+            )
+            extra_label_fees = float(cur.fetchone()[0] or 0)
+
+            data.append([
+                seller_id,
+                seller_name,
+                seller_club,
+                seller_phone,
+                nr_posts,
+                check_in_nr_posts,
+                registered_post_ids,
+                checked_in_post_ids,
+                extra_label_fees,
+            ])
 
     pdf = receipt_pdf.make_pdf(data)
     return pdf

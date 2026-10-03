@@ -74,6 +74,8 @@ class Receipt(object):
             checked_in_nr_posts = seller[5]
             registered_posts = seller[6]
             checked_in_posts = seller[7]
+            extra_label_fee = float(seller[8] if len(seller) > 8 else 0)
+            fee_value = int(extra_label_fee) if extra_label_fee.is_integer() else extra_label_fee
             data2 = [[u'Inlämningsnummer:', str(seller_id[0])],
                      [u'Namn:', seller_name],
                      [u'Förening:', seller_association],
@@ -83,6 +85,7 @@ class Receipt(object):
                      [u'Registrerade poster:', str(registered_posts)],
                      [u'Inlämnade poster:', str(checked_in_posts)]
                      ]
+            seller_data = data2 + [[u'Avgift extra etiketter:', u'{} kr'.format(fee_value)]]
 
             # Start page 1 sellers receipt
 
@@ -97,7 +100,7 @@ class Receipt(object):
             story.append(line)
             story.append(Spacer(1, 10 * mm))
 
-            t2 = Table(data2)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
+            t2 = Table(seller_data)  #, colWidths=(20 * mm, 20 * mm, 100 * mm, 20 * mm, 20 * mm))  # column width
             t2.setStyle(TableStyle([('ALIGN', (0, 0), (0, -1), "RIGHT")]))
             story.append(t2)
             story.append(Spacer(1, 10 * mm))

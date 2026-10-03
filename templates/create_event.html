@@ -23,6 +23,11 @@
                     {{ input_field('event_name', 'Namn på eventet:', event_name, placeholder='Namn på eventet') }}
                     {{ input_field('date', 'Datum då eventet äger rum:', type='date') }}
                     {{ input_field('commission', 'Föreningens andel:', commission, type='number', placeholder='0-100') }}
+                    <div class="mb-3">
+                        <label class="form-label" for="extra_label_fee">Avgift per extra etikett (kr):</label>
+                        <input type="number" class="form-control" id="extra_label_fee" name="extra_label_fee"
+                               value="{{ extra_label_fee() }}" min="0" step="1">
+                    </div>
                     {{ textarea_field('event_description', 'Beskrivning av eventet:', event_description, rows=8, placeholder='Beskrivning av eventet') }}
                 </section>
 

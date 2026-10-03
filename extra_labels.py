@@ -21,10 +21,42 @@ def _ensure_schema(conn):
         """
         CREATE TABLE IF NOT EXISTS extra_labels (
             post_id INTEGER PRIMARY KEY,
-            text TEXT NOT NULL
+            text TEXT NOT NULL,
+            fee REAL NOT NULL DEFAULT 0,
+            fee_locked INTEGER NOT NULL DEFAULT 1
         )
         """
     )
+
+    extra_label_columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(extra_labels)")
+    }
+    if "fee" not in extra_label_columns:
+        conn.execute(
+            "ALTER TABLE extra_labels ADD COLUMN fee REAL NOT NULL DEFAULT 0"
+        )
+        extra_label_columns.add("fee")
+
+    auction_info_columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(auction_info)")
+    }
+    if auction_info_columns and "extra_label_fee" not in auction_info_columns:
+        conn.execute(
+            "ALTER TABLE auction_info ADD COLUMN extra_label_fee REAL NOT NULL DEFAULT 0"
+        )
+
+    if "fee_locked" not in extra_label_columns:
+        conn.execute(
+            "ALTER TABLE extra_labels ADD COLUMN fee_locked INTEGER NOT NULL DEFAULT 0"
+        )
+        row = conn.execute(
+            "SELECT COALESCE(extra_label_fee, 0) FROM auction_info LIMIT 1"
+        ).fetchone()
+        current_fee = float(row[0]) if row else 0.0
+        conn.execute(
+            "UPDATE extra_labels SET fee = ?, fee_locked = 1 WHERE fee_locked = 0",
+            [current_fee],
+        )
 
 
 def _label_generator():
@@ -56,15 +88,32 @@ def _overflow_text(scientific_name, plain_name, description):
     )
 
 
-def _save_extra_label(conn, post_id, text):
+def _current_extra_label_fee(conn=None):
+    owns_connection = conn is None
+    if owns_connection:
+        conn = sqlite3.connect(_database_path())
+
+    try:
+        _ensure_schema(conn)
+        row = conn.execute(
+            "SELECT COALESCE(extra_label_fee, 0) FROM auction_info LIMIT 1"
+        ).fetchone()
+        return float(row[0]) if row else 0.0
+    finally:
+        if owns_connection:
+            conn.close()
+
+
+def _save_extra_label(conn, post_id, text, fee=None):
     if text:
+        applied_fee = _current_extra_label_fee(conn) if fee is None else float(fee)
         conn.execute(
             """
-            INSERT INTO extra_labels (post_id, text)
-            VALUES (?, ?)
+            INSERT INTO extra_labels (post_id, text, fee, fee_locked)
+            VALUES (?, ?, ?, 1)
             ON CONFLICT(post_id) DO UPDATE SET text = excluded.text
             """,
-            [post_id, text],
+            [post_id, text, applied_fee],
         )
     else:
         conn.execute("DELETE FROM extra_labels WHERE post_id = ?", [post_id])
@@ -160,7 +209,12 @@ def _wrap_registration_view(original_view, is_admin):
                         plain_names[index],
                         descriptions[index],
                     )
-                    _save_extra_label(conn, post_id, text)
+                    _save_extra_label(
+                        conn,
+                        post_id,
+                        text,
+                        fee=_current_extra_label_fee(conn),
+                    )
 
         return response
 
@@ -198,7 +252,12 @@ def _wrap_edit_view(original_view):
                         request.form.get("popname", ""),
                         request.form.get("description", ""),
                     )
-                    _save_extra_label(conn, post_id, text)
+                    _save_extra_label(
+                        conn,
+                        post_id,
+                        text,
+                        fee=_current_extra_label_fee(conn),
+                    )
                 else:
                     _save_extra_label(conn, post_id, "")
 
@@ -323,6 +382,7 @@ def register_routes(app):
         lambda post_id: int(post_id) in _post_ids_with_extra_labels()
     )
     app.jinja_env.globals["post_extra_label_fits"] = _extra_label_fits
+    app.jinja_env.globals["extra_label_fee"] = _current_extra_label_fee
 
     if not app.config.get("_EXTRA_LABEL_VIEWS_WRAPPED"):
         if "register_many_posts" in app.view_functions:

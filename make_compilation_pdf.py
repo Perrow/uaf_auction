@@ -116,19 +116,29 @@ class Compilation(object):
             tot_sum = seller[2]
             if tot_sum == None:
                 tot_sum = 0
+            extra_label_fee = seller[4] if len(seller) > 4 else 0
+            extra_label_fee = float(extra_label_fee or 0)
+
             to_society = tot_sum * self.commision
             to_society = int(to_society + 0.5)
-            to_seller = int(tot_sum - to_society)
-            print(tot_sum, to_society, to_seller)
+            available_after_commission = max(0, tot_sum - to_society)
+            charged_extra_label_fee = float(min(extra_label_fee, available_after_commission))
+            to_seller = int(available_after_commission - charged_extra_label_fee)
+            print(tot_sum, to_society, charged_extra_label_fee, to_seller)
 
             data2 = [['', '', '', 'summa', int(tot_sum)],
-                     ['', '', '', 'provision', to_society],
-                     ['', '', '', 'till säljaren', to_seller]]
+                     ['', '', '', 'provision', to_society]]
+            if charged_extra_label_fee > 0:
+                fee_value = int(charged_extra_label_fee) if charged_extra_label_fee.is_integer() else charged_extra_label_fee
+                data2.append(['', '', '', 'extra etiketter', fee_value])
+            data2.append(['', '', '', 'till säljaren', to_seller])
+
+            last_row = len(data2) - 1
             t2 = Table(data2, colWidths=(20 * mm, 20 * mm, 90 * mm, 20 * mm, 30 * mm))  # column width
             t2.setStyle(TableStyle([("LINEABOVE", (0, 0), (4, 0), 1, black),
-                                    ("LINEBELOW", (3, 2), (4, 2), 1, black),
-                                    ('ALIGN', (3, 0), (3, 2), "RIGHT"),
-                                    ('ALIGN', (4, 0), (4, 2), "RIGHT")]))
+                                    ("LINEBELOW", (3, last_row), (4, last_row), 1, black),
+                                    ('ALIGN', (3, 0), (3, last_row), "RIGHT"),
+                                    ('ALIGN', (4, 0), (4, last_row), "RIGHT")]))
             # t2.setStyle(TableStyle([('BACKGROUND', (3, 0), (3, 2), blueviolet),
             #                         ('BACKGROUND', (4, 0), (4, 2), yellowgreen)]))
 
@@ -144,7 +154,11 @@ class Compilation(object):
                 p = Paragraph("Utbetalningskvitto", title)
                 story.append(p)
                 story.append(Spacer(1, 10 * mm))
-                p = Paragraph("Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100)), normal)
+                receipt_text = "Jag har mottagit {} kr från {}. Summan utgör min förtjänst vid {} {} och föreningens förmedlingsavgift på {}% är dragen.".format(to_seller, self.hosting_association, self.event_name, self.event_date, int(self.commision * 100))
+                if charged_extra_label_fee > 0:
+                    fee_value = int(charged_extra_label_fee) if charged_extra_label_fee.is_integer() else charged_extra_label_fee
+                    receipt_text += " Avgift för extra etiketter på {} kr är också dragen.".format(fee_value)
+                p = Paragraph(receipt_text, normal)
                 story.append(p)
                 story.append(Spacer(1, 10 * mm))
                 p = Paragraph(u"{} {}".format(self.event_city, self.event_date), normal_center)

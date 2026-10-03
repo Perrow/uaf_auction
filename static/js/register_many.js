@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const formActions = document.getElementById('form_actions');
     const message = document.getElementById('msg');
     const isAdminRegistration = window.location.pathname.endsWith('/admin_register_many_posts');
+    const extraLabelFee = Number(form?.dataset.extraLabelFee || 0);
+    const extraLabelFeeText = ` (${(Number.isFinite(extraLabelFee) ? extraLabelFee : 0).toLocaleString('sv-SE')} kr)`;
 
     let auctionLimitStatus = null;
 
@@ -155,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="form-text">Färg, antal eller annat intressant. Max 500 tecken.</div>
                         <div class="form-check mt-2">
                             <input class="form-check-input" id="extra_label_${index}" name="extra_label_${index}" type="checkbox" value="yes">
-                            <label class="form-check-label" for="extra_label_${index}">Extra etikett med överskjutande text</label>
+                            <label class="form-check-label" for="extra_label_${index}">Extra etikett med överskjutande text${extraLabelFeeText}</label>
                         </div>
                     </div>
                 </div>

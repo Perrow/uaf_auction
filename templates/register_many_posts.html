@@ -7,7 +7,7 @@
             <h1 class="h2 mb-4">Registrera poster</h1>
 
             {% if registration_open == True %}
-                <form id="register_form" action="{{ url_for('register_many_posts') }}" method="POST" novalidate>
+                <form id="register_form" data-extra-label-fee="{{ extra_label_fee() }}" action="{{ url_for('register_many_posts') }}" method="POST" novalidate>
                     <section id="create_posts" class="card shadow-sm mb-4">
                         <div class="card-body">
                             <div class="row g-3 align-items-end">
