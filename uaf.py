@@ -2165,7 +2165,29 @@ def get_receipt_pdf(selected_id=None, checked=False):
             check_in_nr_posts = len(checked_in_post_ids)
             shorter = list_shorter.ListShorter()
             checked_in_post_ids = shorter.short(checked_in_post_ids)
-            data.append([seller_id, seller_name, seller_club, seller_phone, nr_posts, check_in_nr_posts, registered_post_ids, checked_in_post_ids])
+
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(extra_labels.fee), 0)
+                FROM extra_labels
+                INNER JOIN posts ON posts.obj_id = extra_labels.post_id
+                WHERE posts.seller_id = ?
+                """,
+                seller_id,
+            )
+            extra_label_fees = float(cur.fetchone()[0] or 0)
+
+            data.append([
+                seller_id,
+                seller_name,
+                seller_club,
+                seller_phone,
+                nr_posts,
+                check_in_nr_posts,
+                registered_post_ids,
+                checked_in_post_ids,
+                extra_label_fees,
+            ])
 
     pdf = receipt_pdf.make_pdf(data)
     return pdf
