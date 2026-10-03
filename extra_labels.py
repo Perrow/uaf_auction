@@ -22,7 +22,8 @@ def _ensure_schema(conn):
         CREATE TABLE IF NOT EXISTS extra_labels (
             post_id INTEGER PRIMARY KEY,
             text TEXT NOT NULL,
-            fee REAL NOT NULL DEFAULT 0
+            fee REAL NOT NULL DEFAULT 0,
+            fee_locked INTEGER NOT NULL DEFAULT 1
         )
         """
     )
@@ -30,11 +31,11 @@ def _ensure_schema(conn):
     extra_label_columns = {
         row[1] for row in conn.execute("PRAGMA table_info(extra_labels)")
     }
-    fee_column_added = "fee" not in extra_label_columns
-    if fee_column_added:
+    if "fee" not in extra_label_columns:
         conn.execute(
             "ALTER TABLE extra_labels ADD COLUMN fee REAL NOT NULL DEFAULT 0"
         )
+        extra_label_columns.add("fee")
 
     auction_info_columns = {
         row[1] for row in conn.execute("PRAGMA table_info(auction_info)")
@@ -44,13 +45,16 @@ def _ensure_schema(conn):
             "ALTER TABLE auction_info ADD COLUMN extra_label_fee REAL NOT NULL DEFAULT 0"
         )
 
-    if fee_column_added and auction_info_columns:
+    if "fee_locked" not in extra_label_columns:
+        conn.execute(
+            "ALTER TABLE extra_labels ADD COLUMN fee_locked INTEGER NOT NULL DEFAULT 0"
+        )
         row = conn.execute(
             "SELECT COALESCE(extra_label_fee, 0) FROM auction_info LIMIT 1"
         ).fetchone()
         current_fee = float(row[0]) if row else 0.0
         conn.execute(
-            "UPDATE extra_labels SET fee = ?",
+            "UPDATE extra_labels SET fee = ?, fee_locked = 1 WHERE fee_locked = 0",
             [current_fee],
         )
 
@@ -105,8 +109,8 @@ def _save_extra_label(conn, post_id, text, fee=None):
         applied_fee = _current_extra_label_fee(conn) if fee is None else float(fee)
         conn.execute(
             """
-            INSERT INTO extra_labels (post_id, text, fee)
-            VALUES (?, ?, ?)
+            INSERT INTO extra_labels (post_id, text, fee, fee_locked)
+            VALUES (?, ?, ?, 1)
             ON CONFLICT(post_id) DO UPDATE SET text = excluded.text
             """,
             [post_id, text, applied_fee],
