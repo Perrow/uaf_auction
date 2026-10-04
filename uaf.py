@@ -2051,7 +2051,7 @@ def get_compilation_pdf(selected_id=None, only_checked=False, include_receipt=Tr
             )
             extra_label_fees = float(cur.fetchone()[0] or 0)
 
-            if tot_sold <= 0 and extra_label_fees <= 0 and (selected_id is None):
+            if tot_sold <= 0 and extra_label_fees <= 0 and (selected_id is None) and not only_checked:
                 print("Skipping seller {} with no sales or extra-label fees".format(seller_id))
                 continue
 

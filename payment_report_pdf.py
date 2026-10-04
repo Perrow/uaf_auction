@@ -38,7 +38,7 @@ def payment_report_view():
     pdf = PaymentReport(event_name, event_date).make_pdf(payments)
 
     response = Response(pdf, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename="betalningar.pdf"'
+    response.headers['Content-Disposition'] = 'attachment; filename="betalningar.pdf"'
     response.headers['Cache-Control'] = 'no-store'
     return response
 
